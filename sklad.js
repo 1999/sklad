@@ -231,16 +231,21 @@
         },
 
         /**
-         * Get all objects from the database
+         * Get objects from the database
          * @param {String} objStoreName name of object store
-         * @param {Object} options
+         * @param {Object} options object with keys "index", "range" and "direction"
          * @param {Function} callback invokes:
          *      @param {String|Null} err
          *      @param {Array} stored objects
          */
-        getAll: function skladConnection_getAll(objStoreName, options, callback) {
+        get: function skladConnection_getObjects(objStoreName, options, callback) {
             if (!this.database.objectStoreNames.contains(objStoreName))
                 return callback('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain "' + objStoreName + '" object store');
+
+            if (typeof options === 'function') {
+                callback = options;
+                options = {};
+            }
 
             var transaction;
 
@@ -254,11 +259,20 @@
             var objects = [];
             var iterateRequest;
 
-            try {
-                // @todo keyrange + iterate direction
-                iterateRequest = objStore.openCursor(null, CURSOR_PREV);
-            } catch (ex) {
-                return callback(ex);
+            if (options.index) {
+                try {
+                    // @todo keyrange + iterate direction
+                    iterateRequest = objStore.index(options.index).openCursor(null, CURSOR_PREV);
+                } catch (ex) {
+                    return callback(ex);
+                }
+            } else {
+                try {
+                    // @todo keyrange + iterate direction
+                    iterateRequest = objStore.openCursor(null, CURSOR_PREV);
+                } catch (ex) {
+                    return callback(ex);
+                }
             }
 
             iterateRequest.onsuccess = function (evt) {
@@ -277,27 +291,56 @@
         },
 
         /**
-         * Get object by its key path
+         * Count objects in the database
          * @param {String} objStoreName name of object store
-         * @param {String} keypath object's key
+         * @param {Object} options object with keys "index", ("range" or "key")
          * @param {Function} callback invokes:
          *    @param {String|Null} err
-         *    @param {Mixed} stored object
+         *    @param {Number} number of stored objects
          */
-        getObject: function skladConnection_getObject(objStoreName, keypath, callback) {
-            // do smth
-        },
+        count: function skladConnection_getObject(objStoreName, options, callback) {
+            if (!this.database.objectStoreNames.contains(objStoreName))
+                return callback('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain "' + objStoreName + '" object store');
 
-        /**
-         * Get objects specified by index & range
-         * @param {String} objStoreName name of object store
-         * @param {String} indexName
-         * @param {Object} options
-         * @param {Function} callback invokes:
-         *    @param {String|Null} err
-         */
-        query: function skladConnection_query(objStoreName, indexName, options, callback) {
-            // do smth
+            if (typeof options === 'function') {
+                callback = options;
+                options = {};
+            }
+
+            var transaction;
+
+            try {
+                transaction = this.database.transaction(objStoreName, TRANSACTION_READONLY);
+            } catch (ex) {
+                return callback(ex);
+            }
+
+            var objStore = transaction.objectStore(objStoreName);
+            var countRequest;
+
+            if (options.index) {
+                try {
+                    // @todo keyrange
+                    countRequest = objStore.index(options.index).count();
+                } catch (ex) {
+                    return callback(ex);
+                }
+            } else {
+                try {
+                    // @todo keyrange
+                    countRequest = objStore.count();
+                } catch (ex) {
+                    return callback(ex);
+                }
+            }
+
+            countRequest.onsuccess = function (evt) {
+                callback(null, evt.target.result);
+            };
+
+            countRequest.onerror = function (evt) {
+                callback(countRequest.error);
+            };
         }
     };
 
