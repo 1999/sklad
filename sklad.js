@@ -1,23 +1,23 @@
-(function (w) {
-    w.indexedDB = w.indexedDB || w.mozIndexedDB || w.webkitIndexedDB || w.msIndexedDB;
-    w.IDBTransaction = w.IDBTransaction || w.mozIDBTransaction || w.webkitIDBTransaction || w.msIDBTransaction;
-    w.IDBKeyRange = w.IDBKeyRange || w.mozIDBKeyRange || w.webkitIDBKeyRange || w.msIDBKeyRange;
+(function () {
+    window.indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
+    window.IDBTransaction = window.IDBTransaction || window.mozIDBTransaction || window.webkitIDBTransaction || window.msIDBTransaction;
+    window.IDBKeyRange = window.IDBKeyRange || window.mozIDBKeyRange || window.webkitIDBKeyRange || window.msIDBKeyRange;
+    window.IDBCursor = window.IDBCursor || window.mozIDBCursor || window.webkitIDBCursor || window.msIDBCursor;
+
+    var TRANSACTION_READONLY = window.IDBTransaction.READ_ONLY || "readonly";
+    var TRANSACTION_READWRITE = window.IDBTransaction.READ_WRITE || "readwrite";
+
+    var CURSOR_PREV = window.IDBCursor.PREV || "prev";
+    var CURSOR_PREV_UNIQUE = window.IDBCursor.PREV_NO_DUPLICATE || "prevunique";
+    var CURSOR_NEXT = window.IDBCursor.NEXT || "next";
+    var CURSOR_NEXT_UNIQUE = window.IDBCursor.PREV_NO_DUPLICATE || "nextunique";
 
     // used to silence callbacks
     var emptyFunction = function () {};
 
     var async = {
         /**
-         * Параллельное выполнение задач
-         * @param {Object|Array} tasks пул задач в виде массива или объекта, где каждый элемент - это {Function}, которая принимает:
-         *      * @param {Function} callback
-         *
-         * @param {Number} concurrency количество одновременно выполняемых операций (необязат.)
-         * @param {Function} callback принимает:
-         *      * @param {String|Null} err
-         *      * @param {Object|Array} results
-         *
-         * @link https://npmjs.org/package/async#parallel
+         * @see https://npmjs.org/package/async#parallel
          */
         parallel: function async_parallel(tasks, concurrency, callback) {
             if (arguments.length === 2) {
@@ -67,15 +67,7 @@
         },
 
         /**
-         * Последовательное выполнение задач
-         * @param {Object|Array} tasks пул задач в виде массива или объекта, где каждый элемент - это {Function}, которая принимает:
-         *      * @param {Function} callback
-         *
-         * @param {Function} callback принимает:
-         *      * @param {String|Null} err
-         *      * @param {Object|Array} results
-         *
-         * @link https://npmjs.org/package/async#series
+         * @see https://npmjs.org/package/async#series
          */
         series: function async_series(tasks, callback) {
             var isNamedQueue = !Array.isArray(tasks);
@@ -103,67 +95,185 @@
 
     var skladConnection = {
         /**
-         * Insert record to database
+         * Insert record to the database
+         * If objectStore was created without any optional parameters, then you should specify key, or DOMException will be raised
+         *
          * @param {String} objStoreName name of object store
-         * @param {Mixed} obj object to be inserted
+         * @param {Object} data object with fields "key" (optional) and "value"
          * @param {Function} callback invokes:
          *    @param {String|Null} err
          *    @param {String} inserted object key
          */
-        insert: function skladConnection_insert(objStoreName, obj, key, callback) {
-            if (typeof key === 'function') {
-                callback = key;
-                key = undefined;
-            }
-
+        insert: function skladConnection_insert(objStoreName, data, callback) {
             if (!this.database.objectStoreNames.contains(objStoreName))
                 return callback('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain "' + objStoreName + '" object store');
 
             var transaction;
+            var addObjRequest;
+
             try {
-                transaction = this.database.transaction(objStoreName, "readwrite");
+                transaction = this.database.transaction(objStoreName, TRANSACTION_READWRITE);
             } catch (ex) {
                 callback(ex);
                 callback = emptyFunction;
 
                 return;
             }
-            
-            transaction.oncomplete = function (evt) {
-                callback(evt.target, objStore);
-            };
 
             var objStore = transaction.objectStore(objStoreName);
 
             try {
-                objStore.add(obj);
+                addObjRequest = objStore.add(data.value);
             } catch (ex) {
                 callback(ex);
                 callback = emptyFunction;
+
+                return;
             }
+
+            addObjRequest.onsuccess = function(evt) {
+                callback(null, evt.target.result);
+            };
+
+            addObjRequest.onerror = function(evt) {
+                callback(addObjRequest.error);
+            };
         },
 
         /**
-         * Update or insert record to database
+         * Insert or insert record to the database
+         * If objectStore was created without any optional parameters, then you should specify key, or DOMException will be raised
+         *
          * @param {String} objStoreName name of object store
-         * @param {Mixed} obj object to be inserted
+         * @param {Object} data object with fields "key" (optional) and "value"
          * @param {Function} callback invokes:
          *    @param {String|Null} err
          *    @param {String} inserted object key
          */
-        save: function skladConnection_save(objStoreName, obj, callback) {
-            // same but save
+        upsert: function skladConnection_save(objStoreName, data, callback) {
+            if (!this.database.objectStoreNames.contains(objStoreName))
+                return callback('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain "' + objStoreName + '" object store');
+
+            var transaction;
+            var upsertObjRequest;
+
+            try {
+                transaction = this.database.transaction(objStoreName, TRANSACTION_READWRITE);
+            } catch (ex) {
+                callback(ex);
+                callback = emptyFunction;
+
+                return;
+            }
+
+            var objStore = transaction.objectStore(objStoreName);
+
+            try {
+                upsertObjRequest = objStore.put(data.value);
+            } catch (ex) {
+                callback(ex);
+                callback = emptyFunction;
+
+                return;
+            }
+
+            upsertObjRequest.onsuccess = function(evt) {
+                callback(null, evt.target.result);
+            };
+
+            upsertObjRequest.onerror = function(evt) {
+                callback(upsertObjRequest.error);
+            };
         },
 
         /**
-         * Delete record from database
+         * Delete record from the database
+         *
          * @param {String} objStoreName name of object store
          * @param {String} key object's key
          * @param {Function} callback invokes:
          *    @param {String|Null} err
          */
         delete: function skladConnection_delete(objStoreName, key, callback) {
-            // do smth
+            if (!this.database.objectStoreNames.contains(objStoreName))
+                return callback('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain "' + objStoreName + '" object store');
+
+            var transaction;
+            var deleteObjRequest;
+
+            try {
+                transaction = this.database.transaction(objStoreName, TRANSACTION_READWRITE);
+            } catch (ex) {
+                callback(ex);
+                callback = emptyFunction;
+
+                return;
+            }
+
+            var objStore = transaction.objectStore(objStoreName);
+
+            try {
+                deleteObjRequest = objStore.delete(key);
+            } catch (ex) {
+                callback(ex);
+                callback = emptyFunction;
+
+                return;
+            }
+
+            deleteObjRequest.onsuccess = function(evt) {
+                callback();
+            };
+
+            deleteObjRequest.onerror = function(evt) {
+                callback(deleteObjRequest.error);
+            };
+        },
+
+        /**
+         * Get all objects from the database
+         * @param {String} objStoreName name of object store
+         * @param {Object} options
+         * @param {Function} callback invokes:
+         *      @param {String|Null} err
+         *      @param {Array} stored objects
+         */
+        getAll: function skladConnection_getAll(objStoreName, options, callback) {
+            if (!this.database.objectStoreNames.contains(objStoreName))
+                return callback('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain "' + objStoreName + '" object store');
+
+            var transaction;
+
+            try {
+                transaction = this.database.transaction(objStoreName, TRANSACTION_READONLY);
+            } catch (ex) {
+                return callback(ex);
+            }
+
+            var objStore = transaction.objectStore(objStoreName);
+            var objects = [];
+            var iterateRequest;
+
+            try {
+                // @todo keyrange + iterate direction
+                iterateRequest = objStore.openCursor(null, CURSOR_PREV);
+            } catch (ex) {
+                return callback(ex);
+            }
+
+            iterateRequest.onsuccess = function (evt) {
+                var cursor = evt.target.result;
+                if (cursor) {
+                    objects.push(cursor.value);
+                    cursor.continue();
+                } else {
+                    callback(null, objects);
+                }
+            };
+
+            iterateRequest.onerror = function (evt) {
+                callback(iterateRequest.error);
+            };
         },
 
         /**
@@ -175,17 +285,6 @@
          *    @param {Mixed} stored object
          */
         getObject: function skladConnection_getObject(objStoreName, keypath, callback) {
-            // work with obj
-        },
-
-        /**
-         * Get all objects from database
-         * @param {String} objStoreName name of object store
-         * @param {Object} options
-         * @param {Function} callback invokes:
-         *    @param {String|Null} err
-         */
-        getAll: function skladConnection_getAll(objStoreName, options, callback) {
             // do smth
         },
 
@@ -199,33 +298,10 @@
          */
         query: function skladConnection_query(objStoreName, indexName, options, callback) {
             // do smth
-        },
-
-        /**
-         * Create index on top of the object store
-         * @param {String} objStoreName name of object store
-         * @param {String} indexName
-         * @param {Object} options
-         * @param {Function} callback invokes:
-         *    @param {String|Null} err
-         */
-        createIndex: function skladConnection_createIndex(objStoreName, indexName, options, callback) {
-            // do smth
-        },
-
-        /**
-         * Delete index from the the object store
-         * @param {String} objStoreName name of object store
-         * @param {String} indexName
-         * @param {Function} callback invokes:
-         *    @param {String|Null} err
-         */
-        deleteIndex: function skladConnection_deleteIndex(objStoreName, indexName, callback) {
-            // do smth
         }
     };
 
-    w.sklad = {
+    window.sklad = {
         /**
          * Opens a connection to a database
          * @param {String} dbName database name
@@ -237,7 +313,7 @@
          *    @param {Object} database
          */
         open: function (dbName, options, callback) {
-            if (!w.indexedDB)
+            if (!window.indexedDB)
                 return callback("Your browser doesn't support IndexedDB");
 
             if (typeof options === 'function') {
@@ -247,7 +323,7 @@
 
             options.version = options.version || 1;
 
-            var openConnRequest = w.indexedDB.open(dbName, options.version);
+            var openConnRequest = window.indexedDB.open(dbName, options.version);
             var migrationStarted = false;
             var isConnected = false;
 
@@ -314,4 +390,4 @@
 
         // @todo https://developer.mozilla.org/en-US/docs/IndexedDB/IDBFactory#deleteDatabase
     };
-})(window);
+})();

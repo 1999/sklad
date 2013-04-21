@@ -9,7 +9,9 @@
             migration: {
                 "1": function (callback) {
                     // @todo https://developer.mozilla.org/en-US/docs/IndexedDB/IDBDatabase#createObjectStore
-                    this.createObjectStore("obj_store", {autoIncrement: true});
+                    var objStore = this.createObjectStore("obj_store", {autoIncrement: true});
+                    // objStore.createIndex('foo', 'foo', {unique: true});
+                    // this.transaction(objStoreName, "readwrite");
                     callback();
                 }
             }
@@ -17,8 +19,22 @@
             if (err)
                 throw new Error(err);
 
-            database.insert("obj_store", {foo: "bar"}, function (err, key) {
-                console.log(arguments);
+            database.upsert("obj_store", {
+                value: {foo: "bar"}
+            }, function (err, key) {
+                if (err)
+                    throw err;
+                
+                database.upsert("obj_store", {
+                    value: {foo: "bar2"}
+                }, function (err, key) {
+                    if (err)
+                        throw err;
+
+                    database.getAll("obj_store", {}, function (err, key) {
+                        console.log(arguments);
+                    });
+                });
             });
         });
     }, false);
