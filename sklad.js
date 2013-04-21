@@ -7,13 +7,11 @@
     var TRANSACTION_READONLY = window.IDBTransaction.READ_ONLY || "readonly";
     var TRANSACTION_READWRITE = window.IDBTransaction.READ_WRITE || "readwrite";
 
-    var CURSOR_PREV = window.IDBCursor.PREV || "prev";
-    var CURSOR_PREV_UNIQUE = window.IDBCursor.PREV_NO_DUPLICATE || "prevunique";
-    var CURSOR_NEXT = window.IDBCursor.NEXT || "next";
-    var CURSOR_NEXT_UNIQUE = window.IDBCursor.PREV_NO_DUPLICATE || "nextunique";
-
-    // used to silence callbacks
-    var emptyFunction = function () {};
+    window.sklad = {};
+    window.sklad.ITERATE_NEXT = window.IDBCursor.NEXT || "next";
+    window.sklad.ITERATE_NEXTUNIQUE = window.IDBCursor.NEXT_NO_DUPLICATE || "nextunique";
+    window.sklad.ITERATE_PREV = window.IDBCursor.PREV || "prev";
+    window.sklad.ITERATE_PREVUNIQUE = window.IDBCursor.PREV_NO_DUPLICATE || "prevunique";
 
     var async = {
         /**
@@ -114,10 +112,7 @@
             try {
                 transaction = this.database.transaction(objStoreName, TRANSACTION_READWRITE);
             } catch (ex) {
-                callback(ex);
-                callback = emptyFunction;
-
-                return;
+                return callback(ex);
             }
 
             var objStore = transaction.objectStore(objStoreName);
@@ -125,10 +120,7 @@
             try {
                 addObjRequest = objStore.add(data.value);
             } catch (ex) {
-                callback(ex);
-                callback = emptyFunction;
-
-                return;
+                return callback(ex);
             }
 
             addObjRequest.onsuccess = function(evt) {
@@ -160,10 +152,7 @@
             try {
                 transaction = this.database.transaction(objStoreName, TRANSACTION_READWRITE);
             } catch (ex) {
-                callback(ex);
-                callback = emptyFunction;
-
-                return;
+                return callback(ex);
             }
 
             var objStore = transaction.objectStore(objStoreName);
@@ -171,10 +160,7 @@
             try {
                 upsertObjRequest = objStore.put(data.value);
             } catch (ex) {
-                callback(ex);
-                callback = emptyFunction;
-
-                return;
+                return callback(ex);
             }
 
             upsertObjRequest.onsuccess = function(evt) {
@@ -204,10 +190,7 @@
             try {
                 transaction = this.database.transaction(objStoreName, TRANSACTION_READWRITE);
             } catch (ex) {
-                callback(ex);
-                callback = emptyFunction;
-
-                return;
+                return callback(ex);
             }
 
             var objStore = transaction.objectStore(objStoreName);
@@ -215,10 +198,7 @@
             try {
                 deleteObjRequest = objStore.delete(key);
             } catch (ex) {
-                callback(ex);
-                callback = emptyFunction;
-
-                return;
+                return callback(ex);
             }
 
             deleteObjRequest.onsuccess = function(evt) {
@@ -238,7 +218,7 @@
          *      @param {String|Null} err
          *      @param {Array} stored objects
          */
-        get: function skladConnection_getObjects(objStoreName, options, callback) {
+        get: function skladConnection_get(objStoreName, options, callback) {
             if (!this.database.objectStoreNames.contains(objStoreName))
                 return callback('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain "' + objStoreName + '" object store');
 
@@ -256,20 +236,21 @@
             }
 
             var objStore = transaction.objectStore(objStoreName);
+            var direction = options.direction || window.sklad.ITERATE_NEXT;
             var objects = [];
             var iterateRequest;
 
             if (options.index) {
                 try {
                     // @todo keyrange + iterate direction
-                    iterateRequest = objStore.index(options.index).openCursor(null, CURSOR_PREV);
+                    iterateRequest = objStore.index(options.index).openCursor(null, direction);
                 } catch (ex) {
                     return callback(ex);
                 }
             } else {
                 try {
-                    // @todo keyrange + iterate direction
-                    iterateRequest = objStore.openCursor(null, CURSOR_PREV);
+                    // @todo keyrange + iterate direction - https://developer.mozilla.org/en-US/docs/IndexedDB/IDBKeyRange
+                    iterateRequest = objStore.openCursor(null, direction);
                 } catch (ex) {
                     return callback(ex);
                 }
@@ -298,7 +279,7 @@
          *    @param {String|Null} err
          *    @param {Number} number of stored objects
          */
-        count: function skladConnection_getObject(objStoreName, options, callback) {
+        count: function skladConnection_count(objStoreName, options, callback) {
             if (!this.database.objectStoreNames.contains(objStoreName))
                 return callback('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain "' + objStoreName + '" object store');
 
@@ -344,93 +325,89 @@
         }
     };
 
-    window.sklad = {
-        /**
-         * Opens a connection to a database
-         * @param {String} dbName database name
-         * @param {Object} options (optional) connection options with keys:
-         *    {Number} version - database version
-         *    {Object} migration - migration scripts
-         * @param {Function} callback invokes
-         *    @param {String|Null} err
-         *    @param {Object} database
-         */
-        open: function (dbName, options, callback) {
-            if (!window.indexedDB)
-                return callback("Your browser doesn't support IndexedDB");
+    /**
+     * Opens a connection to a database
+     * @param {String} dbName database name
+     * @param {Object} options (optional) connection options with keys:
+     *    {Number} version - database version
+     *    {Object} migration - migration scripts
+     * @param {Function} callback invokes
+     *    @param {String|Null} err
+     *    @param {Object} database
+     */
+    window.sklad.open = function sklad_open(dbName, options, callback) {
+        if (!window.indexedDB)
+            return callback("Your browser doesn't support IndexedDB");
 
-            if (typeof options === 'function') {
-                callback = options;
-                options = {};
+        if (typeof options === 'function') {
+            callback = options;
+            options = {};
+        }
+
+        options.version = options.version || 1;
+
+        var openConnRequest = window.indexedDB.open(dbName, options.version);
+        var migrationStarted = false;
+        var isConnected = false;
+
+        openConnRequest.onupgradeneeded = function (evt) {
+            options.migration = options.migration || {};
+            migrationStarted = true;
+
+            var database = evt.target.result;
+            var seriesTasks = {};
+
+            for (var i = evt.oldVersion + 1; i <= evt.newVersion; i++) {
+                if (!options.migration[i])
+                    continue;
+
+                seriesTasks[i] = options.migration[i].bind(database);
             }
 
-            options.version = options.version || 1;
+            async.series(seriesTasks, function (err, results) {
+                if (err)
+                    return callback('Failed while migrating database: ' + err);
 
-            var openConnRequest = window.indexedDB.open(dbName, options.version);
-            var migrationStarted = false;
-            var isConnected = false;
-
-            openConnRequest.onupgradeneeded = function (evt) {
-                options.migration = options.migration || {};
-                migrationStarted = true;
-
-                var database = evt.target.result;
-                var seriesTasks = {};
-
-                for (var i = evt.oldVersion + 1; i <= evt.newVersion; i++) {
-                    if (!options.migration[i])
-                        continue;
-
-                    seriesTasks[i] = options.migration[i].bind(database);
+                if (isConnected) {
+                    callback(null, Object.create(skladConnection, {
+                        database: {
+                            configurable: false,
+                            enumerable: false,
+                            value: database,
+                            writable: false
+                        }
+                    }));
                 }
 
-                async.series(seriesTasks, function (err, results) {
-                    if (err)
-                        return callback('Failed while migrating database: ' + err);
+                // change migration flag so "onsuccess" handler could invoke callback
+                migrationStarted = false;
+            });
+        };
 
-                    if (isConnected) {
-                        callback(null, Object.create(skladConnection, {
-                            database: {
-                                configurable: false,
-                                enumerable: false,
-                                value: database,
-                                writable: false
-                            }
-                        }));
-                    }
+        openConnRequest.onerror = function(evt) {
+            callback('Failed to connect to database. Error code ' + evt.target.errorCode);
+        };
 
-                    // change migration flag so "onsuccess" handler could invoke callback
-                    migrationStarted = false;
-                });
-            };
+        openConnRequest.onsuccess = function(evt) {
+            if (migrationStarted) {
+                isConnected = true;
+                return;
+            }
 
-            openConnRequest.onerror = function(evt) {
-                callback('Failed to connect to database. Error code ' + evt.target.errorCode);
-            };
-
-            openConnRequest.onsuccess = function(evt) {
-                if (migrationStarted) {
-                    isConnected = true;
-                    return;
+            callback(null, Object.create(skladConnection, {
+                database: {
+                    configurable: false,
+                    enumerable: false,
+                    value: evt.target.result,
+                    writable: false
                 }
+            }));
+        };
 
-                callback(null, Object.create(skladConnection, {
-                    database: {
-                        configurable: false,
-                        enumerable: false,
-                        value: evt.target.result,
-                        writable: false
-                    }
-                }));
-            };
-
-            openConnRequest.onblocked = function(evt) {
-                // If some other tab is loaded with the database, then it needs to be closed
-                // before we can proceed.
-                // @todo
-            };
-        },
-
-        // @todo https://developer.mozilla.org/en-US/docs/IndexedDB/IDBFactory#deleteDatabase
+        openConnRequest.onblocked = function(evt) {
+            // If some other tab is loaded with the database, then it needs to be closed
+            // before we can proceed.
+            // @todo
+        };
     };
 })();

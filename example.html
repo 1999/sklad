@@ -31,7 +31,7 @@
                     if (err)
                         throw err;
 
-                    database.getAll("obj_store", {}, function (err, key) {
+                    database.get("obj_store", {}, function (err, key) {
                         console.log(arguments);
                     });
                 });
