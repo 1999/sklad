@@ -1,0 +1,30 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>Sklad example</title>
+    <script src="./sklad.js"></script>
+    <script type="text/javascript">
+    document.addEventListener("DOMContentLoaded", function () {
+        sklad.open("example" + Date.now(), {
+            migration: {
+                "1": function (callback) {
+                    // @todo https://developer.mozilla.org/en-US/docs/IndexedDB/IDBDatabase#createObjectStore
+                    this.createObjectStore("obj_store", {autoIncrement: true});
+                    callback();
+                }
+            }
+        }, function (err, database) {
+            if (err)
+                throw new Error(err);
+
+            database.insert("obj_store", {foo: "bar"}, function (err, key) {
+                console.log(arguments);
+            });
+        });
+    }, false);
+    </script>
+</head>
+<body>
+
+</body>
+</html>
