@@ -22,84 +22,6 @@
         });
     };
 
-    var async = {
-        /**
-         * @see https://npmjs.org/package/async#parallel
-         */
-        parallel: function async_parallel(tasks, concurrency, callback) {
-            if (arguments.length === 2) {
-                callback = concurrency;
-                concurrency = 0;
-            }
-
-            var isNamedQueue = !Array.isArray(tasks);
-            var tasksKeys = isNamedQueue ? Object.keys(tasks) : new Array(tasks.length);
-            var resultsData = isNamedQueue ? {} : [];
-
-            if (!tasksKeys.length)
-                return callback(null, resultsData);
-
-            var tasksProcessedNum = 0;
-            var tasksBeingProcessed = 0;
-            var tasksTotalNum = tasksKeys.length;
-
-            (function processTasks() {
-                if (!tasksKeys.length || (concurrency && concurrency <= tasksBeingProcessed))
-                    return;
-
-                var taskIndex = tasksKeys.pop() || tasksKeys.length;
-                tasksBeingProcessed += 1;
-
-                tasks[taskIndex](function (err, data) {
-                    tasksBeingProcessed -= 1;
-
-                    if (err) {
-                        var originalCallback = callback;
-                        callback = function () { return true };
-
-                        return originalCallback(err);
-                    }
-
-                    resultsData[taskIndex] = data;
-                    tasksProcessedNum += 1;
-
-                    if (tasksProcessedNum === tasksTotalNum)
-                        return callback(null, resultsData);
-
-                    processTasks();
-                });
-
-                processTasks();
-            })();
-        },
-
-        /**
-         * @see https://npmjs.org/package/async#series
-         */
-        series: function async_series(tasks, callback) {
-            var isNamedQueue = !Array.isArray(tasks);
-            var tasksKeys = isNamedQueue ? Object.keys(tasks) : new Array(tasks.length);
-            var resultsData = isNamedQueue ? {} : [];
-
-            if (!tasksKeys.length)
-                return callback(null, resultsData);
-
-            (function processTasks(numTasksProcessed) {
-                if (numTasksProcessed === tasksKeys.length)
-                    return callback(null, resultsData);
-
-                var taskIndex = isNamedQueue ? tasksKeys[numTasksProcessed] : numTasksProcessed;
-                tasks[taskIndex](function (err, data) {
-                    if (err)
-                        return callback(err);
-
-                    resultsData[taskIndex] = data;
-                    processTasks(++numTasksProcessed);
-                });
-            })(0);
-        }
-    };
-
     var skladConnection = {
         /**
          * Insert record to the database
@@ -112,15 +34,15 @@
          *    @param {String} inserted object key
          */
         insert: function skladConnection_insert(objStoreName, key, data, callback) {
-            if (!this.database.objectStoreNames.contains(objStoreName))
-                return callback('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain "' + objStoreName + '" object store');
-            
             if (typeof data === 'function') {
                 callback = data;
                 data = key;
                 key = undefined;
             }
 
+            if (!this.database.objectStoreNames.contains(objStoreName))
+                return callback('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain "' + objStoreName + '" object store');
+            
             var transaction;
             var addObjRequest;
 
@@ -165,24 +87,24 @@
         },
 
         /**
-         * Insert or updated record in the database
+         * Insert or update record in the database
          * 
          * @param {String} objStoreName name of object store
          * @param {Mixed} key (optional) object key
          * @param {Mixed} data
          * @param {Function} callback invokes:
          *    @param {String|Null} err
-         *    @param {String} inserted object key
+         *    @param {String} saved object key
          */
-        upsert: function skladConnection_save(objStoreName, key, data, callback) {
-            if (!this.database.objectStoreNames.contains(objStoreName))
-                return callback('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain "' + objStoreName + '" object store');
-
+        upsert: function skladConnection_upsert(objStoreName, key, data, callback) {
             if (typeof data === 'function') {
                 callback = data;
                 data = key;
                 key = undefined;
             }
+
+            if (!this.database.objectStoreNames.contains(objStoreName))
+                return callback('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain "' + objStoreName + '" object store');
 
             var transaction;
             var upsertObjRequest;
@@ -267,6 +189,7 @@
 
         /**
          * Get objects from the database
+         *
          * @param {String} objStoreName name of object store
          * @param {Object} options object with keys "index", "range" and "direction"
          * @param {Function} callback invokes:
@@ -333,8 +256,9 @@
 
         /**
          * Count objects in the database
+         *
          * @param {String} objStoreName name of object store
-         * @param {Object} options object with keys "index", ("range" or "key")
+         * @param {Object} options object with keys "index" and "range"
          * @param {Function} callback invokes:
          *    @param {String|Null} err
          *    @param {Number} number of stored objects
@@ -392,6 +316,7 @@
 
     /**
      * Opens a connection to a database
+     *
      * @param {String} dbName database name
      * @param {Object} options (optional) connection options with keys:
      *    {Number} version - database version
@@ -424,7 +349,7 @@
         };
 
         openConnRequest.onerror = function(evt) {
-            callback('Failed to connect to database. Error code ' + evt.target.errorCode);
+            callback(evt.target.error);
         };
 
         openConnRequest.onsuccess = function(evt) {

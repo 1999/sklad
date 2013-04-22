@@ -1,15 +1,16 @@
-# Sklad: IndexedDB abstraction layer ![Travis CI](https://secure.travis-ci.org/1999/sklad.png?branch=master)
+# Sklad: IndexedDB abstraction layer
 
 ## Open database
 ```javascript
 /**
  * Opens a connection to database
  * @param {String} dbName database name
+ * @param {Object} options (optional) object with {Number} "version" and {Object} "migration" fields
  * @param {Function} callback invokes:
  *    @param {String|Null} err
- *    @param {Object} database
+ *    @param {Object} database (with skladConnection as the prototype)
  */
-sklad.open("dbName", function (err, database) {
+sklad.open('dbName', options, function (err, database) {
   // work with database
 });
 ```
@@ -17,116 +18,65 @@ sklad.open("dbName", function (err, database) {
 ## Insert record
 ```javascript
 /**
- * Insert record to database
- * @param {String} objStoreName name of object store
- * @param {Mixed} obj object to be inserted
+ * @param {String} objStoreName name of the object store
+ * @param {String|Date|Float|Array} key (optional) key
+ * @param {Mixed} data
  * @param {Function} callback invokes:
  *    @param {String|Null} err
- *    @param {String} inserted object key
+ *    @param {String|Date|Float|Array} inserted object key
  */
-database.insert(objStoreName, obj, function (err, key) {
-  // work with inserted key
-});
+insert: function skladConnection_insert(objStoreName, key, data, callback) {}
 ```
 
 ## Upsert record
 ```javascript
 /**
- * Update or insert record to database
  * @param {String} objStoreName name of object store
- * @param {Mixed} obj object to be inserted
+ * @param {String|Date|Float|Array} key (optional) key
+ * @param {Mixed} data
  * @param {Function} callback invokes:
  *    @param {String|Null} err
- *    @param {String} inserted object key
+ *    @param {String} saved object key
  */
-database.save(objStoreName, obj, function (err, key) {
-  // work with inserted/updated key
-});
+upsert: function skladConnection_upsert(objStoreName, key, data, callback) {}
 ```
 
-## Delete object
+## Delete record
 ```javascript
 /**
- * Delete record from database
+ * Delete record from the database
+ *
  * @param {String} objStoreName name of object store
  * @param {String} key object's key
  * @param {Function} callback invokes:
  *    @param {String|Null} err
  */
-database.delete(objStoreName, key, function (err) {
-  // do smth
-});
+delete: function skladConnection_delete(objStoreName, key, callback) {}
 ```
 
-## Get record by keypath
+## Get records from the database
 ```javascript
 /**
- * Get object by its key path
  * @param {String} objStoreName name of object store
- * @param {String} keypath object's key
+ * @param {Object} options object with keys "index", "range" and "direction"
  * @param {Function} callback invokes:
- *    @param {String|Null} err
- *    @param {Mixed} stored object
+ *      @param {String|Null} err
+ *      @param {Array} stored objects
  */
-database.getObject(objStoreName, keypath, function (err, obj) {
-  // work with obj
-});
+get: function skladConnection_get(objStoreName, options, callback) {},
 ```
 
-## Get all stored objects
+## Count objects in the database
 ```javascript
 /**
- * Get all objects from database
  * @param {String} objStoreName name of object store
- * @param {Object} options
+ * @param {Object} options object with keys "index" and "range"
  * @param {Function} callback invokes:
  *    @param {String|Null} err
+ *    @param {Number} number of stored objects
  */
-database.getAll(objStoreName, options, function (err) {
-  // do smth
-});
+count: function skladConnection_count(objStoreName, options, callback) {}
 ```
 
-## Get objects by key range
-```javascript
-/**
- * Get objects specified by index & range
- * @param {String} objStoreName name of object store
- * @param {String} indexName
- * @param {Object} options
- * @param {Function} callback invokes:
- *    @param {String|Null} err
- */
-database.query(objStoreName, indexName, options, function (err) {
-  // do smth
-});
-```
-
-## Create index
-```javascript
-/**
- * Create index on top of the object store
- * @param {String} objStoreName name of object store
- * @param {String} indexName
- * @param {Object} options
- * @param {Function} callback invokes:
- *    @param {String|Null} err
- */
-database.createIndex(objStoreName, indexName, options, function (err) {
-  // do smth
-});
-```
-
-## Delete index
-```javascript
-/**
- * Delete index from the the object store
- * @param {String} objStoreName name of object store
- * @param {String} indexName
- * @param {Function} callback invokes:
- *    @param {String|Null} err
- */
-database.deleteIndex(objStoreName, indexName, function (err) {
-  // do smth
-});
-```
+# Any tests?
+PhantomJS is still [missing](https://github.com/ariya/phantomjs/issues/10992) support for IndexedDB, so i can't cover examples with tests right now. I hope the things will change soon.
