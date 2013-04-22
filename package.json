@@ -1,0 +1,17 @@
+{
+    "name": "sklad",
+    "version": "1.0.0",
+    "homepage": "https://github.com/1999/sklad",
+    "author": "Dmitry Sorin <info@staypositive.ru>",
+    "private": true,
+    "scripts": {
+        "test": "nodeunit tests/*"
+    },
+    "devDependencies": {
+        "nodeunit" : "0.8.x"
+    },
+    "license": "MIT",
+    "engines": {
+        "node": ">=0.10"
+    }
+}

@@ -1,4 +1,4 @@
-# Sklad IndexedDB abstraction layer
+# Sklad: IndexedDB abstraction layer ![Travis CI](https://secure.travis-ci.org/1999/sklad.png?branch=master)
 
 ## Open database
 ```javascript
