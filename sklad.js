@@ -12,6 +12,15 @@
     window.sklad.ITERATE_NEXTUNIQUE = window.IDBCursor.NEXT_NO_DUPLICATE || "nextunique";
     window.sklad.ITERATE_PREV = window.IDBCursor.PREV || "prev";
     window.sklad.ITERATE_PREVUNIQUE = window.IDBCursor.PREV_NO_DUPLICATE || "prevunique";
+    
+    var uuid = function () {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            var r = Math.random() * 16 | 0;
+            var v = (c == 'x') ? r : (r&0x3|0x8);
+
+            return v.toString(16);
+        });
+    };
 
     var async = {
         /**
@@ -94,17 +103,23 @@
     var skladConnection = {
         /**
          * Insert record to the database
-         * If objectStore was created without any optional parameters, then you should specify key, or DOMException will be raised
          *
          * @param {String} objStoreName name of object store
-         * @param {Object} data object with fields "key" (optional) and "value"
+         * @param {Mixed} key (optional) object key
+         * @param {Mixed} data
          * @param {Function} callback invokes:
          *    @param {String|Null} err
          *    @param {String} inserted object key
          */
-        insert: function skladConnection_insert(objStoreName, data, callback) {
+        insert: function skladConnection_insert(objStoreName, key, data, callback) {
             if (!this.database.objectStoreNames.contains(objStoreName))
                 return callback('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain "' + objStoreName + '" object store');
+            
+            if (typeof data === 'function') {
+                callback = data;
+                data = key;
+                key = undefined;
+            }
 
             var transaction;
             var addObjRequest;
@@ -120,21 +135,21 @@
             // check the data according to this table
             // @see https://developer.mozilla.org/en-US/docs/IndexedDB/Using_IndexedDB#Structuring_the_database
             if (objStore.keyPath === null) {
-                if (!objStore.autoIncrement && data.key === undefined) {
-                    return callback('You must supply a separate key for the data saved in the "' + objStore.name + '" object store');
+                if (!objStore.autoIncrement) {
+                    key = key || uuid();
                 }
             } else {
-                if (typeof data.value !== 'object') {
+                if (typeof data !== 'object') {
                     return callback('You must supply an object to be saved in the "' + objStore.name + '" object store');
                 }
 
-                if (!objStore.autoIncrement && data.value[objStore.keyPath] === undefined) {
-                    return callback('You must supply an object with "' + objStore.keyPath + '" key to be saved in the "' + objStore.name + '" object store');
+                if (!objStore.autoIncrement) {
+                    data[objStore.keyPath] = data[objStore.keyPath] || uuid();
                 }
             }
 
             try {
-                var args = (data.key !== undefined) ? [data.value, data.key] : [data.value];
+                var args = (key !== undefined) ? [data, key] : [data];
                 addObjRequest = objStore.add.apply(objStore, args);
             } catch (ex) {
                 return callback(ex);
@@ -150,16 +165,16 @@
         },
 
         /**
-         * Insert or insert record to the database
-         * If objectStore was created without any optional parameters, then you should specify key, or DOMException will be raised
-         *
+         * Insert or updated record in the database
+         * 
          * @param {String} objStoreName name of object store
-         * @param {Object} data object with fields "key" (optional) and "value"
+         * @param {Mixed} key (optional) object key
+         * @param {Mixed} data
          * @param {Function} callback invokes:
          *    @param {String|Null} err
          *    @param {String} inserted object key
          */
-        upsert: function skladConnection_save(objStoreName, data, callback) {
+        upsert: function skladConnection_save(objStoreName, key, data, callback) {
             if (!this.database.objectStoreNames.contains(objStoreName))
                 return callback('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain "' + objStoreName + '" object store');
 
@@ -177,21 +192,21 @@
             // check the data according to this table
             // @see https://developer.mozilla.org/en-US/docs/IndexedDB/Using_IndexedDB#Structuring_the_database
             if (objStore.keyPath === null) {
-                if (!objStore.autoIncrement && data.key === undefined) {
-                    return callback('You must supply a separate key for the data saved in the "' + objStore.name + '" object store');
+                if (!objStore.autoIncrement) {
+                    key = key || uuid();
                 }
             } else {
-                if (typeof data.value !== 'object') {
+                if (typeof data !== 'object') {
                     return callback('You must supply an object to be saved in the "' + objStore.name + '" object store');
                 }
 
-                if (!objStore.autoIncrement && data.value[objStore.keyPath] === undefined) {
-                    return callback('You must supply an object with "' + objStore.keyPath + '" key to be saved in the "' + objStore.name + '" object store');
+                if (!objStore.autoIncrement) {
+                    data[objStore.keyPath] = data[objStore.keyPath] || uuid();
                 }
             }
 
             try {
-                var args = (data.key !== undefined) ? [data.value, data.key] : [data.value];
+                var args = (key !== undefined) ? [data, key] : [data];
                 upsertObjRequest = objStore.put.apply(objStore, args);
             } catch (ex) {
                 return callback(ex);
