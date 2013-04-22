@@ -117,8 +117,25 @@
 
             var objStore = transaction.objectStore(objStoreName);
 
+            // check the data according to this table
+            // @see https://developer.mozilla.org/en-US/docs/IndexedDB/Using_IndexedDB#Structuring_the_database
+            if (objStore.keyPath === null) {
+                if (!objStore.autoIncrement && data.key === undefined) {
+                    return callback('You must supply a separate key for the data saved in the "' + objStore.name + '" object store');
+                }
+            } else {
+                if (typeof data.value !== 'object') {
+                    return callback('You must supply an object to be saved in the "' + objStore.name + '" object store');
+                }
+
+                if (!objStore.autoIncrement && data.value[objStore.keyPath] === undefined) {
+                    return callback('You must supply an object with "' + objStore.keyPath + '" key to be saved in the "' + objStore.name + '" object store');
+                }
+            }
+
             try {
-                addObjRequest = objStore.add(data.value);
+                var args = (data.key !== undefined) ? [data.value, data.key] : [data.value];
+                addObjRequest = objStore.add.apply(objStore, args);
             } catch (ex) {
                 return callback(ex);
             }
@@ -157,8 +174,25 @@
 
             var objStore = transaction.objectStore(objStoreName);
 
+            // check the data according to this table
+            // @see https://developer.mozilla.org/en-US/docs/IndexedDB/Using_IndexedDB#Structuring_the_database
+            if (objStore.keyPath === null) {
+                if (!objStore.autoIncrement && data.key === undefined) {
+                    return callback('You must supply a separate key for the data saved in the "' + objStore.name + '" object store');
+                }
+            } else {
+                if (typeof data.value !== 'object') {
+                    return callback('You must supply an object to be saved in the "' + objStore.name + '" object store');
+                }
+
+                if (!objStore.autoIncrement && data.value[objStore.keyPath] === undefined) {
+                    return callback('You must supply an object with "' + objStore.keyPath + '" key to be saved in the "' + objStore.name + '" object store');
+                }
+            }
+
             try {
-                upsertObjRequest = objStore.put(data.value);
+                var args = (data.key !== undefined) ? [data.value, data.key] : [data.value];
+                upsertObjRequest = objStore.put.apply(objStore, args);
             } catch (ex) {
                 return callback(ex);
             }
@@ -245,6 +279,9 @@
                 : null;
 
             if (options.index) {
+                if (!objStore.indexNames.contains(options.index))
+                    return callback('Object store ' + objStore.name + ' doesn\'t contain "' + options.index + '" index');
+
                 try {
                     iterateRequest = objStore.index(options.index).openCursor(range, direction);
                 } catch (ex) {
@@ -306,6 +343,9 @@
                 : null;
 
             if (options.index) {
+                if (!objStore.indexNames.contains(options.index))
+                    return callback('Object store ' + objStore.name + ' doesn\'t contain "' + options.index + '" index');
+
                 try {
                     countRequest = objStore.index(options.index).count(range);
                 } catch (ex) {
