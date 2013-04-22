@@ -7,29 +7,25 @@
     document.addEventListener("DOMContentLoaded", function () {
         sklad.open("example" + Date.now(), {
             migration: {
-                "1": function (callback) {
-                    // @todo https://developer.mozilla.org/en-US/docs/IndexedDB/IDBDatabase#createObjectStore
-                    var objStore = this.createObjectStore("obj_store", {autoIncrement: true});
-                    // objStore.createIndex('foo', 'foo', {unique: true});
-                    // this.transaction(objStoreName, "readwrite");
-                    callback();
+                "1": function (database) {
+                    var objStore = database.createObjectStore("obj_store", {autoIncrement: true});
+                    objStore.createIndex('ololo', 'ololo', {unique: true});
+
+                    var objStore = database.createObjectStore("obj_store2", {autoIncrement: true});
+                    objStore.createIndex('foo', 'foo');
                 }
             }
         }, function (err, database) {
             if (err)
                 throw new Error(err);
 
-            database.upsert("obj_store", {
-                value: {date: "Smth " + Date.now(), ololo: 'KEY'}
-            }, function (err, key) {
+            database.upsert("obj_store", {date: "Smth " + Date.now(), ololo: 'KEY'}, function (err, key) {
                 if (err)
                     throw err;
                 
-                database.insert("obj_store", {
-                    value: {date: "Smth " + Date.now(), ololo: 'KEY2'}
-                }, function (err, key) {
+                database.insert("obj_store", {date: "Smth " + Date.now(), ololo: 'KEY2'}, function (err, key) {
                     if (err)
-                        throw err;
+                        return console.error(err);
 
                     // @see https://developer.mozilla.org/en-US/docs/IndexedDB/IDBKeyRange
                     database.get("obj_store", {

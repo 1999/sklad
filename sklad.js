@@ -178,6 +178,12 @@
             if (!this.database.objectStoreNames.contains(objStoreName))
                 return callback('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain "' + objStoreName + '" object store');
 
+            if (typeof data === 'function') {
+                callback = data;
+                data = key;
+                key = undefined;
+            }
+
             var transaction;
             var upsertObjRequest;
 
@@ -406,41 +412,15 @@
         options.version = options.version || 1;
 
         var openConnRequest = window.indexedDB.open(dbName, options.version);
-        var migrationStarted = false;
-        var isConnected = false;
-
         openConnRequest.onupgradeneeded = function (evt) {
             options.migration = options.migration || {};
-            migrationStarted = true;
-
-            var database = evt.target.result;
-            var seriesTasks = {};
 
             for (var i = evt.oldVersion + 1; i <= evt.newVersion; i++) {
                 if (!options.migration[i])
                     continue;
 
-                seriesTasks[i] = options.migration[i].bind(database);
+                options.migration[i](evt.target.result);
             }
-
-            async.series(seriesTasks, function (err, results) {
-                if (err)
-                    return callback('Failed while migrating database: ' + err);
-
-                if (isConnected) {
-                    callback(null, Object.create(skladConnection, {
-                        database: {
-                            configurable: false,
-                            enumerable: false,
-                            value: database,
-                            writable: false
-                        }
-                    }));
-                }
-
-                // change migration flag so "onsuccess" handler could invoke callback
-                migrationStarted = false;
-            });
         };
 
         openConnRequest.onerror = function(evt) {
@@ -448,11 +428,6 @@
         };
 
         openConnRequest.onsuccess = function(evt) {
-            if (migrationStarted) {
-                isConnected = true;
-                return;
-            }
-
             callback(null, Object.create(skladConnection, {
                 database: {
                     configurable: false,
@@ -467,6 +442,7 @@
             // If some other tab is loaded with the database, then it needs to be closed
             // before we can proceed.
             // @todo
+            console.log("blocked");
         };
     };
 })();
