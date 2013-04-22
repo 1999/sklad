@@ -20,19 +20,22 @@
                 throw new Error(err);
 
             database.upsert("obj_store", {
-                value: {foo: "bar"}
+                value: "Smth " + Date.now()
             }, function (err, key) {
                 if (err)
                     throw err;
                 
                 database.upsert("obj_store", {
-                    value: {foo: "bar2"}
+                    value: "Smth " + Date.now()
                 }, function (err, key) {
                     if (err)
                         throw err;
 
-                    database.get("obj_store", {}, function (err, key) {
-                        console.log(arguments);
+                    // @see https://developer.mozilla.org/en-US/docs/IndexedDB/IDBKeyRange
+                    database.get("obj_store", {
+                        direction: sklad.PREVUNIQUE
+                    }, function (err, data) {
+                        console.log(JSON.stringify(data));
                     });
                 });
             });

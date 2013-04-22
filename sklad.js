@@ -240,17 +240,19 @@
             var objects = [];
             var iterateRequest;
 
+            var range = (options.range && options.range instanceof window.IDBKeyRange)
+                ? options.range
+                : null;
+
             if (options.index) {
                 try {
-                    // @todo keyrange + iterate direction
-                    iterateRequest = objStore.index(options.index).openCursor(null, direction);
+                    iterateRequest = objStore.index(options.index).openCursor(range, direction);
                 } catch (ex) {
                     return callback(ex);
                 }
             } else {
                 try {
-                    // @todo keyrange + iterate direction - https://developer.mozilla.org/en-US/docs/IndexedDB/IDBKeyRange
-                    iterateRequest = objStore.openCursor(null, direction);
+                    iterateRequest = objStore.openCursor(range, direction);
                 } catch (ex) {
                     return callback(ex);
                 }
@@ -299,17 +301,19 @@
             var objStore = transaction.objectStore(objStoreName);
             var countRequest;
 
+            var range = (options.range && options.range instanceof window.IDBKeyRange)
+                ? options.range
+                : null;
+
             if (options.index) {
                 try {
-                    // @todo keyrange
-                    countRequest = objStore.index(options.index).count();
+                    countRequest = objStore.index(options.index).count(range);
                 } catch (ex) {
                     return callback(ex);
                 }
             } else {
                 try {
-                    // @todo keyrange
-                    countRequest = objStore.count();
+                    countRequest = objStore.count(range);
                 } catch (ex) {
                     return callback(ex);
                 }
