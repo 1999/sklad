@@ -4,15 +4,19 @@
     window.IDBKeyRange = window.IDBKeyRange || window.mozIDBKeyRange || window.webkitIDBKeyRange || window.msIDBKeyRange;
     window.IDBCursor = window.IDBCursor || window.mozIDBCursor || window.webkitIDBCursor || window.msIDBCursor;
 
-    var TRANSACTION_READONLY = window.IDBTransaction.READ_ONLY || "readonly";
-    var TRANSACTION_READWRITE = window.IDBTransaction.READ_WRITE || "readwrite";
+    var TRANSACTION_READONLY = window.IDBTransaction.READ_ONLY || 'readonly';
+    var TRANSACTION_READWRITE = window.IDBTransaction.READ_WRITE || 'readwrite';
 
     window.sklad = {};
-    window.sklad.ITERATE_NEXT = window.IDBCursor.NEXT || "next";
-    window.sklad.ITERATE_NEXTUNIQUE = window.IDBCursor.NEXT_NO_DUPLICATE || "nextunique";
-    window.sklad.ITERATE_PREV = window.IDBCursor.PREV || "prev";
-    window.sklad.ITERATE_PREVUNIQUE = window.IDBCursor.PREV_NO_DUPLICATE || "prevunique";
-    
+    window.sklad.ITERATE_NEXT = window.IDBCursor.NEXT || 'next';
+    window.sklad.ITERATE_NEXTUNIQUE = window.IDBCursor.NEXT_NO_DUPLICATE || 'nextunique';
+    window.sklad.ITERATE_PREV = window.IDBCursor.PREV || 'prev';
+    window.sklad.ITERATE_PREVUNIQUE = window.IDBCursor.PREV_NO_DUPLICATE || 'prevunique';
+
+    /**
+     * Generates UUIDs for objects without keys set
+     * @link http://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid-in-javascript/2117523#2117523
+     */
     var uuid = function () {
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
             var r = Math.random() * 16 | 0;
@@ -22,6 +26,9 @@
         });
     };
 
+    // @todo multiple records insert operation
+    // @todo multiple stores get operation inside one transaction
+
     var skladConnection = {
         /**
          * Insert record to the database
@@ -30,7 +37,7 @@
          * @param {Mixed} key (optional) object key
          * @param {Mixed} data
          * @param {Function} callback invokes:
-         *    @param {String|Null} err
+         *    @param {Error|Null} err
          *    @param {String} inserted object key
          */
         insert: function skladConnection_insert(objStoreName, key, data, callback) {
@@ -41,7 +48,7 @@
             }
 
             if (!this.database.objectStoreNames.contains(objStoreName))
-                return callback('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain "' + objStoreName + '" object store');
+                return callback(new Error('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain "' + objStoreName + '" object store'));
             
             var transaction;
             var addObjRequest;
@@ -62,7 +69,7 @@
                 }
             } else {
                 if (typeof data !== 'object') {
-                    return callback('You must supply an object to be saved in the "' + objStore.name + '" object store');
+                    return callback(new Error('You must supply an object to be saved in the "' + objStore.name + '" object store'));
                 }
 
                 if (!objStore.autoIncrement) {
@@ -93,7 +100,7 @@
          * @param {Mixed} key (optional) object key
          * @param {Mixed} data
          * @param {Function} callback invokes:
-         *    @param {String|Null} err
+         *    @param {Error|Null} err
          *    @param {String} saved object key
          */
         upsert: function skladConnection_upsert(objStoreName, key, data, callback) {
@@ -104,7 +111,7 @@
             }
 
             if (!this.database.objectStoreNames.contains(objStoreName))
-                return callback('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain "' + objStoreName + '" object store');
+                return callback(new Error('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain "' + objStoreName + '" object store'));
 
             var transaction;
             var upsertObjRequest;
@@ -125,7 +132,7 @@
                 }
             } else {
                 if (typeof data !== 'object') {
-                    return callback('You must supply an object to be saved in the "' + objStore.name + '" object store');
+                    return callback(new Error('You must supply an object to be saved in the "' + objStore.name + '" object store'));
                 }
 
                 if (!objStore.autoIncrement) {
@@ -155,11 +162,11 @@
          * @param {String} objStoreName name of object store
          * @param {String} key object's key
          * @param {Function} callback invokes:
-         *    @param {String|Null} err
+         *    @param {Error|Null} err
          */
         delete: function skladConnection_delete(objStoreName, key, callback) {
             if (!this.database.objectStoreNames.contains(objStoreName))
-                return callback('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain "' + objStoreName + '" object store');
+                return callback(new Error('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain "' + objStoreName + '" object store'));
 
             var transaction;
             var deleteObjRequest;
@@ -191,14 +198,14 @@
          * Get objects from the database
          *
          * @param {String} objStoreName name of object store
-         * @param {Object} options object with keys "index", "range" and "direction"
+         * @param {Object} options object with keys 'index', 'range' and 'direction'
          * @param {Function} callback invokes:
          *      @param {String|Null} err
          *      @param {Array} stored objects
          */
         get: function skladConnection_get(objStoreName, options, callback) {
             if (!this.database.objectStoreNames.contains(objStoreName))
-                return callback('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain "' + objStoreName + '" object store');
+                return callback(new Error('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain "' + objStoreName + '" object store'));
 
             if (typeof options === 'function') {
                 callback = options;
@@ -224,7 +231,7 @@
 
             if (options.index) {
                 if (!objStore.indexNames.contains(options.index))
-                    return callback('Object store ' + objStore.name + ' doesn\'t contain "' + options.index + '" index');
+                    return callback(new Error('Object store ' + objStore.name + ' doesn\'t contain "' + options.index + '" index'));
 
                 try {
                     iterateRequest = objStore.index(options.index).openCursor(range, direction);
@@ -258,14 +265,14 @@
          * Count objects in the database
          *
          * @param {String} objStoreName name of object store
-         * @param {Object} options object with keys "index" and "range"
+         * @param {Object} options object with keys 'index' and 'range'
          * @param {Function} callback invokes:
          *    @param {String|Null} err
          *    @param {Number} number of stored objects
          */
         count: function skladConnection_count(objStoreName, options, callback) {
             if (!this.database.objectStoreNames.contains(objStoreName))
-                return callback('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain "' + objStoreName + '" object store');
+                return callback(new Error('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain "' + objStoreName + '" object store'));
 
             if (typeof options === 'function') {
                 callback = options;
@@ -289,7 +296,7 @@
 
             if (options.index) {
                 if (!objStore.indexNames.contains(options.index))
-                    return callback('Object store ' + objStore.name + ' doesn\'t contain "' + options.index + '" index');
+                    return callback(new Error('Object store ' + objStore.name + ' doesn\'t contain "' + options.index + '" index'));
 
                 try {
                     countRequest = objStore.index(options.index).count(range);
@@ -327,7 +334,7 @@
      */
     window.sklad.open = function sklad_open(dbName, options, callback) {
         if (!window.indexedDB)
-            return callback("Your browser doesn't support IndexedDB");
+            return callback(new Error('Your browser doesn\'t support IndexedDB'));
 
         if (typeof options === 'function') {
             callback = options;
@@ -367,7 +374,7 @@
             // If some other tab is loaded with the database, then it needs to be closed
             // before we can proceed.
             // @todo
-            console.log("blocked");
+            console.log('blocked');
         };
     };
 })();

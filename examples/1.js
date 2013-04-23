@@ -12,12 +12,12 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }, function (err, database) {
         if (err)
-            throw new Error(err);
+            throw err;
 
         words.forEach(function (word, index) {
         	database.insert(objStoreName, word, function (err, insertedKey) {
         		if (err)
-        			throw new Error(err);
+        			throw err;
 
         		console.log('word "' + word + '" saved with key ' + typeof insertedKey);
         	});
