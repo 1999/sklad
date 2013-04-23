@@ -225,6 +225,7 @@
             var direction = options.direction || window.sklad.ITERATE_NEXT;
             var objects = {};
             var objectsGot = 0;
+            var cursorPositionMoved = false;
             var iterateRequest;
 
             var range = (options.range && options.range instanceof window.IDBKeyRange)
@@ -250,15 +251,18 @@
 
             iterateRequest.onsuccess = function (evt) {
                 var cursor = evt.target.result;
+
                 if (!cursor)
                     return callback(null, objects);
 
-                if (!objectsGot && options.offset)
+                if (options.offset && !cursorPositionMoved) {
+                    cursorPositionMoved = true;
                     return cursor.advance(options.offset);
+                }
 
                 objects[cursor.key] = cursor.value;
                 objectsGot += 1;
-                
+
                 if (options.limit === objectsGot)
                     return callback(null, objects);
 
