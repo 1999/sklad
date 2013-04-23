@@ -28,6 +28,7 @@
 
     // @todo multiple records insert operation
     // @todo multiple stores get operation inside one transaction
+    // @todo how to create indicies on existing object store / delete them?
 
     var skladConnection = {
         /**
