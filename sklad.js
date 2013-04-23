@@ -199,10 +199,10 @@
          * Get objects from the database
          *
          * @param {String} objStoreName name of object store
-         * @param {Object} options object with keys 'index', 'range' and 'direction'
+         * @param {Object} options object with keys 'index', 'range', 'offset', 'limit' and 'direction'
          * @param {Function} callback invokes:
-         *      @param {String|Null} err
-         *      @param {Array} stored objects
+         *      @param {Error|Null} err
+         *      @param {Object} stored objects
          */
         get: function skladConnection_get(objStoreName, options, callback) {
             if (!this.database.objectStoreNames.contains(objStoreName))
@@ -223,7 +223,8 @@
 
             var objStore = transaction.objectStore(objStoreName);
             var direction = options.direction || window.sklad.ITERATE_NEXT;
-            var objects = [];
+            var objects = {};
+            var objectsGot = 0;
             var iterateRequest;
 
             var range = (options.range && options.range instanceof window.IDBKeyRange)
@@ -249,12 +250,19 @@
 
             iterateRequest.onsuccess = function (evt) {
                 var cursor = evt.target.result;
-                if (cursor) {
-                    objects.push(cursor.value);
-                    cursor.continue();
-                } else {
-                    callback(null, objects);
-                }
+                if (!cursor)
+                    return callback(null, objects);
+
+                if (!objectsGot && options.offset)
+                    return cursor.advance(options.offset);
+
+                objects[cursor.key] = cursor.value;
+                objectsGot += 1;
+                
+                if (options.limit === objectsGot)
+                    return callback(null, objects);
+
+                cursor.continue();
             };
 
             iterateRequest.onerror = function (evt) {
@@ -268,7 +276,7 @@
          * @param {String} objStoreName name of object store
          * @param {Object} options object with keys 'index' and 'range'
          * @param {Function} callback invokes:
-         *    @param {String|Null} err
+         *    @param {Error|Null} err
          *    @param {Number} number of stored objects
          */
         count: function skladConnection_count(objStoreName, options, callback) {
@@ -330,7 +338,7 @@
      *    {Number} version - database version
      *    {Object} migration - migration scripts
      * @param {Function} callback invokes
-     *    @param {String|Null} err
+     *    @param {Error|Null} err
      *    @param {Object} database
      */
     window.sklad.open = function sklad_open(dbName, options, callback) {
