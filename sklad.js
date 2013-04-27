@@ -140,18 +140,18 @@
         },
 
         /**
-         * 1) Insert or update one record into the object store
+         * 1) Insert or update one record in the object store
          * @param {String} objStoreName name of object store
          * @param {Mixed} data
          * @param {Function} callback invokes:
          *    @param {String|Null} err
-         *    @param {Mixed} inserted object key
+         *    @param {Mixed} inserted/updated object key
          *
-         * 2) Insert or update multiple records into the object stores (during one transaction)
+         * 2) Insert or update multiple records in the object stores (during one transaction)
          * @param {Object} data
          * @param {Function} callback invokes:
          *    @param {String|Null} err
-         *    @param {Object} inserted objects' keys
+         *    @param {Object} inserted/updated objects' keys
          */
         upsert: function skladConnection_upsert() {
             var multiUpsert = (arguments.length === 2);
