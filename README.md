@@ -93,6 +93,7 @@ sklad.open(dbName, options, function (err, database) {
 ```
 
 ## Get records from the object store(s) ([details](https://github.com/1999/sklad/blob/master/examples/README_skladConnection_get.md))
+```javascript
 /**
  * 1) Get objects from one object store
  * @param {String} objStoreName name of object store
