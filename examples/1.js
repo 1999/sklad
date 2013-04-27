@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', function () {
             "1": function (database) {
                 // no keyPath, key generator
                 var objStore = database.createObjectStore(objStoreName, {autoIncrement: true});
+                objStore.createIndex("foo", "foo", {unique: false});
             }
         }
     }, function (err, database) {
@@ -15,19 +16,18 @@ document.addEventListener('DOMContentLoaded', function () {
             throw new Error(err);
 
         var data = {};
-        data[objStoreName] = words.map(function (word) { return sklad.keyValue(Math.random(), word); });
+        data[objStoreName] = words.map(function (word) { return {foo: word}; });
 
         database.upsert(data, function (err, insertedKeys) {
             if (err)
                 throw new Error(err);
 
-            // console.log(insertedKeys[objStoreName]);
-            var data = {};
-            data[objStoreName] = insertedKeys[objStoreName];
-            data[objStoreName].push(111);
+            var z = {};
+            z[objStoreName] = {index: 'foo'};
 
-            database.delete(data, function () {
-                console.log(1);
+            database.get(z, function (err, data) {
+                console.error(err);
+                console.log(JSON.stringify(data, null, "  "));
             })
 
             // words.forEach(function (word) {

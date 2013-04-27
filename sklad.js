@@ -1,4 +1,6 @@
 (function () {
+    "use strict";
+
     window.indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
     window.IDBTransaction = window.IDBTransaction || window.mozIDBTransaction || window.webkitIDBTransaction || window.msIDBTransaction;
     window.IDBKeyRange = window.IDBKeyRange || window.mozIDBKeyRange || window.webkitIDBKeyRange || window.msIDBKeyRange;
@@ -56,7 +58,6 @@
         return key ? [value, key] : [value];
     };
 
-    // @todo multiple stores get operation inside one transaction
     // @todo how to create indicies on existing object store / delete them?
 
     // @todo describe
@@ -66,13 +67,13 @@
          * @param {String} objStoreName name of object store
          * @param {Mixed} data
          * @param {Function} callback invokes:
-         *    @param {Error|Null} err
+         *    @param {String|Null} err
          *    @param {Mixed} inserted object key
          *
-         * 2) Insert multiple records into the object stores
+         * 2) Insert multiple records into the object stores (during one transaction)
          * @param {Object} data
          * @param {Function} callback invokes:
-         *    @param {Error|Null} err
+         *    @param {String|Null} err
          *    @param {Object} inserted objects' keys
          */
         insert: function skladConnection_insert() {
@@ -81,11 +82,11 @@
             var callback = multiInsert ? arguments[1] : arguments[2];
             var contains = this.database.objectStoreNames.contains.bind(this.database.objectStoreNames);
             var result = {};
-            var transaction, data;
+            var transaction, data, err;
             var objStore, i, checkedData;
 
             if (!objStoreNames.every(contains))
-                return callback(new Error('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain all needed object stores'));
+                return callback('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain all needed object stores');
 
             if (multiInsert) {
                 data = arguments[0];
@@ -105,7 +106,7 @@
             };
 
             transaction.onabort = function (evt) {
-                callback('You must supply objects to be saved in the object store with set keyPath');
+                callback(err);
             };
 
             transaction.onerror = function (evt) {
@@ -119,7 +120,9 @@
                     for (i = 0; i < data[objStoreName].length; i++) {
                         checkedData = checkSavedData(objStore, data[objStoreName][i]);
                         if (!checkedData) {
+                            err = 'You must supply objects to be saved in the object store with set keyPath';
                             transaction.abort();
+
                             break stuff;
                         }
 
@@ -139,13 +142,13 @@
          * @param {String} objStoreName name of object store
          * @param {Mixed} data
          * @param {Function} callback invokes:
-         *    @param {Error|Null} err
+         *    @param {String|Null} err
          *    @param {Mixed} inserted object key
          *
-         * 2) Insert or update multiple records into the object stores
+         * 2) Insert or update multiple records into the object stores (during one transaction)
          * @param {Object} data
          * @param {Function} callback invokes:
-         *    @param {Error|Null} err
+         *    @param {String|Null} err
          *    @param {Object} inserted objects' keys
          */
         upsert: function skladConnection_upsert() {
@@ -154,11 +157,11 @@
             var callback = multiUpsert ? arguments[1] : arguments[2];
             var contains = this.database.objectStoreNames.contains.bind(this.database.objectStoreNames);
             var result = {};
-            var transaction, data;
+            var transaction, data, err;
             var objStore, i, checkedData;
 
             if (!objStoreNames.every(contains))
-                return callback(new Error('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain all needed object stores'));
+                return callback('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain all needed object stores');
 
             if (multiUpsert) {
                 data = arguments[0];
@@ -178,7 +181,7 @@
             };
 
             transaction.onabort = function (evt) {
-                callback('You must supply objects to be saved in the object store with set keyPath');
+                callback(err);
             };
 
             transaction.onerror = function (evt) {
@@ -192,7 +195,9 @@
                     for (i = 0; i < data[objStoreName].length; i++) {
                         checkedData = checkSavedData(objStore, data[objStoreName][i]);
                         if (!checkedData) {
+                            err = 'You must supply objects to be saved in the object store with set keyPath';
                             transaction.abort();
+
                             break stuff;
                         }
 
@@ -212,12 +217,12 @@
          * @param {String} objStoreName name of object store
          * @param {Mixed} key
          * @param {Function} callback invokes:
-         *    @param {Error|Null} err
+         *    @param {String|Null} err
          *
-         * 2) Delete multiple records from the object stores
+         * 2) Delete multiple records from the object stores (during one transaction)
          * @param {Object} data
          * @param {Function} callback invokes:
-         *    @param {Error|Null} err
+         *    @param {String|Null} err
          */
         delete: function skladConnection_delete() {
             var multiDelete = (arguments.length === 2);
@@ -228,7 +233,7 @@
             var objStore, i;
 
             if (!objStoreNames.every(contains))
-                return callback(new Error('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain all needed object stores'));
+                return callback('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain all needed object stores');
 
             if (multiDelete) {
                 data = arguments[0];
@@ -261,141 +266,265 @@
         },
 
         /**
-         * Get objects from the database
-         *
-         * @param {String} objStoreName name of object store
-         * @param {Object} options object with keys 'index', 'range', 'offset', 'limit' and 'direction'
+         * Clear object store(s)
+         * @param {Array|String} objStoreNames array of object stores or a single object store
          * @param {Function} callback invokes:
-         *      @param {Error|Null} err
-         *      @param {Object} stored objects
+         *    @param {String|Null} err
          */
-        get: function skladConnection_get(objStoreName, options, callback) {
-            if (!this.database.objectStoreNames.contains(objStoreName))
-                return callback(new Error('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain "' + objStoreName + '" object store'));
+        clear: function skladConnection_clear(objStoreNames, callback) {
+            var objStoreNames = Array.isArray(objStoreNames) ? objStoreNames : [objStoreNames];
+            var contains = this.database.objectStoreNames.contains.bind(this.database.objectStoreNames);
+            var transaction, i, err, objStore;
 
-            if (typeof options === 'function') {
-                callback = options;
-                options = {};
-            }
-
-            var transaction;
+            if (!objStoreNames.every(contains))
+                return callback('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain all needed object stores');
 
             try {
-                transaction = this.database.transaction(objStoreName, TRANSACTION_READONLY);
+                transaction = this.database.transaction(objStoreNames, TRANSACTION_READWRITE);
             } catch (ex) {
                 return callback(ex);
             }
 
-            var objStore = transaction.objectStore(objStoreName);
-            var direction = options.direction || window.sklad.ITERATE_NEXT;
-            var objects = {};
-            var objectsGot = 0;
-            var cursorPositionMoved = false;
-            var iterateRequest;
+            transaction.oncomplete = function (evt) {
+                callback();
+            };
 
-            var range = (options.range && options.range instanceof window.IDBKeyRange)
-                ? options.range
-                : null;
+            transaction.onabort = function (evt) {
+                callback(err);
+            };
 
-            if (options.index) {
-                if (!objStore.indexNames.contains(options.index))
-                    return callback(new Error('Object store ' + objStore.name + ' doesn\'t contain "' + options.index + '" index'));
+            transaction.onerror = function (evt) {
+                var err = evt.target.errorMessage || evt.target.webkitErrorMessage || evt.target.mozErrorMessage || evt.target.msErrorMessage || evt.target.error.name;
+                callback('Transaction error: ' + err);
+            };
 
+            for (i = 0; i < objStoreNames.length; i++) {
+                objStore = transaction.objectStore(objStoreNames[i]);
                 try {
-                    iterateRequest = objStore.index(options.index).openCursor(range, direction);
+                    objStore.clear()
                 } catch (ex) {
-                    return callback(ex);
-                }
-            } else {
-                try {
-                    iterateRequest = objStore.openCursor(range, direction);
-                } catch (ex) {
-                    return callback(ex);
+                    err = ex;
+                    transaction.abort();
+
+                    break;
                 }
             }
-
-            iterateRequest.onsuccess = function (evt) {
-                var cursor = evt.target.result;
-
-                if (!cursor)
-                    return callback(null, objects);
-
-                if (options.offset && !cursorPositionMoved) {
-                    cursorPositionMoved = true;
-                    return cursor.advance(options.offset);
-                }
-
-                objects[cursor.key] = cursor.value;
-                objectsGot += 1;
-
-                if (options.limit === objectsGot)
-                    return callback(null, objects);
-
-                cursor.continue();
-            };
-
-            iterateRequest.onerror = function (evt) {
-                callback(iterateRequest.error);
-            };
         },
 
         /**
-         * Count objects in the database
-         *
+         * 1) Get objects from one object store
          * @param {String} objStoreName name of object store
-         * @param {Object} options object with keys 'index' and 'range'
+         * @param {Object} options (optional) object with keys 'index', 'range', 'offset', 'limit' and 'direction'
          * @param {Function} callback invokes:
-         *    @param {Error|Null} err
-         *    @param {Number} number of stored objects
+         *      @param {String|Null} err
+         *      @param {Object} stored objects
+         *
+         * 2) Get objects from multiple object stores (during one transaction)
+         * @param {Object} data
+         * @param {Function} callback invokes:
+         *      @param {String|Null} err
+         *      @param {Object} stored objects
          */
-        count: function skladConnection_count(objStoreName, options, callback) {
-            if (!this.database.objectStoreNames.contains(objStoreName))
-                return callback(new Error('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain "' + objStoreName + '" object store'));
+        get: function skladConnection_get() {
+            var multiGet = (arguments.length === 2 && typeof arguments[1] === 'function');
+            var objStoreNames = multiGet ? Object.keys(arguments[0]) : [arguments[0]];
+            var callback = multiGet ? arguments[1] : (arguments[2] || arguments[1]);
+            var contains = this.database.objectStoreNames.contains.bind(this.database.objectStoreNames);
+            var objects = {};
+            var transaction, data, options;
+            var iterateRequest, objStore, range, direction;
+            var err;
 
-            if (typeof options === 'function') {
-                callback = options;
-                options = {};
+            if (!objStoreNames.every(contains))
+                return callback('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain all needed object stores');
+
+            if (multiGet) {
+                data = arguments[0];
+            } else {
+                data = {};
+                data[arguments[0]] = (typeof arguments[1] === 'function') ? null : arguments[1];
             }
 
-            var transaction;
-
             try {
-                transaction = this.database.transaction(objStoreName, TRANSACTION_READONLY);
+                transaction = this.database.transaction(objStoreNames, TRANSACTION_READONLY);
             } catch (ex) {
                 return callback(ex);
             }
 
-            var objStore = transaction.objectStore(objStoreName);
-            var countRequest;
+            transaction.oncomplete = function (evt) {
+                callback(null, multiGet ? objects : objects[objStoreNames[0]]);
+            };
 
-            var range = (options.range && options.range instanceof window.IDBKeyRange)
-                ? options.range
-                : null;
+            transaction.onabort = function (evt) {
+                callback(err);
+            };
 
-            if (options.index) {
-                if (!objStore.indexNames.contains(options.index))
-                    return callback(new Error('Object store ' + objStore.name + ' doesn\'t contain "' + options.index + '" index'));
+            transaction.onerror = function (evt) {
+                var err = evt.target.errorMessage || evt.target.webkitErrorMessage || evt.target.mozErrorMessage || evt.target.msErrorMessage || evt.target.error.name;
+                callback('Transaction error: ' + err);
+            };
 
-                try {
-                    countRequest = objStore.index(options.index).count(range);
-                } catch (ex) {
-                    return callback(ex);
+            for (var objStoreName in data) {
+                objStore = transaction.objectStore(objStoreName);
+                options = data[objStoreName] || {};
+
+                direction = options.direction || skladAPI.ASC;
+                range = (options.range && options.range instanceof window.IDBKeyRange) ? options.range : null;
+                
+                if (options.index) {
+                    if (!objStore.indexNames.contains(options.index)) {
+                        err = 'Object store ' + objStore.name + ' doesn\'t contain "' + options.index + '" index';
+                        transaction.abort();
+
+                        break;
+                    }
+
+                    try {
+                        iterateRequest = objStore.index(options.index).openCursor(range, direction);
+                    } catch (ex) {
+                        err = ex;
+                        transaction.abort();
+
+                        break;
+                    }
+                } else {
+                    try {
+                        iterateRequest = objStore.openCursor(range, direction);
+                    } catch (ex) {
+                        err = ex;
+                        transaction.abort();
+
+                        break;
+                    }
                 }
+
+                (function (objStoreName) {
+                    var objectsGot = 0;
+                    var cursorPositionMoved = false;
+
+                    iterateRequest.onsuccess = function (evt) {
+                        var cursor = evt.target.result;
+                        if (!cursor)
+                            return;
+
+                        if (options.offset && !cursorPositionMoved) {
+                            cursorPositionMoved = true;
+                            return cursor.advance(options.offset);
+                        }
+
+                        objects[objStoreName] = objects[objStoreName] || {};
+                        objects[objStoreName][cursor.key] = cursor.value;
+                        objectsGot += 1;
+
+                        if (options.limit === objectsGot)
+                            return;
+
+                        cursor.continue();
+                    };
+
+                    iterateRequest.onerror = function (evt) {
+                        err = iterateRequest.error;
+                        transaction.abort();
+                    };
+                })(objStoreName);
+            }
+        },
+
+        /**
+         * 1) Count objects in one object store
+         * @param {String} objStoreName name of object store
+         * @param {Object} options (optional) object with keys 'index' or/and 'range'
+         * @param {Function} callback invokes:
+         *      @param {String|Null} err
+         *      @param {Number} number of stored objects
+         *
+         * 2) Count objects in multiple object stores (during one transaction)
+         * @param {Object} data
+         * @param {Function} callback invokes:
+         *      @param {String|Null} err
+         *      @param {Object} number of stored objects
+         */
+        count: function skladConnection_count() {
+            var multiCount = (arguments.length === 2 && typeof arguments[1] === 'function');
+            var objStoreNames = multiCount ? Object.keys(arguments[0]) : [arguments[0]];
+            var callback = multiCount ? arguments[1] : (arguments[2] || arguments[1]);
+            var contains = this.database.objectStoreNames.contains.bind(this.database.objectStoreNames);
+            var objects = {};
+            var transaction, data, options, range;
+            var countRequest, objStore, err;
+
+            if (!objStoreNames.every(contains))
+                return callback('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain all needed object stores');
+
+            if (multiCount) {
+                data = arguments[0];
             } else {
-                try {
-                    countRequest = objStore.count(range);
-                } catch (ex) {
-                    return callback(ex);
-                }
+                data = {};
+                data[arguments[0]] = (typeof arguments[1] === 'function') ? null : arguments[1];
             }
 
-            countRequest.onsuccess = function (evt) {
-                callback(null, evt.target.result);
+            try {
+                transaction = this.database.transaction(objStoreNames, TRANSACTION_READONLY);
+            } catch (ex) {
+                return callback(ex);
+            }
+
+            transaction.oncomplete = function (evt) {
+                callback(null, multiCount ? objects : objects[objStoreNames[0]]);
             };
 
-            countRequest.onerror = function (evt) {
-                callback(countRequest.error);
+            transaction.onabort = function (evt) {
+                callback(err);
             };
+
+            transaction.onerror = function (evt) {
+                var err = evt.target.errorMessage || evt.target.webkitErrorMessage || evt.target.mozErrorMessage || evt.target.msErrorMessage || evt.target.error.name;
+                callback('Transaction error: ' + err);
+            };
+
+            for (var objStoreName in data) {
+                objStore = transaction.objectStore(objStoreName);
+                options = data[objStoreName] || {};
+                range = (options.range && options.range instanceof window.IDBKeyRange) ? options.range : null;
+                
+                if (options.index) {
+                    if (!objStore.indexNames.contains(options.index)) {
+                        err = 'Object store ' + objStore.name + ' doesn\'t contain "' + options.index + '" index';
+                        transaction.abort();
+
+                        break;
+                    }
+
+                    try {
+                        countRequest = objStore.index(options.index).count(range);
+                    } catch (ex) {
+                        err = ex;
+                        transaction.abort();
+
+                        break;
+                    }
+                } else {
+                    try {
+                        countRequest = objStore.count(range);
+                    } catch (ex) {
+                        err = ex;
+                        transaction.abort();
+
+                        break;
+                    }
+                }
+
+                (function (objStoreName) {
+                    countRequest.onsuccess = function (evt) {
+                        objects[objStoreName] = evt.target.result || 0;
+                    };
+
+                    countRequest.onerror = function (evt) {
+                        err = countRequest.error;
+                        transaction.abort();
+                    };
+                })(objStoreName);
+            }
         }
     };
 
@@ -414,7 +543,7 @@
      */
     skladAPI.open = function sklad_open(dbName, options, callback) {
         if (!window.indexedDB)
-            return callback(new Error('Your browser doesn\'t support IndexedDB'));
+            return callback('Your browser doesn\'t support IndexedDB');
 
         if (typeof options === 'function') {
             callback = options;
