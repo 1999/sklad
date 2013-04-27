@@ -31,5 +31,5 @@ sklad.open('dbName', {
 ## Important points
  * Second parameter is optional. If you don't specify it, the current database version will be used
  * If you specify database version less than current, you will get an error about this as the first argument of the callback
- * Every migration function takes {[IDBDatabase](https://developer.mozilla.org/en-US/docs/IndexedDB/IDBDatabase)} database as the only argument, so you can [create](https://developer.mozilla.org/en-US/docs/IndexedDB/IDBDatabase#createObjectStore) and [delete](https://developer.mozilla.org/en-US/docs/IndexedDB/IDBDatabase#deleteObjectStore()) object stores inside a function.
+ * Every migration function takes {[IDBDatabase](https://developer.mozilla.org/en-US/docs/IndexedDB/IDBDatabase)} database as the only argument, so you can [create](https://developer.mozilla.org/en-US/docs/IndexedDB/IDBDatabase#createObjectStore) and [delete](https://developer.mozilla.org/en-US/docs/IndexedDB/IDBDatabase#deleteObjectStore) object stores inside a function.
  * Migration scripts are executed according to database version. If your current database version is 1 and you set options.version as 4, than "2", "3" and "4" migrations will be executed one by one.

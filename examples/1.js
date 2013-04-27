@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function () {
             var z = {};
             z[objStoreName] = {index: 'foo'};
 
-            database.get(z, function (err, data) {
+            database.clear([objStoreName], function (err, data) {
                 console.error(err);
                 console.log(JSON.stringify(data, null, "  "));
             })
