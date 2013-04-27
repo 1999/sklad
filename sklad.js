@@ -7,11 +7,11 @@
     var TRANSACTION_READONLY = window.IDBTransaction.READ_ONLY || 'readonly';
     var TRANSACTION_READWRITE = window.IDBTransaction.READ_WRITE || 'readwrite';
 
-    window.sklad = {};
-    window.sklad.ITERATE_NEXT = window.IDBCursor.NEXT || 'next';
-    window.sklad.ITERATE_NEXTUNIQUE = window.IDBCursor.NEXT_NO_DUPLICATE || 'nextunique';
-    window.sklad.ITERATE_PREV = window.IDBCursor.PREV || 'prev';
-    window.sklad.ITERATE_PREVUNIQUE = window.IDBCursor.PREV_NO_DUPLICATE || 'prevunique';
+    var skladAPI = {};
+    skladAPI.ASC = window.IDBCursor.NEXT || 'next';
+    skladAPI.ASC_UNIQUE = window.IDBCursor.NEXT_NO_DUPLICATE || 'nextunique';
+    skladAPI.DESC = window.IDBCursor.PREV || 'prev';
+    skladAPI.DESC_UNIQUE = window.IDBCursor.PREV_NO_DUPLICATE || 'prevunique';
 
     /**
      * Generates UUIDs for objects without keys set
@@ -26,173 +26,238 @@
         });
     };
 
-    // @todo multiple records insert operation
+    // @todo describe
+    var skladKeyValueContainer = Object.create(null, {
+        isPrototypeOf: Object.getOwnPropertyDescriptor(Object.prototype, 'isPrototypeOf')
+    });
+
+    /**
+     * @todo descrive
+     * @return {Boolean} false if saved data type is incorrect, otherwise {Array} object store function arguments
+     */
+    var checkSavedData = function (objStore, data) {
+        var keyValueContainer = skladKeyValueContainer.isPrototypeOf(data);
+        var key = keyValueContainer ? data.key : null;
+        var value = keyValueContainer ? data.value : data;
+
+        if (objStore.keyPath === null) {
+            if (!objStore.autoIncrement) {
+                key = key || uuid();
+            }
+        } else {
+            if (typeof data !== 'object')
+                return false;
+
+            if (!objStore.autoIncrement) {
+                data[objStore.keyPath] = data[objStore.keyPath] || uuid();
+            }
+        }
+
+        return key ? [value, key] : [value];
+    };
+
     // @todo multiple stores get operation inside one transaction
     // @todo how to create indicies on existing object store / delete them?
 
+    // @todo describe
     var skladConnection = {
         /**
-         * Insert record to the database
-         *
+         * 1) Insert one record into the object store
          * @param {String} objStoreName name of object store
-         * @param {Mixed} key (optional) object key
          * @param {Mixed} data
          * @param {Function} callback invokes:
          *    @param {Error|Null} err
-         *    @param {String} inserted object key
+         *    @param {Mixed} inserted object key
+         *
+         * 2) Insert multiple records into the object stores
+         * @param {Object} data
+         * @param {Function} callback invokes:
+         *    @param {Error|Null} err
+         *    @param {Object} inserted objects' keys
          */
-        insert: function skladConnection_insert(objStoreName, key, data, callback) {
-            if (typeof data === 'function') {
-                callback = data;
-                data = key;
-                key = undefined;
-            }
+        insert: function skladConnection_insert() {
+            var multiInsert = (arguments.length === 2);
+            var objStoreNames = multiInsert ? Object.keys(arguments[0]) : [arguments[0]];
+            var callback = multiInsert ? arguments[1] : arguments[2];
+            var contains = this.database.objectStoreNames.contains.bind(this.database.objectStoreNames);
+            var result = {};
+            var transaction, data;
+            var objStore, i, checkedData;
 
-            if (!this.database.objectStoreNames.contains(objStoreName))
-                return callback(new Error('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain "' + objStoreName + '" object store'));
-            
-            var transaction;
-            var addObjRequest;
+            if (!objStoreNames.every(contains))
+                return callback(new Error('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain all needed object stores'));
 
-            try {
-                transaction = this.database.transaction(objStoreName, TRANSACTION_READWRITE);
-            } catch (ex) {
-                return callback(ex);
-            }
-
-            var objStore = transaction.objectStore(objStoreName);
-
-            // check the data according to this table
-            // @see https://developer.mozilla.org/en-US/docs/IndexedDB/Using_IndexedDB#Structuring_the_database
-            if (objStore.keyPath === null) {
-                if (!objStore.autoIncrement) {
-                    key = key || uuid();
-                }
+            if (multiInsert) {
+                data = arguments[0];
             } else {
-                if (typeof data !== 'object') {
-                    return callback(new Error('You must supply an object to be saved in the "' + objStore.name + '" object store'));
-                }
-
-                if (!objStore.autoIncrement) {
-                    data[objStore.keyPath] = data[objStore.keyPath] || uuid();
-                }
+                data = {};
+                data[arguments[0]] = [arguments[1]];
             }
 
             try {
-                var args = (key !== undefined) ? [data, key] : [data];
-                addObjRequest = objStore.add.apply(objStore, args);
+                transaction = this.database.transaction(objStoreNames, TRANSACTION_READWRITE);
             } catch (ex) {
                 return callback(ex);
             }
 
-            addObjRequest.onsuccess = function(evt) {
-                callback(null, evt.target.result);
+            transaction.oncomplete = function (evt) {
+                callback(null, multiInsert ? result : result[objStoreNames[0]][0]);
             };
 
-            addObjRequest.onerror = function(evt) {
-                callback(addObjRequest.error);
+            transaction.onabort = function (evt) {
+                callback('You must supply objects to be saved in the object store with set keyPath');
             };
+
+            transaction.onerror = function (evt) {
+                var err = evt.target.errorMessage || evt.target.webkitErrorMessage || evt.target.mozErrorMessage || evt.target.msErrorMessage || evt.target.error.name;
+                callback('Transaction error: ' + err);
+            };
+
+            stuff: {
+                for (var objStoreName in data) {
+                    objStore = transaction.objectStore(objStoreName);
+                    for (i = 0; i < data[objStoreName].length; i++) {
+                        checkedData = checkSavedData(objStore, data[objStoreName][i]);
+                        if (!checkedData) {
+                            transaction.abort();
+                            break stuff;
+                        }
+
+                        (function (objStoreName, i) {
+                            objStore.add.apply(objStore, checkedData).onsuccess = function (evt) {
+                                result[objStoreName] = result[objStoreName] || [];
+                                result[objStoreName][i] = evt.target.result;
+                            };
+                        })(objStoreName, i);
+                    }
+                }
+            }
         },
 
         /**
-         * Insert or update record in the database
-         * 
+         * 1) Insert or update one record into the object store
          * @param {String} objStoreName name of object store
-         * @param {Mixed} key (optional) object key
          * @param {Mixed} data
          * @param {Function} callback invokes:
          *    @param {Error|Null} err
-         *    @param {String} saved object key
+         *    @param {Mixed} inserted object key
+         *
+         * 2) Insert or update multiple records into the object stores
+         * @param {Object} data
+         * @param {Function} callback invokes:
+         *    @param {Error|Null} err
+         *    @param {Object} inserted objects' keys
          */
-        upsert: function skladConnection_upsert(objStoreName, key, data, callback) {
-            if (typeof data === 'function') {
-                callback = data;
-                data = key;
-                key = undefined;
-            }
+        upsert: function skladConnection_upsert() {
+            var multiUpsert = (arguments.length === 2);
+            var objStoreNames = multiUpsert ? Object.keys(arguments[0]) : [arguments[0]];
+            var callback = multiUpsert ? arguments[1] : arguments[2];
+            var contains = this.database.objectStoreNames.contains.bind(this.database.objectStoreNames);
+            var result = {};
+            var transaction, data;
+            var objStore, i, checkedData;
 
-            if (!this.database.objectStoreNames.contains(objStoreName))
-                return callback(new Error('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain "' + objStoreName + '" object store'));
+            if (!objStoreNames.every(contains))
+                return callback(new Error('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain all needed object stores'));
 
-            var transaction;
-            var upsertObjRequest;
-
-            try {
-                transaction = this.database.transaction(objStoreName, TRANSACTION_READWRITE);
-            } catch (ex) {
-                return callback(ex);
-            }
-
-            var objStore = transaction.objectStore(objStoreName);
-
-            // check the data according to this table
-            // @see https://developer.mozilla.org/en-US/docs/IndexedDB/Using_IndexedDB#Structuring_the_database
-            if (objStore.keyPath === null) {
-                if (!objStore.autoIncrement) {
-                    key = key || uuid();
-                }
+            if (multiUpsert) {
+                data = arguments[0];
             } else {
-                if (typeof data !== 'object') {
-                    return callback(new Error('You must supply an object to be saved in the "' + objStore.name + '" object store'));
-                }
-
-                if (!objStore.autoIncrement) {
-                    data[objStore.keyPath] = data[objStore.keyPath] || uuid();
-                }
+                data = {};
+                data[arguments[0]] = [arguments[1]];
             }
 
             try {
-                var args = (key !== undefined) ? [data, key] : [data];
-                upsertObjRequest = objStore.put.apply(objStore, args);
+                transaction = this.database.transaction(objStoreNames, TRANSACTION_READWRITE);
             } catch (ex) {
                 return callback(ex);
             }
 
-            upsertObjRequest.onsuccess = function(evt) {
-                callback(null, evt.target.result);
+            transaction.oncomplete = function (evt) {
+                callback(null, multiUpsert ? result : result[objStoreNames[0]][0]);
             };
 
-            upsertObjRequest.onerror = function(evt) {
-                callback(upsertObjRequest.error);
+            transaction.onabort = function (evt) {
+                callback('You must supply objects to be saved in the object store with set keyPath');
             };
+
+            transaction.onerror = function (evt) {
+                var err = evt.target.errorMessage || evt.target.webkitErrorMessage || evt.target.mozErrorMessage || evt.target.msErrorMessage || evt.target.error.name;
+                callback('Transaction error: ' + err);
+            };
+
+            stuff: {
+                for (var objStoreName in data) {
+                    objStore = transaction.objectStore(objStoreName);
+                    for (i = 0; i < data[objStoreName].length; i++) {
+                        checkedData = checkSavedData(objStore, data[objStoreName][i]);
+                        if (!checkedData) {
+                            transaction.abort();
+                            break stuff;
+                        }
+
+                        (function (objStoreName, i) {
+                            objStore.put.apply(objStore, checkedData).onsuccess = function (evt) {
+                                result[objStoreName] = result[objStoreName] || [];
+                                result[objStoreName][i] = evt.target.result;
+                            };
+                        })(objStoreName, i);
+                    }
+                }
+            }
         },
 
         /**
-         * Delete record from the database
-         *
+         * 1) Delete one record from the object store
          * @param {String} objStoreName name of object store
-         * @param {String} key object's key
+         * @param {Mixed} key
+         * @param {Function} callback invokes:
+         *    @param {Error|Null} err
+         *
+         * 2) Delete multiple records from the object stores
+         * @param {Object} data
          * @param {Function} callback invokes:
          *    @param {Error|Null} err
          */
-        delete: function skladConnection_delete(objStoreName, key, callback) {
-            if (!this.database.objectStoreNames.contains(objStoreName))
-                return callback(new Error('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain "' + objStoreName + '" object store'));
+        delete: function skladConnection_delete() {
+            var multiDelete = (arguments.length === 2);
+            var objStoreNames = multiDelete ? Object.keys(arguments[0]) : [arguments[0]];
+            var callback = multiDelete ? arguments[1] : arguments[2];
+            var contains = this.database.objectStoreNames.contains.bind(this.database.objectStoreNames);
+            var transaction, data;
+            var objStore, i;
 
-            var transaction;
-            var deleteObjRequest;
+            if (!objStoreNames.every(contains))
+                return callback(new Error('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain all needed object stores'));
+
+            if (multiDelete) {
+                data = arguments[0];
+            } else {
+                data = {};
+                data[arguments[0]] = [arguments[1]];
+            }
 
             try {
-                transaction = this.database.transaction(objStoreName, TRANSACTION_READWRITE);
+                transaction = this.database.transaction(objStoreNames, TRANSACTION_READWRITE);
             } catch (ex) {
                 return callback(ex);
             }
 
-            var objStore = transaction.objectStore(objStoreName);
-
-            try {
-                deleteObjRequest = objStore.delete(key);
-            } catch (ex) {
-                return callback(ex);
-            }
-
-            deleteObjRequest.onsuccess = function(evt) {
+            transaction.oncomplete = function (evt) {
                 callback();
             };
 
-            deleteObjRequest.onerror = function(evt) {
-                callback(deleteObjRequest.error);
+            transaction.onerror = function (evt) {
+                var err = evt.target.errorMessage || evt.target.webkitErrorMessage || evt.target.mozErrorMessage || evt.target.msErrorMessage || evt.target.error.name;
+                callback('Transaction error: ' + err);
             };
+
+            for (var objStoreName in data) {
+                objStore = transaction.objectStore(objStoreName);
+                for (i = 0; i < data[objStoreName].length; i++) {
+                    objStore.delete(data[objStoreName][i]);
+                }
+            }
         },
 
         /**
@@ -334,6 +399,8 @@
         }
     };
 
+    
+
     /**
      * Opens a connection to a database
      *
@@ -342,10 +409,10 @@
      *    {Number} version - database version
      *    {Object} migration - migration scripts
      * @param {Function} callback invokes
-     *    @param {Error|Null} err
+     *    @param {String|Null} err
      *    @param {Object} database
      */
-    window.sklad.open = function sklad_open(dbName, options, callback) {
+    skladAPI.open = function sklad_open(dbName, options, callback) {
         if (!window.indexedDB)
             return callback(new Error('Your browser doesn\'t support IndexedDB'));
 
@@ -368,11 +435,12 @@
             }
         };
 
-        openConnRequest.onerror = function(evt) {
-            callback(evt.target.error);
+        openConnRequest.onerror = function (evt) {
+            var err = evt.target.errorMessage || evt.target.webkitErrorMessage || evt.target.mozErrorMessage || evt.target.msErrorMessage || evt.target.error.name;
+            callback(err);
         };
 
-        openConnRequest.onsuccess = function(evt) {
+        openConnRequest.onsuccess = function (evt) {
             callback(null, Object.create(skladConnection, {
                 database: {
                     configurable: false,
@@ -390,4 +458,13 @@
             console.log('blocked');
         };
     };
+
+    skladAPI.keyValue = function (key, value) {
+        return Object.create(skladKeyValueContainer, {
+            key: {value: key, configurable: false, writable: false},
+            value: {value: value, configurable: false, writable: false}
+        });
+    };
+
+    window.sklad = skladAPI;
 })();
