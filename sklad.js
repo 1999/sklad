@@ -28,13 +28,16 @@
         });
     };
 
-    // @todo describe
+    /**
+     * Common ancestor for objects created with sklad.keyValue() method
+     * Used to distinguish standard objects with "key" and "value" fields from special ones
+     */
     var skladKeyValueContainer = Object.create(null, {
         isPrototypeOf: Object.getOwnPropertyDescriptor(Object.prototype, 'isPrototypeOf')
     });
 
     /**
-     * @todo descrive
+     * Checks data before saving it in the object store
      * @return {Boolean} false if saved data type is incorrect, otherwise {Array} object store function arguments
      */
     var checkSavedData = function (objStore, data) {
@@ -60,7 +63,6 @@
 
     // @todo how to create indicies on existing object store / delete them?
 
-    // @todo describe
     var skladConnection = {
         /**
          * 1) Insert one record into the object store
@@ -267,6 +269,7 @@
 
         /**
          * Clear object store(s)
+         *
          * @param {Array|String} objStoreNames array of object stores or a single object store
          * @param {Function} callback invokes:
          *    @param {String|Null} err
@@ -528,10 +531,8 @@
         }
     };
 
-    
-
     /**
-     * Opens a connection to a database
+     * Opens connection to a database
      *
      * @param {String} dbName database name
      * @param {Object} options (optional) connection options with keys:
@@ -588,7 +589,7 @@
         };
     };
 
-    skladAPI.keyValue = function (key, value) {
+    skladAPI.keyValue = function sklad_keyValue(key, value) {
         return Object.create(skladKeyValueContainer, {
             key: {value: key, configurable: false, writable: false},
             value: {value: value, configurable: false, writable: false}

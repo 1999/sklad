@@ -7,77 +7,130 @@ The problem of IndexedDB is the same as before: its API is too geeky, unfamiliar
 ```javascript
 /**
  * @param {String} dbName database name
- * @param {Object} options (optional) object with {Number} "version" and {Object} "migration" fields
- * @param {Function} callback invokes:
- *    @param {Error|Null} err
- *    @param {Object} database (with skladConnection as the prototype)
+ * @param {Object} options (optional) connection options with keys:
+ *    {Number} version - database version
+ *    {Object} migration - migration scripts
+ * @param {Function} callback invokes
+ *    @param {String|Null} err
+ *    @param {Object} database
  */
-sklad.open('dbName', options, function (err, database) {
-  // work with database
+sklad.open(dbName, options, function (err, database) {
+	// work with database
 });
 ```
 
-## Insert record ([details](https://github.com/1999/sklad/blob/master/examples/README_skladConnection_insert.md))
+## Insert one or multiple records ([details](https://github.com/1999/sklad/blob/master/examples/README_skladConnection_insert.md))
 ```javascript
 /**
- * @param {String} objStoreName name of the object store
- * @param {String|Date|Float|Array} key (optional) key
- * @param {Mixed} data
- * @param {Function} callback invokes:
- *    @param {Error|Null} err
- *    @param {String|Date|Float|Array} inserted object key
- */
-insert: function skladConnection_insert(objStoreName, key, data, callback) {}
-```
-
-## Upsert record ([details](https://github.com/1999/sklad/blob/master/examples/README_skladConnection_upsert.md))
-```javascript
-/**
+ * 1) Insert one record into the object store
  * @param {String} objStoreName name of object store
- * @param {String|Date|Float|Array} key (optional) key
  * @param {Mixed} data
  * @param {Function} callback invokes:
- *    @param {Error|Null} err
- *    @param {String} saved object key
- */
-upsert: function skladConnection_upsert(objStoreName, key, data, callback) {}
-```
-
-## Delete record ([details](https://github.com/1999/sklad/blob/master/examples/README_skladConnection_delete.md))
-```javascript
-/**
- * Delete record from the database
+ *    @param {String|Null} err
+ *    @param {Mixed} inserted object key
  *
- * @param {String} objStoreName name of object store
- * @param {String} key object's key
+ * 2) Insert multiple records into the object stores (during one transaction)
+ * @param {Object} data
  * @param {Function} callback invokes:
- *    @param {Error|Null} err
+ *    @param {String|Null} err
+ *    @param {Object} inserted objects' keys
  */
-delete: function skladConnection_delete(objStoreName, key, callback) {}
+sklad.open(dbName, options, function (err, database) {
+	database.insert(objStoreName, data, callback);
+});
 ```
 
-## Get records from the database ([details](https://github.com/1999/sklad/blob/master/examples/README_skladConnection_get.md))
+## Upsert one of multiple records ([details](https://github.com/1999/sklad/blob/master/examples/README_skladConnection_upsert.md))
 ```javascript
 /**
+ * 1) Insert or update one record into the object store
  * @param {String} objStoreName name of object store
- * @param {Object} options object with keys "index", "range" and "direction"
+ * @param {Mixed} data
  * @param {Function} callback invokes:
- *      @param {Error|Null} err
- *      @param {Array} stored objects
+ *    @param {String|Null} err
+ *    @param {Mixed} inserted object key
+ *
+ * 2) Insert or update multiple records into the object stores (during one transaction)
+ * @param {Object} data
+ * @param {Function} callback invokes:
+ *    @param {String|Null} err
+ *    @param {Object} inserted objects' keys
  */
-get: function skladConnection_get(objStoreName, options, callback) {},
+sklad.open(dbName, options, function (err, database) {
+	database.upsert(objStoreName, data, callback);
+});
 ```
 
-## Count objects in the database ([details](https://github.com/1999/sklad/blob/master/examples/README_skladConnection_count.md))
+## Delete one or mutiple records ([details](https://github.com/1999/sklad/blob/master/examples/README_skladConnection_delete.md))
 ```javascript
 /**
+ * 1) Delete one record from the object store
  * @param {String} objStoreName name of object store
- * @param {Object} options object with keys "index" and "range"
+ * @param {Mixed} key
  * @param {Function} callback invokes:
- *    @param {Error|Null} err
- *    @param {Number} number of stored objects
+ *    @param {String|Null} err
+ *
+ * 2) Delete multiple records from the object stores (during one transaction)
+ * @param {Object} data
+ * @param {Function} callback invokes:
+ *    @param {String|Null} err
  */
-count: function skladConnection_count(objStoreName, options, callback) {}
+sklad.open(dbName, options, function (err, database) {
+	database.delete(objStoreName, key, callback);
+});
+```
+
+## Clear one or multiple object stores ([details](https://github.com/1999/sklad/blob/master/examples/README_skladConnection_clear.md))
+```javascript
+/**
+ * @param {Array|String} objStoreNames array of object stores or a single object store
+         * @param {Function} callback invokes:
+         *    @param {String|Null} err
+ */
+sklad.open(dbName, options, function (err, database) {
+	database.clear(objStoreName, callback);
+});
+```
+
+## Get records from the object store(s) ([details](https://github.com/1999/sklad/blob/master/examples/README_skladConnection_get.md))
+/**
+ * 1) Get objects from one object store
+ * @param {String} objStoreName name of object store
+ * @param {Object} options (optional) object with keys 'index', 'range', 'offset', 'limit' and 'direction'
+ * @param {Function} callback invokes:
+ *      @param {String|Null} err
+ *      @param {Object} stored objects
+ *
+ * 2) Get objects from multiple object stores (during one transaction)
+ * @param {Object} data
+ * @param {Function} callback invokes:
+ *      @param {String|Null} err
+ *      @param {Object} stored objects
+ */
+sklad.open(dbName, options, function (err, database) {
+	database.get(objStoreName, {direction: sklad.DESC, limit: 10, offset: 5}, callback);
+});
+```
+
+## Count objects in the object store(s) ([details](https://github.com/1999/sklad/blob/master/examples/README_skladConnection_count.md))
+```javascript
+/**
+ * 1) Count objects in one object store
+ * @param {String} objStoreName name of object store
+ * @param {Object} options (optional) object with keys 'index' or/and 'range'
+ * @param {Function} callback invokes:
+ *      @param {String|Null} err
+ *      @param {Number} number of stored objects
+ *
+ * 2) Count objects in multiple object stores (during one transaction)
+ * @param {Object} data
+ * @param {Function} callback invokes:
+ *      @param {String|Null} err
+ *      @param {Object} number of stored objects
+ */
+sklad.open(dbName, options, function (err, database) {
+	database.count(objStoreName, {range: IDBKeyRange.bound(x, y, true, true)}, callback);
+});
 ```
 
 # Any tests?
