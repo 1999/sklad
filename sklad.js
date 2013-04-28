@@ -32,16 +32,14 @@
      * Common ancestor for objects created with sklad.keyValue() method
      * Used to distinguish standard objects with "key" and "value" fields from special ones
      */
-    var skladKeyValueContainer = Object.create(null, {
-        isPrototypeOf: Object.getOwnPropertyDescriptor(Object.prototype, 'isPrototypeOf')
-    });
+    var skladKeyValueContainer = Object.create(null);
 
     /**
      * Checks data before saving it in the object store
      * @return {Boolean} false if saved data type is incorrect, otherwise {Array} object store function arguments
      */
     var checkSavedData = function (objStore, data) {
-        var keyValueContainer = skladKeyValueContainer.isPrototypeOf(data);
+        var keyValueContainer = Object.prototype.isPrototypeOf.call(skladKeyValueContainer, data);
         var key = keyValueContainer ? data.key : null;
         var value = keyValueContainer ? data.value : data;
 
