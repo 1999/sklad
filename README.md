@@ -3,7 +3,7 @@ IndexedDB is HTML5 standard for a local database of records holding simple value
 
 The problem of IndexedDB is the same as before: its API is too geeky, unfamiliar and complicated. **Sklad** library allows you to build apps for modern browsers with IndexedDB in a simple and convenient way. This is not ORM - it's just an abstraction layer above IndexedDB native objects.
 
-## Open database ([details](https://github.com/1999/sklad/blob/master/examples/README_sklad_open.md))
+## Open database ([details](https://github.com/1999/sklad/blob/master/docs/README_sklad_open.md))
 ```javascript
 /**
  * @param {String} dbName database name
@@ -19,7 +19,7 @@ sklad.open(dbName, options, function (err, database) {
 });
 ```
 
-## Insert one or multiple records ([details](https://github.com/1999/sklad/blob/master/examples/README_skladConnection_insert.md))
+## Insert one or multiple records ([details](https://github.com/1999/sklad/blob/master/docs/README_skladConnection_insert.md))
 ```javascript
 /**
  * 1) Insert one record into the object store
@@ -40,7 +40,7 @@ sklad.open(dbName, options, function (err, database) {
 });
 ```
 
-## Upsert one or multiple records ([details](https://github.com/1999/sklad/blob/master/examples/README_skladConnection_upsert.md))
+## Upsert one or multiple records ([details](https://github.com/1999/sklad/blob/master/docs/README_skladConnection_upsert.md))
 ```javascript
 /**
  * 1) Insert or update one record in the object store
@@ -61,7 +61,7 @@ sklad.open(dbName, options, function (err, database) {
 });
 ```
 
-## Delete one or mutiple records ([details](https://github.com/1999/sklad/blob/master/examples/README_skladConnection_delete.md))
+## Delete one or mutiple records ([details](https://github.com/1999/sklad/blob/master/docs/README_skladConnection_delete.md))
 ```javascript
 /**
  * 1) Delete one record from the object store
@@ -80,7 +80,7 @@ sklad.open(dbName, options, function (err, database) {
 });
 ```
 
-## Clear one or multiple object stores ([details](https://github.com/1999/sklad/blob/master/examples/README_skladConnection_clear.md))
+## Clear one or multiple object stores ([details](https://github.com/1999/sklad/blob/master/docs/README_skladConnection_clear.md))
 ```javascript
 /**
  * @param {Array|String} objStoreNames array of object stores or a single object store
@@ -92,7 +92,7 @@ sklad.open(dbName, options, function (err, database) {
 });
 ```
 
-## Get records from the object store(s) ([details](https://github.com/1999/sklad/blob/master/examples/README_skladConnection_get.md))
+## Get records from the object store(s) ([details](https://github.com/1999/sklad/blob/master/docs/README_skladConnection_get.md))
 ```javascript
 /**
  * 1) Get objects from one object store
@@ -113,7 +113,7 @@ sklad.open(dbName, options, function (err, database) {
 });
 ```
 
-## Count objects in the object store(s) ([details](https://github.com/1999/sklad/blob/master/examples/README_skladConnection_count.md))
+## Count objects in the object store(s) ([details](https://github.com/1999/sklad/blob/master/docs/README_skladConnection_count.md))
 ```javascript
 /**
  * 1) Count objects in one object store
