@@ -82,7 +82,7 @@ sklad.open('dbName', function (err, database) {
  * There's no such opportunity to get limited number of records and total records number in one call. You should make ```database.count()``` call first to get total number of records available with these options.
  * Default direction is increasing in the order of keys including duplicates.
  * There are 4 types of iterating direction:
-```javascript
+ ```javascript
 sklad.ASC;
 // Shows all records, including duplicates. Starts at the lower bound of the key range and moves upwards (monotonically increasing in the order of keys).
 
