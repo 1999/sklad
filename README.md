@@ -186,5 +186,8 @@ Otherwise Sklad library will generate this value.
 
 **SAMPLE USE CASE:** non-structured data with a need for your own primary keys.
 
+# Examples?
+[Of course](http://1999.github.io/sklad). Btw, [detailed docs](https://github.com/1999/sklad/tree/master/docs) contain nice pieces of code using Sklad library.
+
 # Any tests?
 PhantomJS is still [missing](https://github.com/ariya/phantomjs/issues/10992) support for IndexedDB, so i can't cover examples with tests right now. I hope the things will change soon.
