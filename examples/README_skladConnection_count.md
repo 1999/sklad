@@ -57,3 +57,4 @@ sklad.open('dbName', function (err, database) {
 ## Important points
  * Counting records in multiple object stores with one call is faster than calling ```database.count()``` multiple times, because each ```database.count()``` runs inside its own transaction.
  * You can specify your own ranges with native [IDBKeyRange](https://developer.mozilla.org/en-US/docs/IndexedDB/IDBKeyRange) API. IDBKeyRange object variable will be available once you include Sklad library in your code.
+ * Beware that ranges are case-sensitive, for instance "A" is less than "z".

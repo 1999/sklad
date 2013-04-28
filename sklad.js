@@ -399,7 +399,7 @@
                     }
                 }
 
-                (function (objStoreName) {
+                (function (objStoreName, options) {
                     var objectsGot = 0;
                     var cursorPositionMoved = false;
 
@@ -427,7 +427,7 @@
                         err = iterateRequest.error;
                         transaction.abort();
                     };
-                })(objStoreName);
+                })(objStoreName, options);
             }
         },
 
