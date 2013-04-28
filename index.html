@@ -1,17 +1,165 @@
 <!DOCTYPE HTML>
 <html>
 <head> 
-	<meta charset="utf-8">
-	<script src="https://raw.github.com/1999/sklad/master/sklad.js"></script>
+    <meta charset="utf-8">
+    <script src="https://raw.github.com/1999/sklad/master/sklad.js"></script>
 
-	<link rel="stylesheet" href="http://twitter.github.io/bootstrap/assets/css/bootstrap.css">
-	<link rel="stylesheet" href="http://twitter.github.io/bootstrap/assets/js/google-code-prettify/prettify.css">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="http://twitter.github.io/bootstrap/assets/css/bootstrap.css">
+    <link rel="stylesheet" href="http://twitter.github.io/bootstrap/assets/js/google-code-prettify/prettify.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-	<style type="text/css">
+    <script type="text/javascript">
+    window.onload = function () {
+        var log = function (outputElem, text) {
+            var diff = outputElem.innerHTML.length ? '+' + (Date.now() - parseInt(outputElem.dataset.start, 10)) : 0;
+            if (!diff)
+                outputElem.dataset.start = Date.now();
+
+            outputElem.innerHTML += '[' + diff + 'ms] ' + text + '\n';
+            outputElem.scrollTop = outputElem.scrollHeight;
+        };
+
+        var runExample = function (id) {
+            var output = document.querySelector('#' + id);
+            var btn = document.querySelector('button[data-id="' + id + '"]');
+
+            output.style.display = 'block';
+            btn.style.display = 'none';
+
+            var dbName = 'database_' + Date.now();
+            var objStoreName1 = 'users_' + Date.now();
+            var objStoreName2 = 'obj_store_' + Date.now();
+
+            log(output, 'Start');
+            sklad.open(dbName, {
+                migration: {
+                    '1': function (database) {
+                        log(output, 'Start executing migration scripts');
+
+                        var objStore1 = database.createObjectStore(objStoreName1, {autoIncrement: true});
+                        objStore1.createIndex('email_search', 'email', {unique: true});
+                        objStore1.createIndex('name_search', 'firstname');
+
+                        var objStore2 = database.createObjectStore(objStoreName2, {keyPath: 'foo'});
+                    }
+                }
+            }, function (err, database) {
+                log(output, 'Connected to database ' + dbName);
+
+                if (id === 'sklad_open')
+                    return;
+
+                var words = 'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'.split(' ');
+                var data = {};
+
+                data[objStoreName1] = [
+                    {email: 'example1@gmail.com', firstname: 'John'},
+                    {email: 'example2@gmail.com', firstname: 'Jack'},
+                    {email: 'example3@gmail.com', firstname: 'Peter'},
+                ];
+
+                data[objStoreName2] = words.map(function (word) { return {foo: word}; });
+                log(output, 'Start insert operation with data: ' + JSON.stringify(data));
+
+                database.insert(data, function (err, insertedKeys) {
+                    if (err)
+                        throw new Error(err);
+
+                    log(output, 'Inserted keys: ' + JSON.stringify(insertedKeys))
+
+                    switch (id) {
+                        case 'database_upsert':
+                            var data = {};
+                            data[objStoreName2] = words.map(function (word) { return {foo: word, newField: Math.random()}; });
+
+                            log(output, 'Start upsert operation with data: ' + JSON.stringify(data));
+
+                            database.upsert(data, function (err, upsertedKeys) {
+                                if (err)
+                                    throw new Error(err);
+
+                                log(output, 'Upserted keys: ' + JSON.stringify(upsertedKeys))
+                            });
+
+                            break;
+
+                        case 'database_delete':
+                            var data = {};
+                            data[objStoreName2] = words.filter(function (word) { return (Math.random() > 0.5); });
+
+                            log(output, 'Start delete operation with data: ' + JSON.stringify(data));
+
+                            database.delete(data, function (err) {
+                                if (err)
+                                    throw new Error(err);
+
+                                log(output, 'Delete operation finished');
+                            });
+
+                            break;
+
+                        case 'database_clear':
+                            log(output, 'Start clear object store operation');
+
+                            database.clear([objStoreName2, objStoreName1], function (err) {
+                                if (err)
+                                    throw new Error(err);
+
+                                log(output, 'Clear operation finished');
+                            });
+
+                            break;
+
+                        case 'database_get':
+                            var data = {};
+                            data[objStoreName1] = {direction: sklad.DESC, index: 'name_search'};
+                            data[objStoreName2] = {offset: 10, limit: 5};
+
+                            log(output, 'Start get operation with data: ' + JSON.stringify(data));
+
+                            database.get(data, function (err, data) {
+                                if (err)
+                                    throw new Error(err);
+
+                                log(output, 'Get operation finished: ' + JSON.stringify(data));
+                            });
+
+                            break;
+
+                        case 'database_count':
+                            log(output, 'Start count operation with range between A and l')
+
+                            database.count(objStoreName2, {range: IDBKeyRange.bound('A', 'l')}, function (err, total) {
+                                if (err)
+                                    throw new Error(err);
+
+                                log(output, 'Count operation finished: ' + total);
+                            });
+
+                            break;
+                    }
+                });
+            });
+        };
+
+        var btns = document.querySelectorAll("button[data-id]");
+        for (var i = 0; i < btns.length; i++) {
+            btns[i].onclick = function () {
+                runExample(this.dataset.id);
+            };
+        }
+    };
+    </script>
+
+    <style type="text/css">
       body {
         padding-top: 20px;
         padding-bottom: 40px;
+      }
+
+      pre.example {
+        max-height: 320px;
+        overflow: scroll;
       }
 
       /* Custom container */
@@ -24,55 +172,69 @@
       }
     </style>
 
-	<title>Sklad: IndexedDB abstraction layer</title>
+    <title>Sklad: IndexedDB abstraction layer</title>
 </head>
 <body>
 
 <div class="container-narrow">
-	<h2>Sklad: IndexedDB abstraction layer</h2>
-	<hr>
+    <h2>Sklad: IndexedDB abstraction layer</h2>
+    <hr>
 
-	<p class="lead">IndexedDB is <strong>HTML5 standard</strong> for a local database of records holding simple values and hierarchical objects. It is not the same as a Relational Database, which has tables, with collections rows and columns. IndexedDB has databases, which have objects stores with objects stored there. In fact IndexedDB is a NoSQL database similar to MongoDB and CouchDB. It can store <strong>any kind of objects</strong> (even Files and Blobs) and <strong>search them with indicies</strong> which you create when you start working with the database.</p>
+    <p class="lead">IndexedDB is <strong>HTML5 standard</strong> for a local database of records holding simple values and hierarchical objects. It is not the same as a Relational Database, which has tables, with collections rows and columns. IndexedDB has databases, which have objects stores with objects stored there. In fact IndexedDB is a NoSQL database similar to MongoDB and CouchDB. It can store <strong>any kind of objects</strong> (even Files and Blobs) and <strong>search them with indicies</strong> which you create when you start working with the database.</p>
 
-	<p class="lead">The problem of IndexedDB is the same as before: its API is too geeky, unfamiliar and complicated. Sklad library allows you to build apps for modern browsers with IndexedDB in a simple and convenient way. This is not ORM - it's just an abstraction layer above IndexedDB native objects.</p>
+    <p class="lead">The problem of IndexedDB is the same as before: its API is too geeky, unfamiliar and complicated. Sklad library allows you to build apps for modern browsers with IndexedDB in a simple and convenient way. This is not ORM - it's just an abstraction layer above IndexedDB native objects.</p>
 
-	<h3>How to start</h3>
-	<hr>
+    <h3>How to start</h3>
+    <hr>
 
-	<p>Include <code>sklad.js</code> in your html page. Now you can connect to IndexedDB databases using <code>sklad.open()</code>. More details <a href="https://github.com/1999/sklad/blob/master/examples/README_sklad_open.md">here</a>. Beware that fetch/insert/delete operations run faster if you use multiple object stores in one call instead of using multiple simple operations. This happens because each operation runs inside its own transaction.</p>
-	<script src="https://gist.github.com/1999/5476270.js?file=sklad_open.js"></script>
+    <p>Include <code>sklad.js</code> in your html page. Now you can connect to IndexedDB databases using <code>sklad.open()</code>. More details <a href="https://github.com/1999/sklad/blob/master/examples/README_sklad_open.md">here</a>. Beware that fetch/insert/delete operations run faster if you use multiple object stores in one call instead of using multiple simple operations. This happens because each operation runs inside its own transaction.</p>
+    <script src="https://gist.github.com/1999/5476270.js?file=sklad_open.js"></script>
+    <button type="button" class="btn" data-id="sklad_open">Run example</button>
+    <pre class="example" id="sklad_open" style="display: none"></pre>
 
-	<h3>Insert one or multiple records</h3>
-	<hr>
-	<p>Beware that there are 4 types of storing your data in the object stores. You should choose which of them fits your needs and after this you should pass proper data in the <code>database.insert()</code>. More details <a href="https://github.com/1999/sklad/blob/master/examples/README_skladConnection_insert.md">here</a>.</p>
-	<script src="https://gist.github.com/1999/5476270.js?file=database_insert.js"></script>
+    <h3>Insert one or multiple records</h3>
+    <hr>
+    <p>Beware that there are 4 types of storing your data in the object stores. You should choose which of them fits your needs and after this you should pass proper data in the <code>database.insert()</code>. More details <a href="https://github.com/1999/sklad/blob/master/examples/README_skladConnection_insert.md">here</a>.</p>
+    <script src="https://gist.github.com/1999/5476270.js?file=database_insert.js"></script>
+    <button type="button" class="btn" data-id="database_insert">Run example</button>
+    <pre class="example" id="database_insert" style="display: none"></pre>
 
-	<h3>Upsert one or multiple records</h3>
-	<hr>
-	<script src="https://gist.github.com/1999/5476270.js?file=database_upsert.js"></script>
+    <h3>Upsert one or multiple records</h3>
+    <hr>
+    <script src="https://gist.github.com/1999/5476270.js?file=database_upsert.js"></script>
+    <button type="button" class="btn" data-id="database_upsert">Run example</button>
+    <pre class="example" id="database_upsert" style="display: none"></pre>
 
-	<h3>Delete one or mutiple records</h3>
-	<hr>
-	<script src="https://gist.github.com/1999/5476270.js?file=database_delete.js"></script>
+    <h3>Delete one or mutiple records</h3>
+    <hr>
+    <script src="https://gist.github.com/1999/5476270.js?file=database_delete.js"></script>
+    <button type="button" class="btn" data-id="database_delete">Run example</button>
+    <pre class="example" id="database_delete" style="display: none"></pre>
 
-	<h3>Clear one or multiple object stores</h3>
-	<hr>
-	<script src="https://gist.github.com/1999/5476270.js?file=database_clear.js"></script>
+    <h3>Clear one or multiple object stores</h3>
+    <hr>
+    <script src="https://gist.github.com/1999/5476270.js?file=database_clear.js"></script>
+    <button type="button" class="btn" data-id="database_clear">Run example</button>
+    <pre class="example" id="database_clear" style="display: none"></pre>
 
-	<h3>Get records from the object store(s)</h3>
-	<hr>
-	<p>You can specify your own ranges with native <a href="https://developer.mozilla.org/en-US/docs/IndexedDB/IDBKeyRange">IDBKeyRange</a> API. There's no such opportunity to get limited number of records and total records number in one call. Default iterating direction is increasing in the order of keys including duplicates, but you can also set your own direction. More details <a href="https://github.com/1999/sklad/blob/master/examples/README_skladConnection_get.md">here</a>.</p>
-	<script src="https://gist.github.com/1999/5476270.js?file=database_get.js"></script>
+    <h3>Get records from the object store(s)</h3>
+    <hr>
+    <p>You can specify your own ranges with native <a href="https://developer.mozilla.org/en-US/docs/IndexedDB/IDBKeyRange">IDBKeyRange</a> API. There's no such opportunity to get limited number of records and total records number in one call. Default iterating direction is increasing in the order of keys including duplicates, but you can also set your own direction. More details <a href="https://github.com/1999/sklad/blob/master/examples/README_skladConnection_get.md">here</a>.</p>
+    <script src="https://gist.github.com/1999/5476270.js?file=database_get.js"></script>
+    <button type="button" class="btn" data-id="database_get">Run example</button>
+    <pre class="example" id="database_get" style="display: none"></pre>
 
-	<h3>Count objects in the object store(s)</h3>
-	<hr>
-	<script src="https://gist.github.com/1999/5476270.js?file=database_count.js"></script>
+    <h3>Count objects in the object store(s)</h3>
+    <hr>
+    <script src="https://gist.github.com/1999/5476270.js?file=database_count.js"></script>
+    <button type="button" class="btn" data-id="database_count">Run example</button>
+    <pre class="example" id="database_count" style="display: none"></pre>
 
-	<hr>
+    <hr>
 
-	<div class="footer">
-		<p>&copy; <a href="http://staypositive.ru">Dmitry Sorin</a> 2013</p>
-	</div>
+    <div class="footer">
+        <p>&copy; <a href="http://staypositive.ru">Dmitry Sorin</a> 2013</p>
+    </div>
 </div>
 
 <a href="https://github.com/1999/sklad"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"></a>
