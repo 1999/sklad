@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="http://twitter.github.io/bootstrap/assets/js/google-code-prettify/prettify.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <script src="//yandex.st/share/cnt.share.js"></script>
     <script type="text/javascript">
     window.onload = function () {
         var log = function (outputElem, text) {
@@ -172,7 +173,8 @@
       }
       
       .b-ya-likes {
-        margin-bottom: 30px;
+        display: inline-block;
+        vertical-align: top;
       }
     </style>
 
@@ -181,11 +183,11 @@
 <body>
 
 <div class="container-narrow">
-    <h2>Sklad: IndexedDB abstraction layer</h2>
+    <h2>
+        Sklad: IndexedDB abstraction layer
+        <div class="b-ya-likes yashare-auto-init" data-yashareL10n="ru" data-yashareQuickServices="gplus,twitter" data-yashareTheme="counter" data-yashareType="medium"></div>
+    </h2>
     <hr>
-    
-    <script src="//yandex.st/share/cnt.share.js"></script>
-    <div class="b-ya-likes yashare-auto-init" data-yashareL10n="ru" data-yashareQuickServices="gplus,twitter,facebook,vkontakte" data-yashareTheme="counter" data-yashareType="medium"></div>
 
     <p class="lead">IndexedDB is <strong>HTML5 standard</strong> for a local database of records holding simple values and hierarchical objects. It is not the same as a Relational Database, which has tables, with collections rows and columns. IndexedDB has databases, which have objects stores with objects stored there. In fact IndexedDB is a NoSQL database similar to MongoDB and CouchDB. It can store <strong>any kind of objects</strong> (even Files and Blobs) and <strong>search them with indicies</strong> which you create when you start working with the database.</p>
     <p class="lead">The problem of IndexedDB is the same as before: its API is too geeky, unfamiliar and complicated. Sklad library allows you to build apps for modern browsers with IndexedDB in a simple and convenient way. This is not ORM - it's just an abstraction layer on top of IndexedDB native objects.</p>
