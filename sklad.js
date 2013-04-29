@@ -25,10 +25,17 @@
 (function () {
     "use strict";
 
-    window.indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
-    window.IDBTransaction = window.IDBTransaction || window.mozIDBTransaction || window.webkitIDBTransaction || window.msIDBTransaction;
-    window.IDBKeyRange = window.IDBKeyRange || window.mozIDBKeyRange || window.webkitIDBKeyRange || window.msIDBKeyRange;
-    window.IDBCursor = window.IDBCursor || window.mozIDBCursor || window.webkitIDBCursor || window.msIDBCursor;
+    if (!window.indexedDB)
+        window.indexedDB = window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
+
+    if (!window.IDBTransaction)
+        window.IDBTransaction = window.mozIDBTransaction || window.webkitIDBTransaction || window.msIDBTransaction;
+
+    if (!window.IDBKeyRange)
+        window.IDBKeyRange = window.mozIDBKeyRange || window.webkitIDBKeyRange || window.msIDBKeyRange;
+
+    if (!window.IDBCursor)
+        window.IDBCursor = window.mozIDBCursor || window.webkitIDBCursor || window.msIDBCursor;
 
     var TRANSACTION_READONLY = window.IDBTransaction.READ_ONLY || 'readonly';
     var TRANSACTION_READWRITE = window.IDBTransaction.READ_WRITE || 'readwrite';
