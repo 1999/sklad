@@ -3,7 +3,10 @@
     "version": "1.0.0",
     "homepage": "https://github.com/1999/sklad",
     "author": "Dmitry Sorin <info@staypositive.ru>",
-    "private": true,
+    "main": "sklad.js",
+    "ignore": [
+        "docs/**"
+    ],
     "scripts": {
         "test": "nodeunit tests/*"
     },
