@@ -1,5 +1,6 @@
 /**
  * Copyright (c) 2013 Dmitry Sorin <info@staypositive.ru>
+ * https://github.com/1999/sklad
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -71,19 +72,19 @@
      */
     var checkSavedData = function (objStore, data) {
         var keyValueContainer = Object.prototype.isPrototypeOf.call(skladKeyValueContainer, data);
-        var key = keyValueContainer ? data.key : null;
+        var key = keyValueContainer ? data.key : undefined;
         var value = keyValueContainer ? data.value : data;
 
         if (objStore.keyPath === null) {
-            if (!objStore.autoIncrement) {
-                key = key || uuid();
+            if (!objStore.autoIncrement && key === undefined) {
+                key = uuid();
             }
         } else {
             if (typeof data !== 'object')
                 return false;
 
-            if (!objStore.autoIncrement) {
-                data[objStore.keyPath] = data[objStore.keyPath] || uuid();
+            if (!objStore.autoIncrement && data[objStore.keyPath] === undefined) {
+                data[objStore.keyPath] = uuid();
             }
         }
 
@@ -402,7 +403,7 @@
 
                 direction = options.direction || skladAPI.ASC;
                 range = (options.range && options.range instanceof window.IDBKeyRange) ? options.range : null;
-                
+
                 if (options.index) {
                     if (!objStore.indexNames.contains(options.index)) {
                         err = 'Object store ' + objStore.name + ' doesn\'t contain "' + options.index + '" index';
@@ -518,7 +519,7 @@
                 objStore = transaction.objectStore(objStoreName);
                 options = data[objStoreName] || {};
                 range = (options.range && options.range instanceof window.IDBKeyRange) ? options.range : null;
-                
+
                 if (options.index) {
                     if (!objStore.indexNames.contains(options.index)) {
                         err = 'Object store ' + objStore.name + ' doesn\'t contain "' + options.index + '" index';
