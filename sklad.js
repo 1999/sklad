@@ -1,5 +1,6 @@
 /**
  * Copyright (c) 2013 Dmitry Sorin <info@staypositive.ru>
+ * https://github.com/1999/sklad
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -71,19 +72,19 @@
      */
     var checkSavedData = function (objStore, data) {
         var keyValueContainer = Object.prototype.isPrototypeOf.call(skladKeyValueContainer, data);
-        var key = keyValueContainer ? data.key : null;
+        var key = keyValueContainer ? data.key : undefined;
         var value = keyValueContainer ? data.value : data;
 
         if (objStore.keyPath === null) {
-            if (!objStore.autoIncrement) {
-                key = key || uuid();
+            if (!objStore.autoIncrement && key === undefined) {
+                key = uuid();
             }
         } else {
             if (typeof data !== 'object')
                 return false;
 
-            if (!objStore.autoIncrement) {
-                data[objStore.keyPath] = data[objStore.keyPath] || uuid();
+            if (!objStore.autoIncrement && data[objStore.keyPath] === undefined) {
+                data[objStore.keyPath] = uuid();
             }
         }
 
@@ -402,7 +403,7 @@
 
                 direction = options.direction || skladAPI.ASC;
                 range = (options.range && options.range instanceof window.IDBKeyRange) ? options.range : null;
-                
+
                 if (options.index) {
                     if (!objStore.indexNames.contains(options.index)) {
                         err = 'Object store ' + objStore.name + ' doesn\'t contain "' + options.index + '" index';
@@ -518,7 +519,7 @@
                 objStore = transaction.objectStore(objStoreName);
                 options = data[objStoreName] || {};
                 range = (options.range && options.range instanceof window.IDBKeyRange) ? options.range : null;
-                
+
                 if (options.index) {
                     if (!objStore.indexNames.contains(options.index)) {
                         err = 'Object store ' + objStore.name + ' doesn\'t contain "' + options.index + '" index';
@@ -590,7 +591,7 @@
                 if (!options.migration[i])
                     continue;
 
-                options.migration[i](evt.target.result);
+                options.migration[i](this.result);
             }
         };
 
@@ -600,14 +601,36 @@
         };
 
         openConnRequest.onsuccess = function (evt) {
-            callback(null, Object.create(skladConnection, {
-                database: {
-                    configurable: false,
-                    enumerable: false,
-                    value: evt.target.result,
-                    writable: false
-                }
-            }));
+            var database = this.result;
+            var oldVersion = parseInt(database.version || 0, 10);
+
+            if (typeof database.setVersion === 'function' && oldVersion < options.version) {
+                var changeVerRequest = database.setVersion(options.version);
+
+                changeVerRequest.onsuccess = function (evt) {
+                    var customUpgradeNeededEvt = new Event('upgradeneeded');
+                    customUpgradeNeededEvt.oldVersion = oldVersion;
+                    customUpgradeNeededEvt.newVersion = options.version;
+                    openConnRequest.onupgradeneeded.call({result: evt.target.source}, customUpgradeNeededEvt);
+
+                    database.close();
+                    skladAPI.open(dbName, options, callback);
+                };
+
+                changeVerRequest.onerror = function (evt) {
+                    var err = evt.target.errorMessage || evt.target.webkitErrorMessage || evt.target.mozErrorMessage || evt.target.msErrorMessage || evt.target.error.name;
+                    callback(err);
+                };
+            } else {
+                callback(null, Object.create(skladConnection, {
+                    database: {
+                        configurable: false,
+                        enumerable: false,
+                        value: database,
+                        writable: false
+                    }
+                }));
+            }
         };
 
         openConnRequest.onblocked = function(evt) {
