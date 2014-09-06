@@ -1,0 +1,26 @@
+{
+  "name": "sklad",
+  "version": "1.0.0",
+  "description": "IndexedDB abstraction layer",
+  "directories": {
+    "doc": "docs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/1999/sklad.git"
+  },
+  "keywords": [
+    "indexeddb",
+    "html5",
+    "database"
+  ],
+  "author": "Dmitry Sorin <info@staypositive.ru>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/1999/sklad/issues"
+  },
+  "homepage": "https://github.com/1999/sklad",
+  "dependencies": {
+    "bower": "~1.3.9"
+  }
+}

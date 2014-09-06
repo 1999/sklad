@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2013 Dmitry Sorin <info@staypositive.ru>
+ * Copyright (c) 2013-2014 Dmitry Sorin <info@staypositive.ru>
  * https://github.com/1999/sklad
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,8 +23,16 @@
  * @author Dmitry Sorin <info@staypositive.ru>
  * @license http://www.opensource.org/licenses/mit-license.html MIT License
  */
-(function () {
-    "use strict";
+(function (root, factory) {
+    if (typeof define === 'function' && define.amd) {
+        // AMD. Register as an anonymous module.
+        define(factory);
+    } else {
+        // Browser globals
+        root.sklad = factory();
+    }
+}(this, function () {
+    'use strict';
 
     if (!window.indexedDB)
         window.indexedDB = window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
@@ -648,5 +656,5 @@
         });
     };
 
-    window.sklad = skladAPI;
-})();
+    return skladAPI;
+}));
