@@ -13,6 +13,11 @@ module.exports = function (config) {
         autoWatch: true,
         reporters: ['progress'],
 
+        plugins: [
+            'karma-chrome-launcher',
+            'karma-firefox-launcher'
+        ]
+
         // browsers: ['Chrome', 'ChromeCanary', 'Firefox']
     });
 };
