@@ -5,6 +5,9 @@
   "directories": {
     "doc": "docs"
   },
+  "scripts": {
+    "test": "./node_modules/karma/bin/karma start --single-run"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/1999/sklad.git"
@@ -22,5 +25,9 @@
   "homepage": "https://github.com/1999/sklad",
   "dependencies": {
     "bower": "~1.3.9"
+  },
+  "devDependencies": {
+    "karma": "~0.12",
+    "karma-jasmine": "~0.2"
   }
 }
