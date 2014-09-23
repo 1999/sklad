@@ -1,4 +1,9 @@
 # Sklad: IndexedDB abstraction layer
+
+[![Build Status](https://img.shields.io/travis/1999/sklad.svg?style=flat)](https://travis-ci.org/1999/sklad)
+[![Dependency Status](http://img.shields.io/david/1999/sklad.svg?style=flat)](https://travis-ci.org/1999/sklad)
+[![DevDependency Status](http://img.shields.io/david/dev/1999/sklad.svg?style=flat)](https://travis-ci.org/1999/sklad)
+
 IndexedDB is HTML5 standard for a local database of records holding simple values and hierarchical objects. It is not the same as a Relational Database, which has tables, with collections rows and columns. IndexedDB has databases, which have objects stores with objects stored there. In fact IndexedDB is a NoSQL database similar to MongoDB and CouchDB. It can store any kind of objects (even Files and Blobs) and search them with indicies which you create when you start working with the database.
 
 The problem of IndexedDB is the same as before: its API is too geeky, unfamiliar and complicated. **Sklad** library allows you to build apps for modern browsers with IndexedDB in a simple and convenient way. This is not ORM - it's just an abstraction layer above IndexedDB native objects.
