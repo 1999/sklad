@@ -6,7 +6,7 @@
     "doc": "docs"
   },
   "scripts": {
-    "test": "./node_modules/karma/bin/karma start --single-run --browsers Chrome,Firefox"
+    "test": "./node_modules/karma/bin/karma start --single-run"
   },
   "repository": {
     "type": "git",
