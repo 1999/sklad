@@ -26,7 +26,7 @@ module.exports = function (config) {
             }
         },
 
-        browsers: ['Chrome', 'ChromeCanary', 'Firefox']
+        // browsers: ['Chrome', 'ChromeCanary', 'Firefox']
     };
 
     // run chrome in travis
