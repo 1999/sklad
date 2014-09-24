@@ -2,7 +2,7 @@ describe('Basic tests', function () {
     var dbName = 'dbName' + Math.random();
     var conn;
 
-    it('should exist', function () {
+    it('global variables should exist', function () {
         expect(window.indexedDB).toBeDefined();
         expect(window.IDBTransaction).toBeDefined();
         expect(window.IDBKeyRange).toBeDefined();
@@ -34,7 +34,7 @@ describe('Basic tests', function () {
         });
     });
 
-    it('should upgrade database', function (done) {
+    it('should run migration code if database upgrades', function (done) {
         var migrationsRun = [];
 
         sklad.open(dbName, {

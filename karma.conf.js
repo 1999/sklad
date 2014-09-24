@@ -11,12 +11,13 @@ module.exports = function (config) {
         colors: true,
         logLevel: config.LOG_INFO,
         autoWatch: true,
-        reporters: ['progress'],
+        reporters: ['mocha'],
 
         plugins: [
             'karma-jasmine',
             'karma-chrome-launcher',
-            'karma-firefox-launcher'
+            'karma-firefox-launcher',
+            'karma-mocha-reporter'
         ],
 
         customLaunchers: {
