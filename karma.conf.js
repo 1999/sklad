@@ -24,15 +24,15 @@ module.exports = function (config) {
                 base: 'Chrome',
                 flags: ['--no-sandbox']
             }
-        }
+        },
 
-        // browsers: ['Chrome', 'ChromeCanary', 'Firefox']
+        browsers: ['Chrome', 'ChromeCanary', 'Firefox']
     };
 
     // run chrome in travis
     // @link https://github.com/karma-runner/karma/issues/1144
     if (process.env.TRAVIS) {
-        configuration.browsers = ['Chrome_travis_ci'];
+        configuration.browsers = ['Chrome_travis_ci', 'Firefox'];
     }
 
     config.set(configuration);
