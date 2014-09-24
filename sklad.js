@@ -566,6 +566,13 @@
                     };
                 })(objStoreName);
             }
+        },
+
+        /**
+         * Close IndexedDB connection
+         */
+        close: function skladConnection_close() {
+            this.database.close();
         }
     };
 

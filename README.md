@@ -139,6 +139,13 @@ sklad.open(dbName, options, function (err, database) {
 });
 ```
 
+## Close existing database connection
+```javascript
+sklad.open(dbName, options, function (err, connection) {
+    connection.close();
+});
+```
+
 # Important notes
 There's an [unclear and scaring table](https://developer.mozilla.org/en-US/docs/IndexedDB/Using_IndexedDB#Structuring_the_database) on MDN called "Structuring the database". It means that there are 4 ways of storing your data in the object stores and you should choose which of them fits your needs best.
 
