@@ -4,7 +4,7 @@
 [![Dependency Status](http://img.shields.io/david/1999/sklad.svg?style=flat)](https://david-dm.org/1999/sklad)
 [![DevDependency Status](http://img.shields.io/david/dev/1999/sklad.svg?style=flat)](https://david-dm.org/1999/sklad#info=devDependencies)
 
-IndexedDB is HTML5 standard for a local database of records holding simple values and hierarchical objects. It is not the same as a Relational Database, which has tables, with collections rows and columns. IndexedDB has databases, which have objects stores with objects stored there. In fact IndexedDB is a NoSQL database similar to MongoDB and CouchDB. It can store any kind of objects (even Files and Blobs) and search them with indicies which you create when you start working with the database.
+IndexedDB is HTML5 standard for a local database of records holding simple values and hierarchical objects. It is not the same as a Relational Database, which has tables with collections rows and columns. IndexedDB has databases, which have objects stores with objects stored there. In fact IndexedDB is a NoSQL database similar to MongoDB and CouchDB. It can store any kind of objects (even Files and Blobs) and search them with indicies which you create when you start working with the database.
 
 The problem of IndexedDB is the same as before: its API is too geeky, unfamiliar and complicated. **Sklad** library allows you to build apps for modern browsers with IndexedDB in a simple and convenient way. This is not ORM - it's just an abstraction layer above IndexedDB native objects.
 
@@ -202,4 +202,4 @@ Otherwise Sklad library will generate this value.
 [Of course](http://1999.github.io/sklad). Btw, [detailed docs](https://github.com/1999/sklad/tree/master/docs) contain nice pieces of code using Sklad library.
 
 # Any tests?
-PhantomJS is still [missing](https://github.com/ariya/phantomjs/issues/10992) support for IndexedDB, so i can't cover examples with tests right now. I hope the things will change soon.
+Tests are located in [tests](https://github.com/1999/sklad/tree/master/tests) folder. You can run them with `npm test`. Tests are written with Jasmine testing framework and run with Karma runner.
