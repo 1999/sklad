@@ -173,7 +173,7 @@ describe('Insert operations', function () {
         beforeEach(openConnection);
 
         it('should insert records and generate autoincremented primary key', function (done) {
-            conn.insert('keypath_false__keygen_true_0', new Blob(['hello world'], {type: 'text/plain'}), function (err, insertedKey) {
+            conn.insert('keypath_false__keygen_true_0', 'hello world', function (err, insertedKey) {
                 expect(err).toBeFalsy();
                 expect(insertedKey).toBe(1);
 
@@ -182,7 +182,7 @@ describe('Insert operations', function () {
         });
 
         it('should insert records with explicitly set primary key', function (done) {
-            var data = sklad.keyValue('my_awesome_key', new Blob(['hello world']));
+            var data = sklad.keyValue('my_awesome_key', 'hello world');
 
             conn.insert('keypath_false__keygen_true_0', data, function (err, insertedKey) {
                 expect(err).toBeFalsy();
