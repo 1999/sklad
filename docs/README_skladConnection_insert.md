@@ -50,9 +50,9 @@ sklad.open('dbName', function (err, database) {
 ```
 
 ## Important points
- * Inserting multiple records with one call is faster than calling ```database.insert()``` multiple times, because each ```database.insert()``` runs inside its own transaction.
- * There are [4 types](https://github.com/1999/sklad#important-notes) of storing your data in the object stores. You should choose which of them fits your needs and after this you should pass proper data in the ```insert()``` function.
- * If you want to store a value of a simple type (object store without key path) with your own primary key, then you should use ```sklad.keyValue()``` function like this:
+ * Inserting multiple records with one call is faster than calling `database.insert()` multiple times, because each `database.insert()` runs inside its own transaction.
+ * There are [4 types](https://github.com/1999/sklad#important-notes) of storing your data in the object stores. You should choose which of them fits your needs and after this you should pass proper data in the `insert()` function.
+ * If you want to store value of a simple type (object store without key path) with your own primary key, then you should use `sklad.keyValue()` function like this:
 ```javascript
 var data = sklad.keyValue('own_primary_key', some_value);
 database.insert('objStoreName', data, function (err, insertedKey) {

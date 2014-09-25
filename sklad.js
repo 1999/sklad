@@ -59,14 +59,19 @@
      * Generates UUIDs for objects without keys set
      * @link http://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid-in-javascript/2117523#2117523
      */
-    var uuid = function () {
+    function uuid() {
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
             var r = Math.random() * 16 | 0;
             var v = (c == 'x') ? r : (r&0x3|0x8);
 
             return v.toString(16);
         });
-    };
+    }
+
+    /**
+     * Empty function to replace callbacks
+     */
+    function noop() {}
 
     /**
      * Common ancestor for objects created with sklad.keyValue() method
@@ -78,7 +83,7 @@
      * Checks data before saving it in the object store
      * @return {Boolean} false if saved data type is incorrect, otherwise {Array} object store function arguments
      */
-    var checkSavedData = function (objStore, data) {
+    function checkSavedData(objStore, data) {
         var keyValueContainer = Object.prototype.isPrototypeOf.call(skladKeyValueContainer, data);
         var key = keyValueContainer ? data.key : undefined;
         var value = keyValueContainer ? data.value : data;
@@ -97,7 +102,7 @@
         }
 
         return key ? [value, key] : [value];
-    };
+    }
 
     // @todo how to create indicies on existing object store / delete them?
 
@@ -124,9 +129,14 @@
             var result = {};
             var transaction, data, err;
             var objStore, i, checkedData;
+            var abortMessage;
 
-            if (!objStoreNames.every(contains))
-                return callback('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain all needed object stores');
+            if (!objStoreNames.every(contains)) {
+                var err = new Error('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain all needed object stores');
+                callback(err);
+
+                return;
+            }
 
             if (multiInsert) {
                 data = arguments[0];
@@ -145,13 +155,17 @@
                 callback(null, multiInsert ? result : result[objStoreNames[0]][0]);
             };
 
-            transaction.onabort = function (evt) {
-                callback(err);
+            transaction.onabort = function () {
+                callback(new Error(abortMessage));
+                callback = noop;
             };
 
             transaction.onerror = function (evt) {
-                var err = evt.target.errorMessage || evt.target.webkitErrorMessage || evt.target.mozErrorMessage || evt.target.msErrorMessage || evt.target.error.name;
-                callback('Transaction error: ' + err);
+                var err = evt.target.error;
+                var errMessage = err.name + ': ' + err.message;
+
+                callback(new Error(errMessage));
+                callback = noop;
             };
 
             stuff: {
@@ -159,8 +173,9 @@
                     objStore = transaction.objectStore(objStoreName);
                     for (i = 0; i < data[objStoreName].length; i++) {
                         checkedData = checkSavedData(objStore, data[objStoreName][i]);
+
                         if (!checkedData) {
-                            err = 'You must supply objects to be saved in the object store with set keyPath';
+                            abortMessage = 'You must supply objects to be saved in the object store with set keyPath';
                             transaction.abort();
 
                             break stuff;

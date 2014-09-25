@@ -11,9 +11,7 @@ describe('Basic tests', function () {
     });
 
     it('should connect to database', function (done) {
-        sklad.open(dbName, {
-            // migration code is not needed here
-        }, function (err, connection) {
+        sklad.open(dbName, function (err, connection) {
             expect(err).toBeFalsy();
 
             expect(typeof connection.insert).toBe('function');
