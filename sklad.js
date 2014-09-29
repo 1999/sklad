@@ -140,20 +140,22 @@
             }
 
             transaction.oncomplete = function skladConnection_insert_onTransactionComplete(evt) {
-                callback(null, multiInsert ? result : result[objStoreNames[0]][0]);
-            };
-
-            transaction.onerror = transaction.onabort = function skladConnection_insert_onError(evt) {
                 if (callbackRun) {
                     return;
                 }
 
-                callback(abortErr || evt.target.error);
+                callback(null, multiInsert ? result : result[objStoreNames[0]][0]);
+            };
+
+            transaction.onerror = transaction.onabort = function skladConnection_insert_onError(evt) {
+                var err = abortErr || evt.target.error;
+                callback(err);
+
                 callbackRun = true;
 
-                try {
-                    transaction.abort();
-                } catch (ex) {}
+                if (evt.type === 'error') {
+                    evt.preventDefault();
+                }
             };
 
             stuff: {
@@ -164,7 +166,6 @@
                         var checkedData = checkSavedData(objStore, data[objStoreName][i]);
 
                         if (!checkedData) {
-                            // transaction.abort() doesn't always fire 'abort' event
                             abortErr = new DOMError('InvalidStateError', 'You must supply objects to be saved in the object store with set keyPath');
                             transaction.abort();
 
