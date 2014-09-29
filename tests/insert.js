@@ -53,6 +53,50 @@ describe('Insert operations', function () {
         }
     }
 
+    describe('Errors tests', function () {
+        beforeEach(openConnection);
+
+        it('should produce NotFoundError when wrong object stores are used', function (done) {
+            conn.insert({
+                'missing_object_store': ['some', 'data']
+            }, function (err) {
+                expect(err instanceof DOMException).toEqual(true);
+                expect(err.code).toEqual(DOMException.NOT_FOUND_ERR);
+
+                done();
+            });
+        });
+
+        it('should throw DOMError when same unique keys are passed', function (done) {
+            conn.insert({
+                'keypath_true__keygen_false_0': [
+                    {name: 'Oli'},
+                    {name: 'Lee'},
+                    {name: 'Matt'},
+                    {name: 'Matt'},
+                    {name: 'Jordan'}
+                ]
+            }, function (err) {
+                expect(err instanceof DOMError).toEqual(true);
+                expect(err.name).toEqual('ConstraintError');
+
+                done();
+            });
+        });
+
+        it('should throw DOMError when wrong data is passed', function (done) {
+            conn.insert('keypath_true__keygen_false_2', 'string data', function (err, insertedKeys) {
+                expect(err instanceof DOMError).toEqual(true);
+                expect(err.name).toEqual('InvalidStateError');
+                expect(err.message).toEqual('You must supply objects to be saved in the object store with set keyPath');
+
+                done();
+            });
+        });
+
+        afterEach(closeConnection);
+    });
+
     describe('Common tests', function () {
         beforeEach(openConnection);
 
@@ -78,10 +122,10 @@ describe('Insert operations', function () {
         it('should insert multiple records into multiple databases', function (done) {
             var insertData = {
                 'keypath_true__keygen_false_0': [
-                    {name: 'Tom'},
-                    {name: 'Dan'},
-                    {name: 'Sam'},
-                    {name: 'Alex'}
+                    {foo: 'bar'},
+                    {bar: 'foo'},
+                    {foo: 'bar2'},
+                    {bar2: 'foo'}
                 ],
                 'keypath_true__keygen_false_1': [
                     {name: 'Koie'},
@@ -91,10 +135,7 @@ describe('Insert operations', function () {
                     {name: 'Tamano'}
                 ],
                 'keypath_true__keygen_false_2': [
-                    {name: 'Bert'},
-                    {name: 'Quinn'},
-                    {name: 'Jeph'},
-                    {name: 'Dan'}
+                    {}
                 ]
             };
 
@@ -109,35 +150,6 @@ describe('Insert operations', function () {
                 });
 
                 expect(insertedKeys).toEqual(expectation);
-                done();
-            });
-        });
-
-        it('should throw error when something goes wrong, same unique keys for example', function (done) {
-            conn.insert({
-                'keypath_true__keygen_false_0': [
-                    {name: 'Oli'},
-                    {name: 'Lee'},
-                    {name: 'Matt'},
-                    {name: 'Matt'},
-                    {name: 'Matt'},
-                    {name: 'Jordan'}
-                ]
-            }, function (err, insertedKeys) {
-                expect(err).toBeTruthy();
-                expect(err instanceof Error).toBe(true);
-                expect(err.message).toMatch(/^ConstraintError/);
-
-                done();
-            });
-        });
-
-        it('should throw error when wrong data is passed', function (done) {
-            conn.insert('keypath_true__keygen_false_2', 'string data', function (err, insertedKeys) {
-                expect(err).toBeTruthy();
-                expect(err instanceof Error).toBe(true);
-                expect(err.message).toEqual('You must supply objects to be saved in the object store with set keyPath');
-
                 done();
             });
         });

@@ -69,11 +69,6 @@
     }
 
     /**
-     * Empty function to replace callbacks
-     */
-    function noop() {}
-
-    /**
      * Common ancestor for objects created with sklad.keyValue() method
      * Used to distinguish standard objects with "key" and "value" fields from special ones
      */
@@ -125,18 +120,10 @@
             var multiInsert = (arguments.length === 2);
             var objStoreNames = multiInsert ? Object.keys(arguments[0]) : [arguments[0]];
             var callback = multiInsert ? arguments[1] : arguments[2];
-            var contains = this.database.objectStoreNames.contains.bind(this.database.objectStoreNames);
             var result = {};
-            var transaction, data, err;
-            var objStore, i, checkedData;
-            var abortMessage;
-
-            if (!objStoreNames.every(contains)) {
-                var err = new Error('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain all needed object stores');
-                callback(err);
-
-                return;
-            }
+            var callbackRun = false;
+            var transaction, data;
+            var abortErr;
 
             if (multiInsert) {
                 data = arguments[0];
@@ -148,41 +135,50 @@
             try {
                 transaction = this.database.transaction(objStoreNames, TRANSACTION_READWRITE);
             } catch (ex) {
-                return callback(ex);
+                callback(ex);
+                return;
             }
 
-            transaction.oncomplete = function (evt) {
+            transaction.oncomplete = function skladConnection_insert_onTransactionComplete(evt) {
                 callback(null, multiInsert ? result : result[objStoreNames[0]][0]);
             };
 
-            transaction.onabort = function () {
-                callback(new Error(abortMessage));
-                callback = noop;
-            };
+            transaction.onerror = transaction.onabort = function skladConnection_insert_onError(evt) {
+                if (callbackRun) {
+                    return;
+                }
 
-            transaction.onerror = function (evt) {
-                var err = evt.target.error;
-                var errMessage = err.name + ': ' + err.message;
+                callback(abortErr || evt.target.error);
+                callbackRun = true;
 
-                callback(new Error(errMessage));
-                callback = noop;
+                try {
+                    transaction.abort();
+                } catch (ex) {}
             };
 
             stuff: {
                 for (var objStoreName in data) {
-                    objStore = transaction.objectStore(objStoreName);
-                    for (i = 0; i < data[objStoreName].length; i++) {
-                        checkedData = checkSavedData(objStore, data[objStoreName][i]);
+                    var objStore = transaction.objectStore(objStoreName);
+
+                    for (var i = 0; i < data[objStoreName].length; i++) {
+                        var checkedData = checkSavedData(objStore, data[objStoreName][i]);
 
                         if (!checkedData) {
-                            abortMessage = 'You must supply objects to be saved in the object store with set keyPath';
+                            // transaction.abort() doesn't always fire 'abort' event
+                            abortErr = new DOMError('InvalidStateError', 'You must supply objects to be saved in the object store with set keyPath');
                             transaction.abort();
 
                             break stuff;
                         }
 
                         (function (objStoreName, i) {
-                            objStore.add.apply(objStore, checkedData).onsuccess = function (evt) {
+                            try {
+                                var req = objStore.add.apply(objStore, checkedData);
+                            } catch (ex) {
+                                return;
+                            }
+
+                            req.onsuccess = function (evt) {
                                 result[objStoreName] = result[objStoreName] || [];
                                 result[objStoreName][i] = evt.target.result;
                             };
