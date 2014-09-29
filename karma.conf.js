@@ -4,7 +4,8 @@ module.exports = function (config) {
 
         files: [
             'sklad.js',
-            'tests/*.js'
+            'tests/open.js',
+            'tests/insert.js'
         ],
 
         port: 9876,
