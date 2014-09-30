@@ -117,15 +117,15 @@
          *    @param {Object} inserted objects' keys
          */
         insert: function skladConnection_insert() {
-            var multiInsert = (arguments.length === 2);
-            var objStoreNames = multiInsert ? Object.keys(arguments[0]) : [arguments[0]];
-            var callback = multiInsert ? arguments[1] : arguments[2];
+            var isMulti = (arguments.length === 2);
+            var objStoreNames = isMulti ? Object.keys(arguments[0]) : [arguments[0]];
+            var callback = isMulti ? arguments[1] : arguments[2];
             var result = {};
             var callbackRun = false;
             var transaction, data;
             var abortErr;
 
-            if (multiInsert) {
+            if (isMulti) {
                 data = arguments[0];
             } else {
                 data = {};
@@ -144,7 +144,7 @@
                     return;
                 }
 
-                callback(null, multiInsert ? result : result[objStoreNames[0]][0]);
+                callback(null, isMulti ? result : result[objStoreNames[0]][0]);
             };
 
             transaction.onerror = transaction.onabort = function skladConnection_insert_onError(evt) {
@@ -204,18 +204,15 @@
          *    @param {Object} inserted/updated objects' keys
          */
         upsert: function skladConnection_upsert() {
-            var multiUpsert = (arguments.length === 2);
-            var objStoreNames = multiUpsert ? Object.keys(arguments[0]) : [arguments[0]];
-            var callback = multiUpsert ? arguments[1] : arguments[2];
-            var contains = this.database.objectStoreNames.contains.bind(this.database.objectStoreNames);
+            var isMulti = (arguments.length === 2);
+            var objStoreNames = isMulti ? Object.keys(arguments[0]) : [arguments[0]];
+            var callback = isMulti ? arguments[1] : arguments[2];
             var result = {};
-            var transaction, data, err;
-            var objStore, i, checkedData;
+            var callbackRun = false;
+            var transaction, data;
+            var abortErr;
 
-            if (!objStoreNames.every(contains))
-                return callback('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain all needed object stores');
-
-            if (multiUpsert) {
+            if (isMulti) {
                 data = arguments[0];
             } else {
                 data = {};
@@ -225,36 +222,51 @@
             try {
                 transaction = this.database.transaction(objStoreNames, TRANSACTION_READWRITE);
             } catch (ex) {
-                return callback(ex);
+                callback(ex);
+                return;
             }
 
-            transaction.oncomplete = function (evt) {
-                callback(null, multiUpsert ? result : result[objStoreNames[0]][0]);
+            transaction.oncomplete = function skladConnection_upsert_onTransactionComplete(evt) {
+                if (callbackRun) {
+                    return;
+                }
+
+                callback(null, isMulti ? result : result[objStoreNames[0]][0]);
             };
 
-            transaction.onabort = function (evt) {
+            transaction.onerror = transaction.onabort = function skladConnection_upsert_onError(evt) {
+                var err = abortErr || evt.target.error;
                 callback(err);
-            };
 
-            transaction.onerror = function (evt) {
-                var err = evt.target.errorMessage || evt.target.webkitErrorMessage || evt.target.mozErrorMessage || evt.target.msErrorMessage || evt.target.error.name;
-                callback('Transaction error: ' + err);
+                callbackRun = true;
+
+                if (evt.type === 'error') {
+                    evt.preventDefault();
+                }
             };
 
             stuff: {
                 for (var objStoreName in data) {
-                    objStore = transaction.objectStore(objStoreName);
-                    for (i = 0; i < data[objStoreName].length; i++) {
-                        checkedData = checkSavedData(objStore, data[objStoreName][i]);
+                    var objStore = transaction.objectStore(objStoreName);
+
+                    for (var i = 0; i < data[objStoreName].length; i++) {
+                        var checkedData = checkSavedData(objStore, data[objStoreName][i]);
+
                         if (!checkedData) {
-                            err = 'You must supply objects to be saved in the object store with set keyPath';
+                            abortErr = new DOMError('InvalidStateError', 'You must supply objects to be saved in the object store with set keyPath');
                             transaction.abort();
 
                             break stuff;
                         }
 
                         (function (objStoreName, i) {
-                            objStore.put.apply(objStore, checkedData).onsuccess = function (evt) {
+                            try {
+                                var req = objStore.put.apply(objStore, checkedData);
+                            } catch (ex) {
+                                return;
+                            }
+
+                            req.onsuccess = function (evt) {
                                 result[objStoreName] = result[objStoreName] || [];
                                 result[objStoreName][i] = evt.target.result;
                             };
