@@ -289,17 +289,13 @@
          *    @param {String|Null} err
          */
         delete: function skladConnection_delete() {
-            var multiDelete = (arguments.length === 2);
-            var objStoreNames = multiDelete ? Object.keys(arguments[0]) : [arguments[0]];
-            var callback = multiDelete ? arguments[1] : arguments[2];
-            var contains = this.database.objectStoreNames.contains.bind(this.database.objectStoreNames);
-            var transaction, data;
-            var objStore, i;
+            var isMulti = (arguments.length === 2);
+            var objStoreNames = isMulti ? Object.keys(arguments[0]) : [arguments[0]];
+            var callback = isMulti ? arguments[1] : arguments[2];
+            var callbackRun = false;
+            var data;
 
-            if (!objStoreNames.every(contains))
-                return callback('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain all needed object stores');
-
-            if (multiDelete) {
+            if (isMulti) {
                 data = arguments[0];
             } else {
                 data = {};
@@ -307,24 +303,36 @@
             }
 
             try {
-                transaction = this.database.transaction(objStoreNames, TRANSACTION_READWRITE);
+                var transaction = this.database.transaction(objStoreNames, TRANSACTION_READWRITE);
             } catch (ex) {
-                return callback(ex);
+                callback(ex);
+                return;
             }
 
-            transaction.oncomplete = function (evt) {
+            transaction.oncomplete = function skladConnection_delete_onTransactionComplete(evt) {
+                if (callbackRun) {
+                    return;
+                }
+
                 callback();
             };
 
-            transaction.onerror = function (evt) {
-                var err = evt.target.errorMessage || evt.target.webkitErrorMessage || evt.target.mozErrorMessage || evt.target.msErrorMessage || evt.target.error.name;
-                callback('Transaction error: ' + err);
+            transaction.onerror = transaction.onabort = function skladConnection_delete_onError(evt) {
+                callback(evt.target.error);
+                callbackRun = true;
+
+                if (evt.type === 'error') {
+                    evt.preventDefault();
+                }
             };
 
             for (var objStoreName in data) {
-                objStore = transaction.objectStore(objStoreName);
-                for (i = 0; i < data[objStoreName].length; i++) {
-                    objStore.delete(data[objStoreName][i]);
+                var objStore = transaction.objectStore(objStoreName);
+
+                for (var i = 0; i < data[objStoreName].length; i++) {
+                    try {
+                        objStore.delete(data[objStoreName][i]);
+                    } catch (ex) {}
                 }
             }
         },
