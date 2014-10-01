@@ -346,41 +346,38 @@
          */
         clear: function skladConnection_clear(objStoreNames, callback) {
             var objStoreNames = Array.isArray(objStoreNames) ? objStoreNames : [objStoreNames];
-            var contains = this.database.objectStoreNames.contains.bind(this.database.objectStoreNames);
-            var transaction, i, err, objStore;
-
-            if (!objStoreNames.every(contains))
-                return callback('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain all needed object stores');
+            var callbackRun = false;
 
             try {
-                transaction = this.database.transaction(objStoreNames, TRANSACTION_READWRITE);
+                var transaction = this.database.transaction(objStoreNames, TRANSACTION_READWRITE);
             } catch (ex) {
-                return callback(ex);
+                callback(ex)
+                return;
             }
 
             transaction.oncomplete = function (evt) {
+                if (callbackRun) {
+                    return;
+                }
+
                 callback();
             };
 
-            transaction.onabort = function (evt) {
-                callback(err);
+            transaction.onerror = transaction.onabort = function (evt) {
+                callback(evt.target.error);
+                callbackRun = true;
+
+                if (evt.type === 'error') {
+                    evt.preventDefault();
+                }
             };
 
-            transaction.onerror = function (evt) {
-                var err = evt.target.errorMessage || evt.target.webkitErrorMessage || evt.target.mozErrorMessage || evt.target.msErrorMessage || evt.target.error.name;
-                callback('Transaction error: ' + err);
-            };
+            for (var i = 0; i < objStoreNames.length; i++) {
+                var objStore = transaction.objectStore(objStoreNames[i]);
 
-            for (i = 0; i < objStoreNames.length; i++) {
-                objStore = transaction.objectStore(objStoreNames[i]);
                 try {
                     objStore.clear()
-                } catch (ex) {
-                    err = ex;
-                    transaction.abort();
-
-                    break;
-                }
+                } catch (ex) {}
             }
         },
 
