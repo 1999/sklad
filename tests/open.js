@@ -23,7 +23,12 @@ describe('Basic tests', function () {
             expect(typeof connection.close).toBe('function');
 
             expect(connection.database instanceof window.IDBDatabase).toBe(true);
-            expect(Object.getOwnPropertyDescriptor(connection, 'database')).toEqual({value: connection.database, enumerable: false, configurable: false, writable: false});
+            expect(Object.getOwnPropertyDescriptor(connection, 'database')).toEqual({
+                value: connection.database,
+                enumerable: false,
+                configurable: true,
+                writable: false
+            });
 
             // close existing connection
             conn = connection;

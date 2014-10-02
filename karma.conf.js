@@ -6,6 +6,8 @@ module.exports = function (config) {
             'sklad.js',
             'tests/test_utils.js',
             'tests/open.js',
+            'tests/blocked.js',
+            'tests/close.js',
             'tests/insert.js',
             'tests/upsert.js',
             'tests/delete.js',

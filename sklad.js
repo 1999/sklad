@@ -68,6 +68,8 @@
         });
     }
 
+    function noop() {}
+
     /**
      * Common ancestor for objects created with sklad.keyValue() method
      * Used to distinguish standard objects with "key" and "value" fields from special ones
@@ -121,7 +123,6 @@
             var objStoreNames = isMulti ? Object.keys(arguments[0]) : [arguments[0]];
             var callback = isMulti ? arguments[1] : arguments[2];
             var result = {};
-            var callbackRun = false;
             var transaction, data;
             var abortErr;
 
@@ -140,18 +141,14 @@
             }
 
             transaction.oncomplete = function skladConnection_insert_onTransactionComplete(evt) {
-                if (callbackRun) {
-                    return;
-                }
-
                 callback(null, isMulti ? result : result[objStoreNames[0]][0]);
             };
 
             transaction.onerror = transaction.onabort = function skladConnection_insert_onError(evt) {
                 var err = abortErr || evt.target.error;
-                callback(err);
 
-                callbackRun = true;
+                callback(err);
+                callback = noop;
 
                 if (evt.type === 'error') {
                     evt.preventDefault();
@@ -208,7 +205,6 @@
             var objStoreNames = isMulti ? Object.keys(arguments[0]) : [arguments[0]];
             var callback = isMulti ? arguments[1] : arguments[2];
             var result = {};
-            var callbackRun = false;
             var transaction, data;
             var abortErr;
 
@@ -227,18 +223,14 @@
             }
 
             transaction.oncomplete = function skladConnection_upsert_onTransactionComplete(evt) {
-                if (callbackRun) {
-                    return;
-                }
-
                 callback(null, isMulti ? result : result[objStoreNames[0]][0]);
             };
 
             transaction.onerror = transaction.onabort = function skladConnection_upsert_onError(evt) {
                 var err = abortErr || evt.target.error;
-                callback(err);
 
-                callbackRun = true;
+                callback(err);
+                callback = noop
 
                 if (evt.type === 'error') {
                     evt.preventDefault();
@@ -292,7 +284,6 @@
             var isMulti = (arguments.length === 2);
             var objStoreNames = isMulti ? Object.keys(arguments[0]) : [arguments[0]];
             var callback = isMulti ? arguments[1] : arguments[2];
-            var callbackRun = false;
             var data;
 
             if (isMulti) {
@@ -310,16 +301,12 @@
             }
 
             transaction.oncomplete = function skladConnection_delete_onTransactionComplete(evt) {
-                if (callbackRun) {
-                    return;
-                }
-
                 callback();
             };
 
             transaction.onerror = transaction.onabort = function skladConnection_delete_onError(evt) {
                 callback(evt.target.error);
-                callbackRun = true;
+                callback = noop;
 
                 if (evt.type === 'error') {
                     evt.preventDefault();
@@ -346,7 +333,6 @@
          */
         clear: function skladConnection_clear(objStoreNames, callback) {
             var objStoreNames = Array.isArray(objStoreNames) ? objStoreNames : [objStoreNames];
-            var callbackRun = false;
 
             try {
                 var transaction = this.database.transaction(objStoreNames, TRANSACTION_READWRITE);
@@ -356,16 +342,12 @@
             }
 
             transaction.oncomplete = function (evt) {
-                if (callbackRun) {
-                    return;
-                }
-
                 callback();
             };
 
             transaction.onerror = transaction.onabort = function (evt) {
                 callback(evt.target.error);
-                callbackRun = true;
+                callback = noop;
 
                 if (evt.type === 'error') {
                     evt.preventDefault();
@@ -602,6 +584,7 @@
          */
         close: function skladConnection_close() {
             this.database.close();
+            delete this.database;
         }
     };
 
@@ -628,9 +611,14 @@
         options.version = options.version || 1;
 
         var openConnRequest = window.indexedDB.open(dbName, options.version);
-        openConnRequest.onupgradeneeded = function (evt) {
-            options.migration = options.migration || {};
+        var callbackRun = false;
 
+        openConnRequest.onupgradeneeded = function (evt) {
+            if (callbackRun) {
+                return;
+            }
+
+            options.migration = options.migration || {};
             for (var i = evt.oldVersion + 1; i <= evt.newVersion; i++) {
                 if (!options.migration[i])
                     continue;
@@ -640,11 +628,21 @@
         };
 
         openConnRequest.onerror = function (evt) {
-            var err = evt.target.errorMessage || evt.target.webkitErrorMessage || evt.target.mozErrorMessage || evt.target.msErrorMessage || evt.target.error.name;
-            callback(err);
+            if (callbackRun) {
+                return;
+            }
+
+            evt.preventDefault();
+            callback(evt.target.error);
+
+            callbackRun = true;
         };
 
         openConnRequest.onsuccess = function (evt) {
+            if (callbackRun) {
+                return;
+            }
+
             var database = this.result;
             var oldVersion = parseInt(database.version || 0, 10);
 
@@ -665,23 +663,33 @@
                     var err = evt.target.errorMessage || evt.target.webkitErrorMessage || evt.target.mozErrorMessage || evt.target.msErrorMessage || evt.target.error.name;
                     callback(err);
                 };
-            } else {
-                callback(null, Object.create(skladConnection, {
-                    database: {
-                        configurable: false,
-                        enumerable: false,
-                        value: database,
-                        writable: false
-                    }
-                }));
+
+                return;
             }
+
+            callback(null, Object.create(skladConnection, {
+                database: {
+                    configurable: true,
+                    enumerable: false,
+                    value: database,
+                    writable: false
+                }
+            }));
+
+            callbackRun = true;
         };
 
-        openConnRequest.onblocked = function(evt) {
-            // If some other tab is loaded with the database, then it needs to be closed
-            // before we can proceed.
-            // @todo
-            console.log('blocked');
+        openConnRequest.onblocked = function (evt) {
+            if (callbackRun) {
+                return;
+            }
+
+            evt.preventDefault();
+
+            var err = new DOMError('InvalidStateError', 'Database ' + dbName + ' is blocked');
+            callback(err);
+
+            callbackRun = true;
         };
     };
 

@@ -103,15 +103,12 @@ function runCommonAddTests(method) {
 
             conn[method](data, function (err, keys) {
                 expect(err).toBeFalsy();
+                expect(Object.keys(keys)).toEqual(Object.keys(data));
 
-                var expectation = {};
-                Object.keys(data).forEach(function (storeName) {
-                    expectation[storeName] = data[storeName].map(function (obj) {
-                        return obj.name;
-                    });
-                });
+                expect(keys['keypath_true__keygen_false_0'].every(isValidID)).toBe(true);
+                expect(keys['keypath_true__keygen_false_1']).toEqual(['Koie', 'Takemura', 'Ikegawa', 'Amano', 'Tamano']);
+                expect(isValidID(keys['keypath_true__keygen_false_2'])).toBe(true);
 
-                expect(keys).toEqual(expectation);
                 done();
             });
         });
