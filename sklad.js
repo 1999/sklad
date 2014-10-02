@@ -68,8 +68,6 @@
         });
     }
 
-    function noop() {}
-
     /**
      * Common ancestor for objects created with sklad.keyValue() method
      * Used to distinguish standard objects with "key" and "value" fields from special ones
@@ -123,8 +121,8 @@
             var objStoreNames = isMulti ? Object.keys(arguments[0]) : [arguments[0]];
             var callback = isMulti ? arguments[1] : arguments[2];
             var result = {};
-            var transaction, data;
-            var abortErr;
+            var callbackRun = false;
+            var data, abortErr;
 
             if (isMulti) {
                 data = arguments[0];
@@ -134,21 +132,29 @@
             }
 
             try {
-                transaction = this.database.transaction(objStoreNames, TRANSACTION_READWRITE);
+                var transaction = this.database.transaction(objStoreNames, TRANSACTION_READWRITE);
             } catch (ex) {
                 callback(ex);
                 return;
             }
 
             transaction.oncomplete = function skladConnection_insert_onTransactionComplete(evt) {
+                if (callbackRun) {
+                    return;
+                }
+
                 callback(null, isMulti ? result : result[objStoreNames[0]][0]);
             };
 
             transaction.onerror = transaction.onabort = function skladConnection_insert_onError(evt) {
+                if (callbackRun) {
+                    return;
+                }
+
                 var err = abortErr || evt.target.error;
 
                 callback(err);
-                callback = noop;
+                callbackRun = true;
 
                 if (evt.type === 'error') {
                     evt.preventDefault();
@@ -205,8 +211,8 @@
             var objStoreNames = isMulti ? Object.keys(arguments[0]) : [arguments[0]];
             var callback = isMulti ? arguments[1] : arguments[2];
             var result = {};
-            var transaction, data;
-            var abortErr;
+            var callbackRun = false;
+            var data, abortErr;
 
             if (isMulti) {
                 data = arguments[0];
@@ -216,21 +222,29 @@
             }
 
             try {
-                transaction = this.database.transaction(objStoreNames, TRANSACTION_READWRITE);
+                var transaction = this.database.transaction(objStoreNames, TRANSACTION_READWRITE);
             } catch (ex) {
                 callback(ex);
                 return;
             }
 
             transaction.oncomplete = function skladConnection_upsert_onTransactionComplete(evt) {
+                if (callbackRun) {
+                    return;
+                }
+
                 callback(null, isMulti ? result : result[objStoreNames[0]][0]);
             };
 
             transaction.onerror = transaction.onabort = function skladConnection_upsert_onError(evt) {
+                if (callbackRun) {
+                    return;
+                }
+
                 var err = abortErr || evt.target.error;
 
                 callback(err);
-                callback = noop
+                callbackRun = true;
 
                 if (evt.type === 'error') {
                     evt.preventDefault();
@@ -284,6 +298,7 @@
             var isMulti = (arguments.length === 2);
             var objStoreNames = isMulti ? Object.keys(arguments[0]) : [arguments[0]];
             var callback = isMulti ? arguments[1] : arguments[2];
+            var callbackRun = false;
             var data;
 
             if (isMulti) {
@@ -301,12 +316,20 @@
             }
 
             transaction.oncomplete = function skladConnection_delete_onTransactionComplete(evt) {
+                if (callbackRun) {
+                    return;
+                }
+
                 callback();
             };
 
             transaction.onerror = transaction.onabort = function skladConnection_delete_onError(evt) {
+                if (callbackRun) {
+                    return;
+                }
+
                 callback(evt.target.error);
-                callback = noop;
+                callbackRun = true;
 
                 if (evt.type === 'error') {
                     evt.preventDefault();
@@ -333,6 +356,7 @@
          */
         clear: function skladConnection_clear(objStoreNames, callback) {
             var objStoreNames = Array.isArray(objStoreNames) ? objStoreNames : [objStoreNames];
+            var callbackRun = false;
 
             try {
                 var transaction = this.database.transaction(objStoreNames, TRANSACTION_READWRITE);
@@ -342,12 +366,20 @@
             }
 
             transaction.oncomplete = function (evt) {
+                if (callbackRun) {
+                    return;
+                }
+
                 callback();
             };
 
             transaction.onerror = transaction.onabort = function (evt) {
+                if (callbackRun) {
+                    return;
+                }
+
                 callback(evt.target.error);
-                callback = noop;
+                callbackRun = true;
 
                 if (evt.type === 'error') {
                     evt.preventDefault();
