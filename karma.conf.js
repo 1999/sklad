@@ -11,7 +11,8 @@ module.exports = function (config) {
             'tests/insert.js',
             'tests/upsert.js',
             'tests/delete.js',
-            'tests/clear.js'
+            'tests/clear.js',
+            'tests/count.js'
         ],
 
         port: 9876,

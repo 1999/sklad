@@ -69,6 +69,27 @@
     }
 
     /**
+     * Get error object with 'code' field set to one of DOMException.* codes
+     * If Error instance is passed, returns it immediately
+     *
+     * @param {Number} code - one of DOMException.* codes
+     * @param {String} message
+     *
+     * @see https://dvcs.w3.org/hg/domcore/raw-file/tip/Overview.html#exception-domexception
+     * @return {Error}
+     */
+    function getCustomError(code, message) {
+        if (arguments[0] instanceof Error) {
+            return arguments[0];
+        }
+
+        var err = new Error(message);
+        err.code = code;
+
+        return err;
+    }
+
+    /**
      * Common ancestor for objects created with sklad.keyValue() method
      * Used to distinguish standard objects with "key" and "value" fields from special ones
      */
@@ -138,7 +159,7 @@
                 return;
             }
 
-            transaction.oncomplete = function skladConnection_insert_onTransactionComplete(evt) {
+            transaction.oncomplete = function (evt) {
                 if (callbackRun) {
                     return;
                 }
@@ -146,7 +167,7 @@
                 callback(null, isMulti ? result : result[objStoreNames[0]][0]);
             };
 
-            transaction.onerror = transaction.onabort = function skladConnection_insert_onError(evt) {
+            transaction.onerror = transaction.onabort = function (evt) {
                 if (callbackRun) {
                     return;
                 }
@@ -228,7 +249,7 @@
                 return;
             }
 
-            transaction.oncomplete = function skladConnection_upsert_onTransactionComplete(evt) {
+            transaction.oncomplete = function (evt) {
                 if (callbackRun) {
                     return;
                 }
@@ -236,7 +257,7 @@
                 callback(null, isMulti ? result : result[objStoreNames[0]][0]);
             };
 
-            transaction.onerror = transaction.onabort = function skladConnection_upsert_onError(evt) {
+            transaction.onerror = transaction.onabort = function (evt) {
                 if (callbackRun) {
                     return;
                 }
@@ -315,7 +336,7 @@
                 return;
             }
 
-            transaction.oncomplete = function skladConnection_delete_onTransactionComplete(evt) {
+            transaction.oncomplete = function (evt) {
                 if (callbackRun) {
                     return;
                 }
@@ -323,7 +344,7 @@
                 callback();
             };
 
-            transaction.onerror = transaction.onabort = function skladConnection_delete_onError(evt) {
+            transaction.onerror = transaction.onabort = function (evt) {
                 if (callbackRun) {
                     return;
                 }
@@ -529,83 +550,83 @@
          *      @param {Object} number of stored objects
          */
         count: function skladConnection_count() {
-            var multiCount = (arguments.length === 2 && typeof arguments[1] === 'function');
-            var objStoreNames = multiCount ? Object.keys(arguments[0]) : [arguments[0]];
-            var callback = multiCount ? arguments[1] : (arguments[2] || arguments[1]);
-            var contains = this.database.objectStoreNames.contains.bind(this.database.objectStoreNames);
-            var objects = {};
-            var transaction, data, options, range;
-            var countRequest, objStore, err;
+            var isMulti = (arguments.length === 2 && typeof arguments[0] === 'object' && typeof arguments[1] === 'function');
+            var objStoreNames = isMulti ? Object.keys(arguments[0]) : [arguments[0]];
+            var callback = isMulti ? arguments[1] : (arguments[2] || arguments[1]);
+            var callbackRun = false;
+            var result = {};
+            var countRequest, data, abortErr;
 
-            if (!objStoreNames.every(contains))
-                return callback('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain all needed object stores');
-
-            if (multiCount) {
+            if (isMulti) {
                 data = arguments[0];
             } else {
                 data = {};
                 data[arguments[0]] = (typeof arguments[1] === 'function') ? null : arguments[1];
             }
 
-            try {
-                transaction = this.database.transaction(objStoreNames, TRANSACTION_READONLY);
-            } catch (ex) {
-                return callback(ex);
+            var contains = DOMStringList.prototype.contains.bind(this.database.objectStoreNames);
+            if (!objStoreNames.every(contains)) {
+                var err = getCustomError(DOMException.NOT_FOUND_ERR, 'Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain all needed stores');
+                callback(err);
+
+                return;
             }
 
-            transaction.oncomplete = function (evt) {
-                callback(null, multiCount ? objects : objects[objStoreNames[0]]);
-            };
+            var transaction = this.database.transaction(objStoreNames, TRANSACTION_READONLY);
+            transaction.oncomplete = transaction.onerror = transaction.onabort = function skladConnection_count_onFinish(evt) {
+                if (callbackRun) {
+                    return;
+                }
 
-            transaction.onabort = function (evt) {
-                callback(err);
-            };
+                var err = abortErr || evt.target.error;
+                var isSuccess = !err && evt.type === 'complete';
 
-            transaction.onerror = function (evt) {
-                var err = evt.target.errorMessage || evt.target.webkitErrorMessage || evt.target.mozErrorMessage || evt.target.msErrorMessage || evt.target.error.name;
-                callback('Transaction error: ' + err);
+                if (isSuccess) {
+                    callback(null, isMulti ? result : result[objStoreNames[0]]);
+                } else {
+                    callback(getCustomError(err));
+                }
+
+                callbackRun = true;
+
+                if (evt.type === 'error') {
+                    evt.preventDefault();
+                }
             };
 
             for (var objStoreName in data) {
-                objStore = transaction.objectStore(objStoreName);
-                options = data[objStoreName] || {};
-                range = (options.range && options.range instanceof window.IDBKeyRange) ? options.range : null;
+                var objStore = transaction.objectStore(objStoreName);
+                var options = data[objStoreName] || {};
+                var range = (options.range instanceof window.IDBKeyRange) ? options.range : null;
 
                 if (options.index) {
                     if (!objStore.indexNames.contains(options.index)) {
-                        err = 'Object store ' + objStore.name + ' doesn\'t contain "' + options.index + '" index';
-                        transaction.abort();
-
-                        break;
+                        abortErr = getCustomError(DOMException.INDEX_SIZE_ERR, 'Object store ' + objStore.name + ' doesn\'t contain "' + options.index + '" index');
+                        return;
                     }
 
                     try {
                         countRequest = objStore.index(options.index).count(range);
                     } catch (ex) {
-                        err = ex;
-                        transaction.abort();
-
-                        break;
+                        abortErr = ex;
+                        return;
                     }
                 } else {
                     try {
                         countRequest = objStore.count(range);
                     } catch (ex) {
-                        err = ex;
-                        transaction.abort();
-
-                        break;
+                        abortErr = ex;
+                        return;
                     }
                 }
 
                 (function (objStoreName) {
                     countRequest.onsuccess = function (evt) {
-                        objects[objStoreName] = evt.target.result || 0;
+                        result[objStoreName] = evt.target.result || 0;
                     };
 
                     countRequest.onerror = function (evt) {
-                        err = countRequest.error;
-                        transaction.abort();
+                        abortErr = abortErr || evt.target.error;
                     };
                 })(objStoreName);
             }
