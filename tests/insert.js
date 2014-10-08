@@ -35,13 +35,13 @@ describe('Insert operations', function () {
         it('should produce DOMError.InvalidStateError when wrong data is passed', function (done) {
             conn.insert('keypath_true__keygen_false_2', 'string data', function (err, insertedKeys) {
                 expect(err).toBeTruthy();
-                expect(err.name).toEqual(DOMError.InvalidStateError);
+                expect(err.name).toEqual('InvalidStateError');
 
                 done();
             });
         });
 
-        it('should produce DOMError.IndexSizeError when same unique keys are passed', function (done) {
+        it('should produce DOMError.ConstraintError when same unique keys are passed', function (done) {
             conn.insert({
                 'keypath_true__keygen_false_0': [
                     {name: 'Oli'},
@@ -52,7 +52,7 @@ describe('Insert operations', function () {
                 ]
             }, function (err) {
                 expect(err).toBeTruthy();
-                expect(err.name).toBe('IndexSizeError');
+                expect(err.name).toBe('ConstraintError');
 
                 done();
             });

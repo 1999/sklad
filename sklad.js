@@ -131,7 +131,7 @@
                 data = arguments[0];
             } else {
                 data = {};
-                data[arguments[0]] = (typeof arguments[1] === 'function') ? null : arguments[1];
+                data[arguments[0]] = [arguments[1]];
             }
 
             var contains = DOMStringList.prototype.contains.bind(this.database.objectStoreNames);
@@ -152,7 +152,7 @@
                 var isSuccess = !err && evt.type === 'complete';
 
                 if (isSuccess) {
-                    callback(null, isMulti ? result : result[objStoreNames[0]]);
+                    callback(null, isMulti ? result : result[objStoreNames[0]][0]);
                 } else {
                     callback(err);
                 }
@@ -239,7 +239,7 @@
                 var isSuccess = !err && evt.type === 'complete';
 
                 if (isSuccess) {
-                    callback(null, isMulti ? result : result[objStoreNames[0]]);
+                    callback(null, isMulti ? result : result[objStoreNames[0]][0]);
                 } else {
                     callback(err);
                 }
@@ -296,7 +296,7 @@
             var objStoreNames = isMulti ? Object.keys(arguments[0]) : [arguments[0]];
             var callback = isMulti ? arguments[1] : arguments[2];
             var callbackRun = false;
-            var data;
+            var data, abortErr;
 
             if (isMulti) {
                 data = arguments[0];
