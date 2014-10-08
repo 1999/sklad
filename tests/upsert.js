@@ -21,12 +21,12 @@ describe('Upsert operations', function () {
     describe('Errors tests', function () {
         beforeEach(openConnection);
 
-        it('should produce NotFoundError when wrong object stores are used', function (done) {
+        it('should produce DOMError.NotFoundError when wrong object stores are used', function (done) {
             conn.upsert({
                 'missing_object_store': ['some', 'data']
             }, function (err) {
-                expect(err instanceof DOMException).toEqual(true);
-                expect(err.code).toEqual(DOMException.NOT_FOUND_ERR);
+                expect(err).toBeTruthy();
+                expect(err.name).toEqual('NotFoundError');
 
                 done();
             });
@@ -47,11 +47,10 @@ describe('Upsert operations', function () {
             });
         });
 
-        it('should throw DOMError when wrong data is passed', function (done) {
+        it('should throw DOMError.InvalidStateError when wrong data is passed', function (done) {
             conn.upsert('keypath_true__keygen_false_2', 'string data', function (err, keys) {
-                expect(err instanceof DOMError).toEqual(true);
+                expect(err).toBeTruthy();
                 expect(err.name).toEqual('InvalidStateError');
-                expect(err.message).toEqual('You must supply objects to be saved in the object store with set keyPath');
 
                 done();
             });

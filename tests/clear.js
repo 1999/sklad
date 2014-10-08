@@ -20,10 +20,10 @@ describe('Clear operations', function () {
 
     beforeEach(openConnection);
 
-    it('should produce NotFoundError when wrong object stores are used', function (done) {
+    it('should produce DOMError.NotFoundError when wrong object stores are used', function (done) {
         conn.clear('missing_object_store', function (err) {
-            expect(err instanceof DOMException).toEqual(true);
-            expect(err.code).toEqual(DOMException.NOT_FOUND_ERR);
+            expect(err).toBeTruthy();
+            expect(err.name).toEqual('NotFoundError');
 
             done();
         });

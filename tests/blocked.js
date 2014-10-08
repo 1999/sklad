@@ -20,7 +20,7 @@ describe('Database block tests', function () {
                 }
             }
         }, function (err, connection) {
-            expect(err instanceof DOMError).toBe(true);
+            expect(err).toBeTruthy();
             expect(err.name).toBe('InvalidStateError');
 
             // migration code should not execute even if blocked database is closed

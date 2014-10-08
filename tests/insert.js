@@ -21,18 +21,27 @@ describe('Insert operations', function () {
     describe('Errors tests', function () {
         beforeEach(openConnection);
 
-        it('should produce NotFoundError when wrong object stores are used', function (done) {
+        it('should produce DOMError.NotFoundError when wrong object stores are used', function (done) {
             conn.insert({
                 'missing_object_store': ['some', 'data']
             }, function (err) {
-                expect(err instanceof DOMException).toEqual(true);
-                expect(err.code).toEqual(DOMException.NOT_FOUND_ERR);
+                expect(err).toBeTruthy();
+                expect(err.name).toBe('NotFoundError');
 
                 done();
             });
         });
 
-        it('should throw DOMError when same unique keys are passed', function (done) {
+        it('should produce DOMError.InvalidStateError when wrong data is passed', function (done) {
+            conn.insert('keypath_true__keygen_false_2', 'string data', function (err, insertedKeys) {
+                expect(err).toBeTruthy();
+                expect(err.name).toEqual(DOMError.InvalidStateError);
+
+                done();
+            });
+        });
+
+        it('should produce DOMError.IndexSizeError when same unique keys are passed', function (done) {
             conn.insert({
                 'keypath_true__keygen_false_0': [
                     {name: 'Oli'},
@@ -42,18 +51,8 @@ describe('Insert operations', function () {
                     {name: 'Jordan'}
                 ]
             }, function (err) {
-                expect(err instanceof DOMError).toEqual(true);
-                expect(err.name).toEqual('ConstraintError');
-
-                done();
-            });
-        });
-
-        it('should throw DOMError when wrong data is passed', function (done) {
-            conn.insert('keypath_true__keygen_false_2', 'string data', function (err, insertedKeys) {
-                expect(err instanceof DOMError).toEqual(true);
-                expect(err.name).toEqual('InvalidStateError');
-                expect(err.message).toEqual('You must supply objects to be saved in the object store with set keyPath');
+                expect(err).toBeTruthy();
+                expect(err.name).toBe('IndexSizeError');
 
                 done();
             });

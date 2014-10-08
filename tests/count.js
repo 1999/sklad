@@ -20,21 +20,21 @@ describe('Count operations', function () {
 
     beforeEach(openConnection);
 
-    it('should produce DOMException.NOT_FOUND_ERR when wrong object stores are used', function (done) {
+    it('should produce DOMError.NotFoundError when wrong object stores are used', function (done) {
         conn.count('missing_object_store', 'some_key', function (err) {
-            expect(err instanceof Error).toBe(true);
-            expect(err.code).toBe(DOMException.NOT_FOUND_ERR);
+            expect(err).toBeTruthy();
+            expect(err.name).toBe('NotFoundError');
 
             done();
         });
     });
 
-    it('should produce DOMException.INDEX_SIZE_ERR when missing index is used', function (done) {
+    it('should produce DOMError.IndexSizeError when missing index is used', function (done) {
         conn.count('keypath_true__keygen_false_0', {
             index: 'missing_index'
         }, function (err) {
-            expect(err instanceof Error).toBe(true);
-            expect(err.code).toBe(DOMException.INDEX_SIZE_ERR);
+            expect(err).toBeTruthy();
+            expect(err.name).toBe('IndexSizeError');
 
             done();
         });
