@@ -29,12 +29,12 @@ describe('Count operations', function () {
         });
     });
 
-    it('should produce DOMError.IndexSizeError when missing index is used', function (done) {
+    it('should produce DOMError.NotFoundError when missing index is used', function (done) {
         conn.count('keypath_true__keygen_false_0', {
             index: 'missing_index'
         }, function (err) {
             expect(err).toBeTruthy();
-            expect(err.name).toBe('IndexSizeError');
+            expect(err.name).toBe('NotFoundError');
 
             done();
         });

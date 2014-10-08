@@ -24,7 +24,10 @@
  * @license http://www.opensource.org/licenses/mit-license.html MIT License
  */
 (function (root, factory) {
-    if (typeof define === 'function' && define.amd) {
+    if (typeof module !== 'undefined' && typeof module.exports === 'object') {
+        // CommonJS, just export
+        module.exports = factory();
+    } else if (typeof define === 'function' && define.amd) {
         // AMD. Register as an anonymous module.
         define(factory);
     } else {
@@ -66,27 +69,6 @@
 
             return v.toString(16);
         });
-    }
-
-    /**
-     * Get error object with 'code' field set to one of DOMException.* codes
-     * If Error instance is passed, returns it immediately
-     *
-     * @param {Number} code - one of DOMException.* codes
-     * @param {String} message
-     *
-     * @see https://dvcs.w3.org/hg/domcore/raw-file/tip/Overview.html#exception-domexception
-     * @return {Error}
-     */
-    function getCustomError(code, message) {
-        if (arguments[0] instanceof Error) {
-            return arguments[0];
-        }
-
-        var err = new Error(message);
-        err.code = code;
-
-        return err;
     }
 
     /**
@@ -149,32 +131,32 @@
                 data = arguments[0];
             } else {
                 data = {};
-                data[arguments[0]] = [arguments[1]];
+                data[arguments[0]] = (typeof arguments[1] === 'function') ? null : arguments[1];
             }
 
-            try {
-                var transaction = this.database.transaction(objStoreNames, TRANSACTION_READWRITE);
-            } catch (ex) {
-                callback(ex);
+            var contains = DOMStringList.prototype.contains.bind(this.database.objectStoreNames);
+            if (!objStoreNames.every(contains)) {
+                var err = new DOMError('NotFoundError', 'Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain all needed stores');
+                callback(err);
+
                 return;
             }
 
-            transaction.oncomplete = function (evt) {
-                if (callbackRun) {
-                    return;
-                }
-
-                callback(null, isMulti ? result : result[objStoreNames[0]][0]);
-            };
-
-            transaction.onerror = transaction.onabort = function (evt) {
+            var transaction = this.database.transaction(objStoreNames, TRANSACTION_READWRITE);
+            transaction.oncomplete = transaction.onerror = transaction.onabort = function skladConnection_insert_onFinish(evt) {
                 if (callbackRun) {
                     return;
                 }
 
                 var err = abortErr || evt.target.error;
+                var isSuccess = !err && evt.type === 'complete';
 
-                callback(err);
+                if (isSuccess) {
+                    callback(null, isMulti ? result : result[objStoreNames[0]]);
+                } else {
+                    callback(err);
+                }
+
                 callbackRun = true;
 
                 if (evt.type === 'error') {
@@ -182,33 +164,30 @@
                 }
             };
 
-            stuff: {
-                for (var objStoreName in data) {
-                    var objStore = transaction.objectStore(objStoreName);
+            for (var objStoreName in data) {
+                var objStore = transaction.objectStore(objStoreName);
 
-                    for (var i = 0; i < data[objStoreName].length; i++) {
-                        var checkedData = checkSavedData(objStore, data[objStoreName][i]);
+                for (var i = 0; i < data[objStoreName].length; i++) {
+                    var checkedData = checkSavedData(objStore, data[objStoreName][i]);
 
-                        if (!checkedData) {
-                            abortErr = new DOMError('InvalidStateError', 'You must supply objects to be saved in the object store with set keyPath');
-                            transaction.abort();
+                    if (!checkedData) {
+                        abortErr = new DOMError('InvalidStateError', 'You must supply objects to be saved in the object store with set keyPath');
+                        return;
+                    }
 
-                            break stuff;
+                    (function (objStoreName, i) {
+                        try {
+                            var req = objStore.add.apply(objStore, checkedData);
+                        } catch (ex) {
+                            abortErr = ex;
+                            return;
                         }
 
-                        (function (objStoreName, i) {
-                            try {
-                                var req = objStore.add.apply(objStore, checkedData);
-                            } catch (ex) {
-                                return;
-                            }
-
-                            req.onsuccess = function (evt) {
-                                result[objStoreName] = result[objStoreName] || [];
-                                result[objStoreName][i] = evt.target.result;
-                            };
-                        })(objStoreName, i);
-                    }
+                        req.onsuccess = function (evt) {
+                            result[objStoreName] = result[objStoreName] || [];
+                            result[objStoreName][i] = evt.target.result;
+                        };
+                    })(objStoreName, i);
                 }
             }
         },
@@ -242,29 +221,29 @@
                 data[arguments[0]] = [arguments[1]];
             }
 
-            try {
-                var transaction = this.database.transaction(objStoreNames, TRANSACTION_READWRITE);
-            } catch (ex) {
-                callback(ex);
+            var contains = DOMStringList.prototype.contains.bind(this.database.objectStoreNames);
+            if (!objStoreNames.every(contains)) {
+                var err = new DOMError('NotFoundError', 'Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain all needed stores');
+                callback(err);
+
                 return;
             }
 
-            transaction.oncomplete = function (evt) {
-                if (callbackRun) {
-                    return;
-                }
-
-                callback(null, isMulti ? result : result[objStoreNames[0]][0]);
-            };
-
-            transaction.onerror = transaction.onabort = function (evt) {
+            var transaction = this.database.transaction(objStoreNames, TRANSACTION_READWRITE);
+            transaction.oncomplete = transaction.onerror = transaction.onabort = function skladConnection_upsert_onFinish(evt) {
                 if (callbackRun) {
                     return;
                 }
 
                 var err = abortErr || evt.target.error;
+                var isSuccess = !err && evt.type === 'complete';
 
-                callback(err);
+                if (isSuccess) {
+                    callback(null, isMulti ? result : result[objStoreNames[0]]);
+                } else {
+                    callback(err);
+                }
+
                 callbackRun = true;
 
                 if (evt.type === 'error') {
@@ -272,33 +251,30 @@
                 }
             };
 
-            stuff: {
-                for (var objStoreName in data) {
-                    var objStore = transaction.objectStore(objStoreName);
+            for (var objStoreName in data) {
+                var objStore = transaction.objectStore(objStoreName);
 
-                    for (var i = 0; i < data[objStoreName].length; i++) {
-                        var checkedData = checkSavedData(objStore, data[objStoreName][i]);
+                for (var i = 0; i < data[objStoreName].length; i++) {
+                    var checkedData = checkSavedData(objStore, data[objStoreName][i]);
 
-                        if (!checkedData) {
-                            abortErr = new DOMError('InvalidStateError', 'You must supply objects to be saved in the object store with set keyPath');
-                            transaction.abort();
+                    if (!checkedData) {
+                        abortErr = new DOMError('InvalidStateError', 'You must supply objects to be saved in the object store with set keyPath');
+                        return;
+                    }
 
-                            break stuff;
+                    (function (objStoreName, i) {
+                        try {
+                            var req = objStore.put.apply(objStore, checkedData);
+                        } catch (ex) {
+                            abortErr = ex;
+                            return;
                         }
 
-                        (function (objStoreName, i) {
-                            try {
-                                var req = objStore.put.apply(objStore, checkedData);
-                            } catch (ex) {
-                                return;
-                            }
-
-                            req.onsuccess = function (evt) {
-                                result[objStoreName] = result[objStoreName] || [];
-                                result[objStoreName][i] = evt.target.result;
-                            };
-                        })(objStoreName, i);
-                    }
+                        req.onsuccess = function (evt) {
+                            result[objStoreName] = result[objStoreName] || [];
+                            result[objStoreName][i] = evt.target.result;
+                        };
+                    })(objStoreName, i);
                 }
             }
         },
@@ -329,27 +305,24 @@
                 data[arguments[0]] = [arguments[1]];
             }
 
-            try {
-                var transaction = this.database.transaction(objStoreNames, TRANSACTION_READWRITE);
-            } catch (ex) {
-                callback(ex);
+            var contains = DOMStringList.prototype.contains.bind(this.database.objectStoreNames);
+            if (!objStoreNames.every(contains)) {
+                var err = new DOMError('NotFoundError', 'Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain all needed stores');
+                callback(err);
+
                 return;
             }
 
-            transaction.oncomplete = function (evt) {
+            var transaction = this.database.transaction(objStoreNames, TRANSACTION_READWRITE);
+            transaction.oncomplete = transaction.onerror = transaction.onabort = function skladConnection_delete_onFinish(evt) {
                 if (callbackRun) {
                     return;
                 }
 
-                callback();
-            };
+                var err = abortErr || evt.target.error;
+                var isSuccess = !err && evt.type === 'complete';
 
-            transaction.onerror = transaction.onabort = function (evt) {
-                if (callbackRun) {
-                    return;
-                }
-
-                callback(evt.target.error);
+                callback(isSuccess ? undefined : err);
                 callbackRun = true;
 
                 if (evt.type === 'error') {
@@ -363,7 +336,10 @@
                 for (var i = 0; i < data[objStoreName].length; i++) {
                     try {
                         objStore.delete(data[objStoreName][i]);
-                    } catch (ex) {}
+                    } catch (ex) {
+                        abortErr = ex;
+                        return;
+                    }
                 }
             }
         },
@@ -379,27 +355,24 @@
             var objStoreNames = Array.isArray(objStoreNames) ? objStoreNames : [objStoreNames];
             var callbackRun = false;
 
-            try {
-                var transaction = this.database.transaction(objStoreNames, TRANSACTION_READWRITE);
-            } catch (ex) {
-                callback(ex)
+            var contains = DOMStringList.prototype.contains.bind(this.database.objectStoreNames);
+            if (!objStoreNames.every(contains)) {
+                var err = new DOMError('NotFoundError', 'Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain all needed stores');
+                callback(err);
+
                 return;
             }
 
-            transaction.oncomplete = function (evt) {
+            var transaction = this.database.transaction(objStoreNames, TRANSACTION_READWRITE);
+            transaction.oncomplete = transaction.onerror = transaction.onabort = function skladConnection_clear_onFinish(evt) {
                 if (callbackRun) {
                     return;
                 }
 
-                callback();
-            };
+                var err = abortErr || evt.target.error;
+                var isSuccess = !err && evt.type === 'complete';
 
-            transaction.onerror = transaction.onabort = function (evt) {
-                if (callbackRun) {
-                    return;
-                }
-
-                callback(evt.target.error);
+                callback(isSuccess ? undefined : err);
                 callbackRun = true;
 
                 if (evt.type === 'error') {
@@ -411,8 +384,11 @@
                 var objStore = transaction.objectStore(objStoreNames[i]);
 
                 try {
-                    objStore.clear()
-                } catch (ex) {}
+                    objStore.clear();
+                } catch (ex) {
+                    abortErr = ex;
+                    return;
+                }
             }
         },
 
@@ -566,7 +542,7 @@
 
             var contains = DOMStringList.prototype.contains.bind(this.database.objectStoreNames);
             if (!objStoreNames.every(contains)) {
-                var err = getCustomError(DOMException.NOT_FOUND_ERR, 'Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain all needed stores');
+                var err = new DOMError('NotFoundError', 'Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain all needed stores');
                 callback(err);
 
                 return;
@@ -584,7 +560,7 @@
                 if (isSuccess) {
                     callback(null, isMulti ? result : result[objStoreNames[0]]);
                 } else {
-                    callback(getCustomError(err));
+                    callback(err);
                 }
 
                 callbackRun = true;
@@ -601,7 +577,7 @@
 
                 if (options.index) {
                     if (!objStore.indexNames.contains(options.index)) {
-                        abortErr = getCustomError(DOMException.INDEX_SIZE_ERR, 'Object store ' + objStore.name + ' doesn\'t contain "' + options.index + '" index');
+                        abortErr = new DOMError('NotFoundError', 'Object store ' + objStore.name + ' doesn\'t contain "' + options.index + '" index');
                         return;
                     }
 
@@ -623,10 +599,6 @@
                 (function (objStoreName) {
                     countRequest.onsuccess = function (evt) {
                         result[objStoreName] = evt.target.result || 0;
-                    };
-
-                    countRequest.onerror = function (evt) {
-                        abortErr = abortErr || evt.target.error;
                     };
                 })(objStoreName);
             }
@@ -653,8 +625,12 @@
      *    @param {Object} database
      */
     skladAPI.open = function sklad_open(dbName, options, callback) {
-        if (!window.indexedDB)
-            return callback('Your browser doesn\'t support IndexedDB');
+        if (!window.indexedDB) {
+            var err = new DOMError('NotSupportedError', 'Your browser doesn\'t support IndexedDB');
+            callback(err);
+
+            return;
+        }
 
         if (typeof options === 'function') {
             callback = options;
