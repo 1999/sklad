@@ -12,6 +12,7 @@ function openBaseConnection(dbName, cb) {
                 for (var i = 0; i < 3; i++) {
                     var objStore = database.createObjectStore('keypath_true__keygen_false_' + i, {keyPath: 'name'});
                     objStore.createIndex('sort_name', 'name', {unique: true});
+                    objStore.createIndex('sort_nickname', 'nickname');
                 }
 
                 for (var i = 0; i < 3; i++) {

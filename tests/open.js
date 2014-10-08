@@ -8,6 +8,11 @@ describe('Basic tests', function () {
         expect(window.IDBKeyRange).toBeDefined();
         expect(window.IDBCursor).toBeDefined();
         expect(window.sklad).toBeDefined();
+
+        expect(window.sklad.ASC).toBeDefined();
+        expect(window.sklad.ASC_UNIQUE).toBeDefined();
+        expect(window.sklad.DESC).toBeDefined();
+        expect(window.sklad.DESC_UNIQUE).toBeDefined();
     });
 
     it('should connect to database', function (done) {
