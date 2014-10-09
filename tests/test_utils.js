@@ -10,9 +10,9 @@ function openBaseConnection(dbName, cb) {
                 // @link https://developer.mozilla.org/en-US/docs/Web/API/IDBDatabase.createObjectStore
                 // @link https://developer.mozilla.org/en-US/docs/Web/API/IDBObjectStore.createIndex
                 for (var i = 0; i < 3; i++) {
-                    var objStore = database.createObjectStore('keypath_true__keygen_false_' + i, {keyPath: 'name'});
-                    objStore.createIndex('sort_name', 'name', {unique: true});
-                    objStore.createIndex('sort_nickname', 'nickname');
+                    var objStore = database.createObjectStore('keypath_true__keygen_false_' + i, {keyPath: 'some_unique_key'});
+                    objStore.createIndex('sort_login', 'login', {unique: true});
+                    objStore.createIndex('sort_name', 'name');
                 }
 
                 for (var i = 0; i < 3; i++) {

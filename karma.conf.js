@@ -13,7 +13,7 @@ module.exports = function (config) {
             'tests/delete.js',
             'tests/clear.js',
             'tests/count.js',
-            // 'tests/get.js'
+            'tests/get.js'
         ],
 
         port: 9876,

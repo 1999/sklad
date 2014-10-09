@@ -341,7 +341,6 @@
                     try {
                         objStore.delete(data[objStoreName][i]);
                     } catch (ex) {
-                        console.log(ex, data[objStoreName][i]);
                         abortErr = ex;
                         return;
                     }
@@ -413,105 +412,110 @@
          *      @param {Object} stored objects
          */
         get: function skladConnection_get() {
-            var multiGet = (arguments.length === 2 && typeof arguments[1] === 'function');
-            var objStoreNames = multiGet ? Object.keys(arguments[0]) : [arguments[0]];
-            var callback = multiGet ? arguments[1] : (arguments[2] || arguments[1]);
-            var contains = this.database.objectStoreNames.contains.bind(this.database.objectStoreNames);
-            var objects = {};
-            var transaction, data, options;
-            var iterateRequest, objStore, range, direction;
-            var err;
+            var isMulti = (arguments.length === 2 && typeof arguments[0] === 'object' && typeof arguments[1] === 'function');
+            var objStoreNames = isMulti ? Object.keys(arguments[0]) : [arguments[0]];
+            var callback = isMulti ? arguments[1] : (arguments[2] || arguments[1]);
+            var result = {};
+            var callbackRun = false;
+            var data, abortErr;
 
-            if (!objStoreNames.every(contains))
-                return callback('Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain all needed object stores');
-
-            if (multiGet) {
+            if (isMulti) {
                 data = arguments[0];
             } else {
                 data = {};
                 data[arguments[0]] = (typeof arguments[1] === 'function') ? null : arguments[1];
             }
 
-            try {
-                transaction = this.database.transaction(objStoreNames, TRANSACTION_READONLY);
-            } catch (ex) {
-                return callback(ex);
+            var contains = DOMStringList.prototype.contains.bind(this.database.objectStoreNames);
+            if (!objStoreNames.every(contains)) {
+                var err = new DOMError('NotFoundError', 'Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain all needed stores');
+                callback(err);
+
+                return;
             }
 
-            transaction.oncomplete = function (evt) {
-                callback(null, multiGet ? objects : objects[objStoreNames[0]]);
-            };
+            objStoreNames.forEach(function (objStoreName) {
+                result[objStoreName] = [];
+            });
 
-            transaction.onabort = function (evt) {
-                callback(err);
-            };
+            var transaction = this.database.transaction(objStoreNames, TRANSACTION_READONLY);
+            transaction.oncomplete = transaction.onerror = transaction.onabort = function skladConnection_get_onFinish(evt) {
+                if (callbackRun) {
+                    return;
+                }
 
-            transaction.onerror = function (evt) {
-                var err = evt.target.errorMessage || evt.target.webkitErrorMessage || evt.target.mozErrorMessage || evt.target.msErrorMessage || evt.target.error.name;
-                callback('Transaction error: ' + err);
+                var err = abortErr || evt.target.error;
+                var isSuccess = !err && evt.type === 'complete';
+
+                if (isSuccess) {
+                    callback(null, isMulti ? result : result[objStoreNames[0]]);
+                } else {
+                    callback(err);
+                }
+
+                callbackRun = true;
+
+                if (evt.type === 'error') {
+                    evt.preventDefault();
+                }
             };
 
             for (var objStoreName in data) {
-                objStore = transaction.objectStore(objStoreName);
-                options = data[objStoreName] || {};
-
-                direction = options.direction || skladAPI.ASC;
-                range = (options.range && options.range instanceof window.IDBKeyRange) ? options.range : null;
+                var objStore = transaction.objectStore(objStoreName);
+                var options = data[objStoreName] || {};
+                var direction = options.direction || skladAPI.ASC;
+                var range = options.range instanceof window.IDBKeyRange ? options.range : null;
+                var iterateRequest;
 
                 if (options.index) {
                     if (!objStore.indexNames.contains(options.index)) {
-                        err = 'Object store ' + objStore.name + ' doesn\'t contain "' + options.index + '" index';
-                        transaction.abort();
-
-                        break;
+                        abortErr = new DOMError('NotFoundError', 'Object store ' + objStore.name + ' doesn\'t contain "' + options.index + '" index');
+                        return;
                     }
 
                     try {
                         iterateRequest = objStore.index(options.index).openCursor(range, direction);
                     } catch (ex) {
-                        err = ex;
-                        transaction.abort();
-
-                        break;
+                        abortErr = ex;
+                        return;
                     }
                 } else {
                     try {
                         iterateRequest = objStore.openCursor(range, direction);
                     } catch (ex) {
-                        err = ex;
-                        transaction.abort();
-
-                        break;
+                        abortErr = ex;
+                        return;
                     }
                 }
 
                 (function (objStoreName, options) {
-                    var objectsGot = 0;
                     var cursorPositionMoved = false;
 
                     iterateRequest.onsuccess = function (evt) {
                         var cursor = evt.target.result;
-                        if (!cursor)
+
+                        // no more results
+                        if (!cursor) {
                             return;
+                        }
 
                         if (options.offset && !cursorPositionMoved) {
                             cursorPositionMoved = true;
-                            return cursor.advance(options.offset);
+                            cursor.advance(options.offset);
+
+                            return;
                         }
 
-                        objects[objStoreName] = objects[objStoreName] || {};
-                        objects[objStoreName][cursor.key] = cursor.value;
-                        objectsGot += 1;
+                        result[objStoreName].push({
+                            key: cursor.key,
+                            value: cursor.value
+                        });
 
-                        if (options.limit === objectsGot)
+                        if (options.limit && options.limit === result[objStoreName].length) {
                             return;
+                        }
 
                         cursor.continue();
-                    };
-
-                    iterateRequest.onerror = function (evt) {
-                        err = iterateRequest.error;
-                        transaction.abort();
                     };
                 })(objStoreName, options);
             }
