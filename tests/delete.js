@@ -45,8 +45,12 @@ describe('Delete operations', function () {
 
     it('should delete records from multiple stores', function (done) {
         conn.delete({
-            'keypath_true__keygen_false_0': ['whatever_key', 1, {}],
-            'keypath_true__keygen_false_1': ['smth', 'whatever_wherever']
+            'keypath_true__keygen_false_0': ['whatever_key', 1, []],
+            'keypath_true__keygen_false_1': [
+                'smth',
+                'whatever_wherever',
+                IDBKeyRange.bound('lower', 'upper', true, true)
+            ]
         }, function (err) {
             expect(err).toBeFalsy();
             done();

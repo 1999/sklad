@@ -290,6 +290,10 @@
          * @param {Object} data
          * @param {Function} callback invokes:
          *    @param {String|Null} err
+         *
+         * ATTENTION: you can pass only VALID KEYS OR KEY RANGES to delete records
+         * @see https://dvcs.w3.org/hg/IndexedDB/raw-file/tip/Overview.html#dfn-valid-key
+         * @see https://dvcs.w3.org/hg/IndexedDB/raw-file/tip/Overview.html#dfn-key-range
          */
         delete: function skladConnection_delete() {
             var isMulti = (arguments.length === 2);
@@ -337,6 +341,7 @@
                     try {
                         objStore.delete(data[objStoreName][i]);
                     } catch (ex) {
+                        console.log(ex, data[objStoreName][i]);
                         abortErr = ex;
                         return;
                     }
@@ -354,6 +359,7 @@
         clear: function skladConnection_clear(objStoreNames, callback) {
             var objStoreNames = Array.isArray(objStoreNames) ? objStoreNames : [objStoreNames];
             var callbackRun = false;
+            var abortErr;
 
             var contains = DOMStringList.prototype.contains.bind(this.database.objectStoreNames);
             if (!objStoreNames.every(contains)) {
