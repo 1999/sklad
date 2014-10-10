@@ -1,13 +1,17 @@
 ## Opening a database connection
-You should start working with your database(s) with ```sklad.open()```. New object stores and indicies should be created in the "migration" part of the second parameter.
+You should start working with your database(s) with ```sklad.open()```. New object stores and indexes should be created in the "migration" part of the second parameter.
 
 ```javascript
 /**
+ * Opens connection to a database
+ *
  * @param {String} dbName database name
- * @param {Object} options (optional) object with {Number} "version" and {Object} "migration" fields
+ * @param {Object} [options = {}] connection options
+ * @param {Number} [options.version] database version
+ * @param {Object} [options.migration] migration scripts
  * @param {Function} callback invokes:
- *    @param {String|Null} err
- *    @param {Object} database (with skladConnection as the prototype)
+ *    @param {DOMError|Null} err
+ *    @param {Object} conn
  */
 sklad.open('dbName', {
     version: 2,
@@ -29,7 +33,7 @@ sklad.open('dbName', {
 ```
 
 ## Important points
- * Second parameter is optional. If you don't specify it, the current database version will be used
- * If you specify database version less than current, you will get an error about this as the first argument of the callback
- * Every migration function takes {[IDBDatabase](https://developer.mozilla.org/en-US/docs/IndexedDB/IDBDatabase)} database as the only argument, so you can [create](https://developer.mozilla.org/en-US/docs/IndexedDB/IDBDatabase#createObjectStore) and [delete](https://developer.mozilla.org/en-US/docs/IndexedDB/IDBDatabase#deleteObjectStore) object stores inside a function.
+ * Second parameter is optional. If you don't specify it, the current database version will be used.
+ * If you specify database version less than current, you will get an error. If you specify database version equal to current, migration scripts won't run.
+ * Every migration function takes [IDBDatabase](https://developer.mozilla.org/en-US/docs/IndexedDB/IDBDatabase) database as the only argument, so you can [create](https://developer.mozilla.org/en-US/docs/IndexedDB/IDBDatabase#createObjectStore) and [delete](https://developer.mozilla.org/en-US/docs/IndexedDB/IDBDatabase#deleteObjectStore) object stores and indexes inside a function.
  * Migration scripts are executed according to database version. If your current database version is 1 and you set options.version as 4, than "2", "3" and "4" migrations will be executed one by one.

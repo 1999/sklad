@@ -627,12 +627,12 @@
      * Opens connection to a database
      *
      * @param {String} dbName database name
-     * @param {Object} options (optional) connection options with keys:
-     *    {Number} version - database version
-     *    {Object} migration - migration scripts
-     * @param {Function} callback invokes
-     *    @param {String|Null} err
-     *    @param {Object} database
+     * @param {Object} [options = {}] connection options
+     * @param {Number} [options.version] database version
+     * @param {Object} [options.migration] migration scripts
+     * @param {Function} callback invokes:
+     *    @param {DOMError|Null} err
+     *    @param {Object} conn
      */
     skladAPI.open = function sklad_open(dbName, options, callback) {
         if (!window.indexedDB) {
