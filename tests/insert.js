@@ -44,11 +44,11 @@ describe('Insert operations', function () {
         it('should produce DOMError.ConstraintError when same unique keys are passed', function (done) {
             conn.insert({
                 'keypath_true__keygen_false_0': [
-                    {name: 'Oli'},
-                    {name: 'Lee'},
-                    {name: 'Matt'},
-                    {name: 'Matt'},
-                    {name: 'Jordan'}
+                    {login: 'Alex'},
+                    {login: 'Alex2'},
+                    {login: 'Alex3'},
+                    {login: 'Alex4'},
+                    {login: 'Alex2'},
                 ]
             }, function (err) {
                 expect(err).toBeTruthy();

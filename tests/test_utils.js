@@ -65,7 +65,7 @@ function runCommonAddTests(method) {
 
         it('should ' + method + ' multiple records into one database', function (done) {
             conn[method]({
-                'keypath_true__keygen_false_1': [
+                'keypath_true__keygen_true_1': [
                     {name: 'Fred'},
                     {name: 'Sam'},
                     {name: 'John'},
@@ -75,7 +75,7 @@ function runCommonAddTests(method) {
             }, function (err, keys) {
                 expect(err).toBeFalsy();
                 expect(keys).toEqual({
-                    'keypath_true__keygen_false_1': ['Fred', 'Sam', 'John', 'Wes', 'Lee']
+                    'keypath_true__keygen_true_1': ['Fred', 'Sam', 'John', 'Wes', 'Lee']
                 });
 
                 done();
@@ -90,7 +90,7 @@ function runCommonAddTests(method) {
                     {foo: 'bar2'},
                     {bar2: 'foo'}
                 ],
-                'keypath_true__keygen_false_1': [
+                'keypath_true__keygen_true_1': [
                     {name: 'Koie'},
                     {name: 'Takemura'},
                     {name: 'Ikegawa'},
@@ -107,7 +107,7 @@ function runCommonAddTests(method) {
                 expect(Object.keys(keys)).toEqual(Object.keys(data));
 
                 expect(keys['keypath_true__keygen_false_0'].every(isValidID)).toBe(true);
-                expect(keys['keypath_true__keygen_false_1']).toEqual(['Koie', 'Takemura', 'Ikegawa', 'Amano', 'Tamano']);
+                expect(keys['keypath_true__keygen_true_1']).toEqual(['Koie', 'Takemura', 'Ikegawa', 'Amano', 'Tamano']);
                 expect(isValidID(keys['keypath_true__keygen_false_2'])).toBe(true);
 
                 done();
@@ -121,7 +121,7 @@ function runCommonAddTests(method) {
         beforeEach(openConnection);
 
         it('should ' + method + ' objects with keypath set', function (done) {
-            conn[method]('keypath_true__keygen_false_0', {name: 'Barbara'}, function (err, key) {
+            conn[method]('keypath_true__keygen_true_2', {name: 'Barbara'}, function (err, key) {
                 expect(err).toBeFalsy();
                 expect(key).toBe('Barbara');
 
