@@ -1,6 +1,6 @@
 {
   "name": "sklad",
-  "version": "0.2.1",
+  "version": "1.0.0",
   "homepage": "https://github.com/1999/sklad",
   "author": "Dmitry Sorin <info@staypositive.ru>",
   "main": "sklad.js",
