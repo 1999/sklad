@@ -1,5 +1,5 @@
 ## Opening a database connection
-You should start working with your database(s) with ```sklad.open()```. New object stores and indexes should be created in the "migration" part of the second parameter.
+You should start working with your database(s) with ```sklad.open()```. New object stores and indexes can be created in the "migration" part of the second parameter.
 
 ```javascript
 /**
@@ -27,13 +27,14 @@ sklad.open('dbName', {
             var objStore = database.createObjectStore('users_likes', {keyPath: 'date'});
         }
     }
-}, function (err, database) {
-    // work with database
+}, function (err, conn) {
+    // work with database connection
 });
 ```
 
-## Important points
+## Important notes
  * Second parameter is optional. If you don't specify it, the current database version will be used.
  * If you specify database version less than current, you will get an error. If you specify database version equal to current, migration scripts won't run.
  * Every migration function takes [IDBDatabase](https://developer.mozilla.org/en-US/docs/IndexedDB/IDBDatabase) database as the only argument, so you can [create](https://developer.mozilla.org/en-US/docs/IndexedDB/IDBDatabase#createObjectStore) and [delete](https://developer.mozilla.org/en-US/docs/IndexedDB/IDBDatabase#deleteObjectStore) object stores and indexes inside a function.
  * Migration scripts are executed according to database version. If your current database version is 1 and you set options.version as 4, than "2", "3" and "4" migrations will be executed one by one.
+ * Check out [open() tests](https://github.com/1999/sklad/blob/master/tests/open.js) to see expected behaviour of this method.

@@ -6,16 +6,16 @@
  * @param {String} objStoreName name of object store
  * @param {Mixed} data
  * @param {Function} callback invokes:
- *    @param {String|Null} err
+ *    @param {DOMError|Null} err
  *    @param {Mixed} inserted object key
  */
-sklad.open('dbName', function (err, database) {
-    if (err)
-        throw new Error(err);
-
-    database.insert('objStoreName', {foo: 'bar'}, function (err, insertedKey) {
-        if (err)
-            throw new Error(err);
+sklad.open('dbName', function (err, conn) {
+    conn.insert('objStoreName', {foo: 'bar'}, function (err, insertedKey) {
+        if (err) {
+            // check err.name to get the reason of error
+            // err.message will also be useful
+            throw new Error(err.message);
+        }
 
         // work with inserted key
     });
@@ -26,19 +26,19 @@ sklad.open('dbName', function (err, database) {
  *
  * @param {Object} data
  * @param {Function} callback invokes:
- *    @param {String|Null} err
+ *    @param {DOMError|Null} err
  *    @param {Object} inserted objects' keys
  */
 sklad.open('dbName', function (err, database) {
-    if (err)
-        throw new Error(err);
-
     database.insert({
         'objStoreName_1': ['Lorem', 'ipsum', 'dolor', 'sit', 'amet'],
         'objStoreName_2': [{foo: 'bar'}, {foo: 'bar'}]
     }, function (err, insertedKeys) {
-        if (err)
-            throw new Error(err);
+        if (err) {
+            // check err.name to get the reason of error
+            // err.message will also be useful
+            throw new Error(err.message);
+        }
 
         // insertedKeys is smth like this:
         // {
@@ -49,16 +49,12 @@ sklad.open('dbName', function (err, database) {
 });
 ```
 
-## Important points
+## Important notes
  * Inserting multiple records with one call is faster than calling `database.insert()` multiple times, because each `database.insert()` runs inside its own transaction.
- * There are [4 types](https://github.com/1999/sklad#important-notes) of storing your data in the object stores. You should choose which of them fits your needs and after this you should pass proper data in the `insert()` function.
- * If you want to store value of a simple type (object store without key path) with your own primary key, then you should use `sklad.keyValue()` function like this:
+ * There are [4 types](https://github.com/1999/sklad#important-notes) of storing your data in the object stores. You should choose which of them fits your needs best when you design your app's architecture.
+ * If you want to store a simple type value (object store without key path) with your own primary key, then you should use `sklad.keyValue()` function like this:
 ```javascript
 var data = sklad.keyValue('own_primary_key', some_value);
-database.insert('objStoreName', data, function (err, insertedKey) {
-    if (err)
-        throw new Error(err);
-
-    // work with inserted key
-});
+database.insert('objStoreName', data, function (err, insertedKey) { ... });
 ```
+ * Check out [insert() tests](https://github.com/1999/sklad/blob/master/tests/insert.js) to see expected behaviour of this method.

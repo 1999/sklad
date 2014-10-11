@@ -5,15 +5,15 @@
  *
  * @param {String} objStoreName name of object store
  * @param {Function} callback invokes:
- *    @param {String|Null} err
+ *    @param {DOMError|Null} err
  */
 sklad.open('dbName', function (err, database) {
-    if (err)
-        throw new Error(err);
-
     database.clear('objStoreName', function (err) {
-        if (err)
-            throw new Error(err);
+        if (err) {
+            // check err.name to get the reason of error
+            // err.message will also be useful
+            throw new Error(err.message);
+        }
 
         // object store is clear
     });
@@ -24,17 +24,20 @@ sklad.open('dbName', function (err, database) {
  *
  * @param {Array} objStoreNames
  * @param {Function} callback invokes:
- *    @param {String|Null} err
+ *    @param {DOMError|Null} err
  */
 sklad.open('dbName', function (err, database) {
-    if (err)
-        throw new Error(err);
-
     database.clear(['objStoreName_1', 'objStoreName_2', 'objStoreName_3'], function (err) {
-        if (err)
-            throw new Error(err);
+        if (err) {
+            // check err.name to get the reason of error
+            // err.message will also be useful
+            throw new Error(err.message);
+        }
 
         // object stores are clear
     });
 });
 ```
+
+## Important notes
+ * Check out [clear() tests](https://github.com/1999/sklad/blob/master/tests/clear.js) to see expected behaviour of this method.

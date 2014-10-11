@@ -6,16 +6,16 @@
  * @param {String} objStoreName name of object store
  * @param {Mixed} data
  * @param {Function} callback invokes:
- *    @param {String|Null} err
+ *    @param {DOMError|Null} err
  *    @param {Mixed} inserted/updated object key
  */
 sklad.open('dbName', function (err, database) {
-    if (err)
-        throw new Error(err);
-
     database.upsert('objStoreName', {foo: 'bar'}, function (err, upsertedKey) {
-        if (err)
-            throw new Error(err);
+        if (err) {
+            // check err.name to get the reason of error
+            // err.message will also be useful
+            throw new Error(err.message);
+        }
 
         // work with upserted key
     });
@@ -26,19 +26,19 @@ sklad.open('dbName', function (err, database) {
  *
  * @param {Object} data
  * @param {Function} callback invokes:
- *    @param {String|Null} err
+ *    @param {DOMError|Null} err
  *    @param {Object} inserted/updated objects' keys
  */
 sklad.open('dbName', function (err, database) {
-    if (err)
-        throw new Error(err);
-
     database.upsert({
         'objStoreName_1': ['Lorem', 'ipsum', 'dolor', 'sit', 'amet'],
         'objStoreName_2': [{foo: 'bar'}, {foo: 'bar'}]
     }, function (err, upsertedKeys) {
-        if (err)
-            throw new Error(err);
+        if (err) {
+            // check err.name to get the reason of error
+            // err.message will also be useful
+            throw new Error(err.message);
+        }
 
         // upsertedKeys is smth like this:
         // {
@@ -49,5 +49,6 @@ sklad.open('dbName', function (err, database) {
 });
 ```
 
-## Important points
-[The same](https://github.com/1999/sklad/blob/master/examples/README_skladConnection_insert.md)
+## Important note
+ * [The same](https://github.com/1999/sklad/blob/master/examples/README_skladConnection_insert.md)
+ * Check out [upsert() tests](https://github.com/1999/sklad/blob/master/tests/upsert.js) to see expected behaviour of this method.
