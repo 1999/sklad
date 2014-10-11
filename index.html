@@ -1,11 +1,10 @@
 <!DOCTYPE HTML>
 <html>
-<head> 
+<head>
     <meta charset="utf-8">
     <script src="http://rawgithub.com/1999/sklad/master/sklad.js"></script>
 
-    <link rel="stylesheet" href="http://getbootstrap.com/2.3.2/assets/css/bootstrap.css">
-    <link rel="stylesheet" href="http://getbootstrap.com/2.3.2/assets/js/google-code-prettify/prettify.css">
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <script src="//yandex.st/share/cnt.share.js"></script>
@@ -171,7 +170,7 @@
       .container-narrow > hr {
         margin: 10px 0 20px;
       }
-      
+
       .b-ya-likes {
         display: inline-block;
         padding-left: 20px;
@@ -190,59 +189,59 @@
     </h2>
     <hr>
 
-    <p class="lead">IndexedDB is <strong>HTML5 standard</strong> for a local database of records holding simple values and hierarchical objects. It is not the same as a Relational Database, which has tables, with collections rows and columns. IndexedDB has databases, which have objects stores with objects stored there. In fact IndexedDB is a NoSQL database similar to MongoDB and CouchDB. It can store <strong>any kind of objects</strong> (even Files and Blobs) and <strong>search them with indicies</strong> which you create when you start working with the database.</p>
-    <p class="lead">The problem of IndexedDB is the same as before: its API is too geeky, unfamiliar and complicated. Sklad library allows you to build apps for modern browsers with IndexedDB in a simple and convenient way. This is not ORM - it's just an abstraction layer on top of IndexedDB native objects.</p>
+    <p class="lead">IndexedDB is <strong>HTML5 standard</strong> for a local database of records holding practically <strong>any kind of data - from simple numbers to even Blobs</strong>. It is not the same as a relational database which has tables with collections rows and columns. IndexedDB has databases, which have objects stores with data stored there. In fact IndexedDB is a NoSQL database similar to MongoDB and CouchDB. It can also search for data with indexes which you create when start working with the database.</p>
+    <p class="lead">The problem of IndexedDB is following: its API is too geeky, unfamiliar and complicated. Sklad library allows you to build apps for modern browsers with IndexedDB in a simple and convenient way. This is not ORM - it's just a thin abstraction layer on top of IndexedDB native API.</p>
 
     <h3>How to start</h3>
     <hr>
 
     <p>Include <code>sklad.js</code> in your html page. Now you can connect to IndexedDB databases using <code>sklad.open()</code>. More details <a href="https://github.com/1999/sklad/blob/master/docs/README_sklad_open.md">here</a>. Beware that fetch/insert/delete operations run faster if you use multiple object stores in one call instead of using multiple simple operations. This happens because each operation runs inside its own transaction.</p>
     <script src="https://gist.github.com/1999/5476270.js?file=sklad_open.js"></script>
-    <button type="button" class="btn" data-id="sklad_open">Run example</button>
+    <button type="button" class="btn btn-default" data-id="sklad_open">Run example</button>
     <pre class="example" id="sklad_open" style="display: none"></pre>
 
     <h3>Insert one or multiple records</h3>
     <hr>
     <p>Beware that there are 4 types of storing your data in the object stores. You should choose which of them fits your needs and after this you should pass proper data in the <code>database.insert()</code>. More details <a href="https://github.com/1999/sklad/blob/master/docs/README_skladConnection_insert.md">here</a>.</p>
     <script src="https://gist.github.com/1999/5476270.js?file=database_insert.js"></script>
-    <button type="button" class="btn" data-id="database_insert">Run example</button>
+    <button type="button" class="btn btn-default" data-id="database_insert">Run example</button>
     <pre class="example" id="database_insert" style="display: none"></pre>
 
     <h3>Upsert one or multiple records</h3>
     <hr>
     <script src="https://gist.github.com/1999/5476270.js?file=database_upsert.js"></script>
-    <button type="button" class="btn" data-id="database_upsert">Run example</button>
+    <button type="button" class="btn btn-default" data-id="database_upsert">Run example</button>
     <pre class="example" id="database_upsert" style="display: none"></pre>
 
     <h3>Delete one or mutiple records</h3>
     <hr>
     <script src="https://gist.github.com/1999/5476270.js?file=database_delete.js"></script>
-    <button type="button" class="btn" data-id="database_delete">Run example</button>
+    <button type="button" class="btn btn-default" data-id="database_delete">Run example</button>
     <pre class="example" id="database_delete" style="display: none"></pre>
 
     <h3>Clear one or multiple object stores</h3>
     <hr>
     <script src="https://gist.github.com/1999/5476270.js?file=database_clear.js"></script>
-    <button type="button" class="btn" data-id="database_clear">Run example</button>
+    <button type="button" class="btn btn-default" data-id="database_clear">Run example</button>
     <pre class="example" id="database_clear" style="display: none"></pre>
 
     <h3>Get records from the object store(s)</h3>
     <hr>
     <p>You can specify your own ranges with native <a href="https://developer.mozilla.org/en-US/docs/IndexedDB/IDBKeyRange">IDBKeyRange</a> API. There's no such opportunity to get limited number of records and total records number in one call. Default iterating direction is increasing in the order of keys including duplicates, but you can also set your own direction. More details <a href="https://github.com/1999/sklad/blob/master/docs/README_skladConnection_get.md">here</a>.</p>
     <script src="https://gist.github.com/1999/5476270.js?file=database_get.js"></script>
-    <button type="button" class="btn" data-id="database_get">Run example</button>
+    <button type="button" class="btn btn-default" data-id="database_get">Run example</button>
     <pre class="example" id="database_get" style="display: none"></pre>
 
     <h3>Count objects in the object store(s)</h3>
     <hr>
     <script src="https://gist.github.com/1999/5476270.js?file=database_count.js"></script>
-    <button type="button" class="btn" data-id="database_count">Run example</button>
+    <button type="button" class="btn btn-default" data-id="database_count">Run example</button>
     <pre class="example" id="database_count" style="display: none"></pre>
 
     <hr>
 
     <div class="footer">
-        <p>&copy; <a href="http://staypositive.ru">Dmitry Sorin</a> 2013</p>
+        <p>&copy; <a href="http://staypositive.ru">Dmitry Sorin</a> 2013-2014</p>
     </div>
 </div>
 
