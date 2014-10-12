@@ -159,7 +159,7 @@
 
       pre.example {
         max-height: 320px;
-        overflow: scroll;
+        overflow: auto;
       }
 
       /* Custom container */
@@ -195,14 +195,14 @@
     <h3>How to start</h3>
     <hr>
 
-    <p>Include <code>sklad.js</code> in your html page. Now you can connect to IndexedDB databases using <code>sklad.open()</code>. More details <a href="https://github.com/1999/sklad/blob/master/docs/README_sklad_open.md">here</a>. Beware that fetch/insert/delete operations run faster if you use multiple object stores in one call instead of using multiple simple operations. This happens because each operation runs inside its own transaction.</p>
+    <p>Sklad library supports CommonJS, AMD (require.js) and global namespace module declaration syntax. <code>bower install sklad --save</code> or <a href="https://github.com/1999/sklad/blob/master/sklad.js">download</a> library and include into your project code. Now you can connect to IndexedDB databases using <code>sklad.open()</code>. More details <a href="https://github.com/1999/sklad/blob/master/docs/README_sklad_open.md">here</a>. Beware that all operations run faster if you use multiple object stores in one call instead of using multiple simple operations. This happens because each operation runs inside its own transaction.</p>
     <script src="https://gist.github.com/1999/5476270.js?file=sklad_open.js"></script>
     <button type="button" class="btn btn-default" data-id="sklad_open">Run example</button>
     <pre class="example" id="sklad_open" style="display: none"></pre>
 
     <h3>Insert one or multiple records</h3>
     <hr>
-    <p>Beware that there are 4 types of storing your data in the object stores. You should choose which of them fits your needs and after this you should pass proper data in the <code>database.insert()</code>. More details <a href="https://github.com/1999/sklad/blob/master/docs/README_skladConnection_insert.md">here</a>.</p>
+    <p>There are 4 types of storing your data in the object stores. You should choose which of them fits your needs and after this you should pass proper data in the <code>database.insert()</code>. More details <a href="https://github.com/1999/sklad/blob/master/docs/README_skladConnection_insert.md">here</a>.</p>
     <script src="https://gist.github.com/1999/5476270.js?file=database_insert.js"></script>
     <button type="button" class="btn btn-default" data-id="database_insert">Run example</button>
     <pre class="example" id="database_insert" style="display: none"></pre>
@@ -227,13 +227,20 @@
 
     <h3>Get records from the object store(s)</h3>
     <hr>
-    <p>You can specify your own ranges with native <a href="https://developer.mozilla.org/en-US/docs/IndexedDB/IDBKeyRange">IDBKeyRange</a> API. There's no such opportunity to get limited number of records and total records number in one call. Default iterating direction is increasing in the order of keys including duplicates, but you can also set your own direction. More details <a href="https://github.com/1999/sklad/blob/master/docs/README_skladConnection_get.md">here</a>.</p>
+    <p>You can specify your own ranges with native <a href="https://developer.mozilla.org/en-US/docs/IndexedDB/IDBKeyRange">IDBKeyRange</a> API. There's no opportunity to get limited number of records and total records number in one call. Default iterating direction is increasing in the order of keys including duplicates, but you can also set your own direction. More details <a href="https://github.com/1999/sklad/blob/master/docs/README_skladConnection_get.md">here</a>.</p>
     <script src="https://gist.github.com/1999/5476270.js?file=database_get.js"></script>
     <button type="button" class="btn btn-default" data-id="database_get">Run example</button>
     <pre class="example" id="database_get" style="display: none"></pre>
 
     <h3>Count objects in the object store(s)</h3>
     <hr>
+    <script src="https://gist.github.com/1999/5476270.js?file=database_count.js"></script>
+    <button type="button" class="btn btn-default" data-id="database_count">Run example</button>
+    <pre class="example" id="database_count" style="display: none"></pre>
+
+    <h3>Closing connection</h3>
+    <hr>
+    <p>Normally database connection is closed when use closes browser tabs, but if you want to do it explicitly <code>skladConnection.close()</code> method is at your service. More details <a href="https://github.com/1999/sklad/blob/master/docs/README_skladConnection_close.md">here</a>.</p>
     <script src="https://gist.github.com/1999/5476270.js?file=database_count.js"></script>
     <button type="button" class="btn btn-default" data-id="database_count">Run example</button>
     <pre class="example" id="database_count" style="display: none"></pre>
