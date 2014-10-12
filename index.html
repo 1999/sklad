@@ -10,44 +10,158 @@
     <script src="//yandex.st/share/cnt.share.js"></script>
     <script type="text/javascript">
     window.onload = function () {
-        var log = function (outputElem, text) {
-            var diff = outputElem.innerHTML.length ? '+' + (Date.now() - parseInt(outputElem.dataset.start, 10)) : 0;
-            if (!diff)
-                outputElem.dataset.start = Date.now();
+        function log(outputElem, text) {
+            var lastOperationTS = Number(outputElem.dataset.lots) || Date.now();
+            var diffMSec = Date.now() - lastOperationTS;
+            var passedMSec = diffMSec ? '+' + diffMSec : 0;
 
-            outputElem.innerHTML += '[' + diff + 'ms] ' + text + '\n';
+            outputElem.innerHTML += '[' + passedMSec + 'ms] ' + text + '\n';
             outputElem.scrollTop = outputElem.scrollHeight;
+
+            outputElem.dataset.lots = Date.now();
         };
 
-        var runExample = function (id) {
+        function runExample(id) {
             var output = document.querySelector('#' + id);
             var btn = document.querySelector('button[data-id="' + id + '"]');
 
             output.style.display = 'block';
             btn.style.display = 'none';
 
-            var dbName = 'database_' + Date.now();
-            var objStoreName1 = 'users_' + Date.now();
-            var objStoreName2 = 'obj_store_' + Date.now();
+            var dbName = 'dbName_' + Date.now();
+            log(output, 'Start with database "' + dbName + '"');
 
-            log(output, 'Start');
             sklad.open(dbName, {
+                version: 2,
                 migration: {
                     '1': function (database) {
                         log(output, 'Start executing migration scripts');
 
-                        var objStore1 = database.createObjectStore(objStoreName1, {autoIncrement: true});
-                        objStore1.createIndex('email_search', 'email', {unique: true});
-                        objStore1.createIndex('name_search', 'firstname');
+                        // This migration part starts when your code runs first time in the browser.
+                        // This is a migration from "didn't exist" to "1" database version
+                        var objStore = database.createObjectStore('users', {autoIncrement: true});
+                        objStore.createIndex('email_search', 'email', {unique: true});
+                        objStore.createIndex('name_search', 'firstname');
+                    },
+                    '2': function (database) {
+                        // This migration part starts when your database migrates from "1" to "2" version
+                        var objStore = database.createObjectStore('foo_obj_store', {keyPath: 'foo'});
 
-                        var objStore2 = database.createObjectStore(objStoreName2, {keyPath: 'foo'});
+                        log(output, 'Migration scripts finished');
                     }
                 }
-            }, function (err, database) {
-                log(output, 'Connected to database ' + dbName);
+            }, function (err, conn) {
+                log(output, 'Connected to database');
 
-                if (id === 'sklad_open')
+                if (id === 'sklad_open') {
                     return;
+                }
+
+                var words = 'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'.split(' ');
+                var data = {
+                    users: [
+                        {email: 'example1@gmail.com', firstname: 'John'},
+                        {email: 'example2@gmail.com', firstname: 'Jack'},
+                        {email: 'example3@gmail.com', firstname: 'Peter'},
+                    ],
+                    foo_obj_store: words.map(function (word) { return {foo: word}; })
+                };
+
+                log(output, 'Start insert operation with data: ' + JSON.stringify(data));
+
+                conn.insert(data, function (err, insertedKeys) {
+                    if (err) {
+                        throw new Error(err.message);
+                    }
+
+                    log(output, 'Inserted keys: ' + JSON.stringify(insertedKeys));
+
+                    switch (id) {
+                        case 'conn_upsert':
+                            var data = {
+                                foo_obj_store: words.map(function (word) { return {foo: word, some_new_field: Math.random()}; })
+                            };
+
+                            log(output, 'Start upsert operation with data: ' + JSON.stringify(data));
+
+                            conn.upsert(data, function (err, upsertedKeys) {
+                                if (err) {
+                                    throw new Error(err.message);
+                                }
+
+                                log(output, 'Upserted keys: ' + JSON.stringify(upsertedKeys));
+                            });
+
+                            break;
+
+                        case 'conn_delete':
+                            var data = {
+                                foo_obj_store: words.filter(function (word) { return (Math.random() > 0.5); })
+                            };
+
+                            log(output, 'Start delete operation with data: ' + JSON.stringify(data));
+
+                            conn.delete(data, function (err) {
+                                if (err) {
+                                    throw new Error(err.message);
+                                }
+
+                                log(output, 'Delete operation finished');
+                            });
+
+                            break;
+
+                        case 'conn_clear':
+                            log(output, 'Start clear object stores operation');
+
+                            conn.clear(['users', 'foo_obj_store'], function (err) {
+                                if (err) {
+                                    throw new Error(err.message);
+                                }
+
+                                log(output, 'Clear operation finished');
+                            });
+                            break;
+
+                        case 'conn_get':
+                            // var data = {};
+                            // data[objStoreName1] = {direction: sklad.DESC, index: 'name_search'};
+                            // data[objStoreName2] = {offset: 10, limit: 5};
+
+                            // log(output, 'Start get operation with data: ' + JSON.stringify(data));
+
+                            // database.get(data, function (err, data) {
+                            //     if (err)
+                            //         throw new Error(err);
+
+                            //     log(output, 'Get operation finished: ' + JSON.stringify(data));
+                            // });
+
+                            break;
+
+                        case 'conn_count':
+                            // log(output, 'Start count operation with range between A and l')
+
+                            // database.count(objStoreName2, {range: IDBKeyRange.bound('A', 'l')}, function (err, total) {
+                            //     if (err)
+                            //         throw new Error(err);
+
+                            //     log(output, 'Count operation finished: ' + total);
+                            // });
+
+                        case 'conn_close':
+                            break;
+                    }
+                });
+
+                return;
+
+
+
+
+
+
+
 
                 var words = 'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'.split(' ');
                 var data = {};
@@ -68,7 +182,7 @@
                     log(output, 'Inserted keys: ' + JSON.stringify(insertedKeys))
 
                     switch (id) {
-                        case 'database_upsert':
+                        case 'conn_upsert':
                             var data = {};
                             data[objStoreName2] = words.map(function (word) { return {foo: word, newField: Math.random()}; });
 
@@ -83,7 +197,7 @@
 
                             break;
 
-                        case 'database_delete':
+                        case 'conn_delete':
                             var data = {};
                             data[objStoreName2] = words.filter(function (word) { return (Math.random() > 0.5); });
 
@@ -98,7 +212,7 @@
 
                             break;
 
-                        case 'database_clear':
+                        case 'conn_clear':
                             log(output, 'Start clear object store operation');
 
                             database.clear([objStoreName2, objStoreName1], function (err) {
@@ -110,31 +224,7 @@
 
                             break;
 
-                        case 'database_get':
-                            var data = {};
-                            data[objStoreName1] = {direction: sklad.DESC, index: 'name_search'};
-                            data[objStoreName2] = {offset: 10, limit: 5};
 
-                            log(output, 'Start get operation with data: ' + JSON.stringify(data));
-
-                            database.get(data, function (err, data) {
-                                if (err)
-                                    throw new Error(err);
-
-                                log(output, 'Get operation finished: ' + JSON.stringify(data));
-                            });
-
-                            break;
-
-                        case 'database_count':
-                            log(output, 'Start count operation with range between A and l')
-
-                            database.count(objStoreName2, {range: IDBKeyRange.bound('A', 'l')}, function (err, total) {
-                                if (err)
-                                    throw new Error(err);
-
-                                log(output, 'Count operation finished: ' + total);
-                            });
 
                             break;
                     }
@@ -196,54 +286,54 @@
     <hr>
 
     <p>Sklad library supports CommonJS, AMD (require.js) and global namespace module declaration syntax. <code>bower install sklad --save</code> or <a href="https://github.com/1999/sklad/blob/master/sklad.js">download</a> library and include into your project code. Now you can connect to IndexedDB databases using <code>sklad.open()</code>. More details <a href="https://github.com/1999/sklad/blob/master/docs/README_sklad_open.md">here</a>. Beware that all operations run faster if you use multiple object stores in one call instead of using multiple simple operations. This happens because each operation runs inside its own transaction.</p>
-    <script src="https://gist.github.com/1999/5476270.js?file=sklad_open.js"></script>
+    <script src="https://gist.github.com/1999/ca2f4af78eafa050521f.js?file=sklad_open.js"></script>
     <button type="button" class="btn btn-default" data-id="sklad_open">Run example</button>
     <pre class="example" id="sklad_open" style="display: none"></pre>
 
     <h3>Insert one or multiple records</h3>
     <hr>
     <p>There are 4 types of storing your data in the object stores. You should choose which of them fits your needs and after this you should pass proper data in the <code>database.insert()</code>. More details <a href="https://github.com/1999/sklad/blob/master/docs/README_skladConnection_insert.md">here</a>.</p>
-    <script src="https://gist.github.com/1999/5476270.js?file=database_insert.js"></script>
-    <button type="button" class="btn btn-default" data-id="database_insert">Run example</button>
-    <pre class="example" id="database_insert" style="display: none"></pre>
+    <script src="https://gist.github.com/1999/ca2f4af78eafa050521f.js?file=conn_insert.js"></script>
+    <button type="button" class="btn btn-default" data-id="conn_insert">Run example</button>
+    <pre class="example" id="conn_insert" style="display: none"></pre>
 
     <h3>Upsert one or multiple records</h3>
     <hr>
-    <script src="https://gist.github.com/1999/5476270.js?file=database_upsert.js"></script>
-    <button type="button" class="btn btn-default" data-id="database_upsert">Run example</button>
-    <pre class="example" id="database_upsert" style="display: none"></pre>
+    <script src="https://gist.github.com/1999/ca2f4af78eafa050521f.js?file=conn_upsert.js"></script>
+    <button type="button" class="btn btn-default" data-id="conn_upsert">Run example</button>
+    <pre class="example" id="conn_upsert" style="display: none"></pre>
 
     <h3>Delete one or mutiple records</h3>
     <hr>
-    <script src="https://gist.github.com/1999/5476270.js?file=database_delete.js"></script>
-    <button type="button" class="btn btn-default" data-id="database_delete">Run example</button>
-    <pre class="example" id="database_delete" style="display: none"></pre>
+    <script src="https://gist.github.com/1999/ca2f4af78eafa050521f.js?file=conn_delete.js"></script>
+    <button type="button" class="btn btn-default" data-id="conn_delete">Run example</button>
+    <pre class="example" id="conn_delete" style="display: none"></pre>
 
     <h3>Clear one or multiple object stores</h3>
     <hr>
-    <script src="https://gist.github.com/1999/5476270.js?file=database_clear.js"></script>
-    <button type="button" class="btn btn-default" data-id="database_clear">Run example</button>
-    <pre class="example" id="database_clear" style="display: none"></pre>
+    <script src="https://gist.github.com/1999/ca2f4af78eafa050521f.js?file=conn_clear.js"></script>
+    <button type="button" class="btn btn-default" data-id="conn_clear">Run example</button>
+    <pre class="example" id="conn_clear" style="display: none"></pre>
 
     <h3>Get records from the object store(s)</h3>
     <hr>
     <p>You can specify your own ranges with native <a href="https://developer.mozilla.org/en-US/docs/IndexedDB/IDBKeyRange">IDBKeyRange</a> API. There's no opportunity to get limited number of records and total records number in one call. Default iterating direction is increasing in the order of keys including duplicates, but you can also set your own direction. More details <a href="https://github.com/1999/sklad/blob/master/docs/README_skladConnection_get.md">here</a>.</p>
-    <script src="https://gist.github.com/1999/5476270.js?file=database_get.js"></script>
-    <button type="button" class="btn btn-default" data-id="database_get">Run example</button>
-    <pre class="example" id="database_get" style="display: none"></pre>
+    <script src="https://gist.github.com/1999/ca2f4af78eafa050521f.js?file=conn_get.js"></script>
+    <button type="button" class="btn btn-default" data-id="conn_get">Run example</button>
+    <pre class="example" id="conn_get" style="display: none"></pre>
 
     <h3>Count objects in the object store(s)</h3>
     <hr>
-    <script src="https://gist.github.com/1999/5476270.js?file=database_count.js"></script>
-    <button type="button" class="btn btn-default" data-id="database_count">Run example</button>
-    <pre class="example" id="database_count" style="display: none"></pre>
+    <script src="https://gist.github.com/1999/ca2f4af78eafa050521f.js?file=conn_count.js"></script>
+    <button type="button" class="btn btn-default" data-id="conn_count">Run example</button>
+    <pre class="example" id="conn_count" style="display: none"></pre>
 
     <h3>Closing connection</h3>
     <hr>
-    <p>Normally database connection is closed when use closes browser tabs, but if you want to do it explicitly <code>skladConnection.close()</code> method is at your service. More details <a href="https://github.com/1999/sklad/blob/master/docs/README_skladConnection_close.md">here</a>.</p>
-    <script src="https://gist.github.com/1999/5476270.js?file=database_count.js"></script>
-    <button type="button" class="btn btn-default" data-id="database_count">Run example</button>
-    <pre class="example" id="database_count" style="display: none"></pre>
+    <p>Normally database connection is closed when use closes browser tabs. But if you want to do it explicitly <code>skladConnection.close()</code> method is at your service. More details <a href="https://github.com/1999/sklad/blob/master/docs/README_skladConnection_close.md">here</a>.</p>
+    <script src="https://gist.github.com/1999/ca2f4af78eafa050521f.js?file=conn_count.js"></script>
+    <button type="button" class="btn btn-default" data-id="conn_close">Run example</button>
+    <pre class="example" id="conn_close" style="display: none"></pre>
 
     <hr>
 
