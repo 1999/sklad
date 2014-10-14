@@ -57,6 +57,13 @@
                     return;
                 }
 
+                if (id === 'conn_close') {
+                    conn.close();
+                    log(output, 'Connected closed');
+
+                    return
+                }
+
                 var words = 'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'.split(' ');
                 var data = {
                     users: [
@@ -124,108 +131,33 @@
                             break;
 
                         case 'conn_get':
-                            // var data = {};
-                            // data[objStoreName1] = {direction: sklad.DESC, index: 'name_search'};
-                            // data[objStoreName2] = {offset: 10, limit: 5};
+                            log(output, 'Start get operation');
 
-                            // log(output, 'Start get operation with data: ' + JSON.stringify(data));
+                            conn.get({
+                                users: {direction: sklad.DESC, index: 'name_search'},
+                                foo_obj_store: {offset: 10, limit: 5}
+                            }, function (err, data) {
+                                if (err) {
+                                    throw new Error(err.message);
+                                }
 
-                            // database.get(data, function (err, data) {
-                            //     if (err)
-                            //         throw new Error(err);
-
-                            //     log(output, 'Get operation finished: ' + JSON.stringify(data));
-                            // });
+                                log(output, 'Get operation finished: ' + JSON.stringify(data));
+                            });
 
                             break;
 
                         case 'conn_count':
-                            // log(output, 'Start count operation with range between A and l')
+                            log(output, 'Count number of records between A and l')
 
-                            // database.count(objStoreName2, {range: IDBKeyRange.bound('A', 'l')}, function (err, total) {
-                            //     if (err)
-                            //         throw new Error(err);
+                            conn.count('foo_obj_store', {range: IDBKeyRange.bound('A', 'l')}, function (err, total) {
+                                if (err) {
+                                    throw new Error(err.message);
+                                }
 
-                            //     log(output, 'Count operation finished: ' + total);
-                            // });
+                                log(output, 'Count operation finished. Total records between "A" and "l" is: ' + total);
+                            });
 
                         case 'conn_close':
-                            break;
-                    }
-                });
-
-                return;
-
-
-
-
-
-
-
-
-                var words = 'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'.split(' ');
-                var data = {};
-
-                data[objStoreName1] = [
-                    {email: 'example1@gmail.com', firstname: 'John'},
-                    {email: 'example2@gmail.com', firstname: 'Jack'},
-                    {email: 'example3@gmail.com', firstname: 'Peter'},
-                ];
-
-                data[objStoreName2] = words.map(function (word) { return {foo: word}; });
-                log(output, 'Start insert operation with data: ' + JSON.stringify(data));
-
-                database.insert(data, function (err, insertedKeys) {
-                    if (err)
-                        throw new Error(err);
-
-                    log(output, 'Inserted keys: ' + JSON.stringify(insertedKeys))
-
-                    switch (id) {
-                        case 'conn_upsert':
-                            var data = {};
-                            data[objStoreName2] = words.map(function (word) { return {foo: word, newField: Math.random()}; });
-
-                            log(output, 'Start upsert operation with data: ' + JSON.stringify(data));
-
-                            database.upsert(data, function (err, upsertedKeys) {
-                                if (err)
-                                    throw new Error(err);
-
-                                log(output, 'Upserted keys: ' + JSON.stringify(upsertedKeys))
-                            });
-
-                            break;
-
-                        case 'conn_delete':
-                            var data = {};
-                            data[objStoreName2] = words.filter(function (word) { return (Math.random() > 0.5); });
-
-                            log(output, 'Start delete operation with data: ' + JSON.stringify(data));
-
-                            database.delete(data, function (err) {
-                                if (err)
-                                    throw new Error(err);
-
-                                log(output, 'Delete operation finished');
-                            });
-
-                            break;
-
-                        case 'conn_clear':
-                            log(output, 'Start clear object store operation');
-
-                            database.clear([objStoreName2, objStoreName1], function (err) {
-                                if (err)
-                                    throw new Error(err);
-
-                                log(output, 'Clear operation finished');
-                            });
-
-                            break;
-
-
-
                             break;
                     }
                 });
@@ -331,7 +263,7 @@
     <h3>Closing connection</h3>
     <hr>
     <p>Normally database connection is closed when use closes browser tabs. But if you want to do it explicitly <code>skladConnection.close()</code> method is at your service. More details <a href="https://github.com/1999/sklad/blob/master/docs/README_skladConnection_close.md">here</a>.</p>
-    <script src="https://gist.github.com/1999/ca2f4af78eafa050521f.js?file=conn_count.js"></script>
+    <script src="https://gist.github.com/1999/ca2f4af78eafa050521f.js?file=conn_close.js"></script>
     <button type="button" class="btn btn-default" data-id="conn_close">Run example</button>
     <pre class="example" id="conn_close" style="display: none"></pre>
 
