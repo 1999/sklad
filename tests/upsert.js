@@ -1,5 +1,5 @@
 describe('Upsert operations', function () {
-    var dbName = 'dbName' + Date.now();
+    var dbName = 'dbName' + Math.random();
     var conn;
 
     function openConnection(cb) {

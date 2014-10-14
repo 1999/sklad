@@ -41,7 +41,7 @@ function openBaseConnection(dbName, cb) {
 }
 
 function runCommonAddTests(method) {
-    var dbName = 'dbName' + Date.now();
+    var dbName = 'dbName' + Math.random();
     var conn;
 
     function openConnection(cb) {

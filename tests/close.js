@@ -1,5 +1,5 @@
 describe('Close operation', function () {
-    var dbName = 'dbName' + Date.now();
+    var dbName = 'dbName' + Math.random();
 
     it('should free IDBDatabase object after closing database', function (done) {
         sklad.open(dbName, function (err, connection) {

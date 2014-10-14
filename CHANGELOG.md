@@ -4,6 +4,7 @@
  * new: CommonJS module syntax support
  * new: `skladConnection.close()` method to explicitly close existing connection ([#3](https://github.com/1999/sklad/issues/3))
  * new: semver support
+ * new: `blocked` event support with `InvalidStateError` DOMError
  * fix: callbacks with errors could run more than once
  * fix: external docs page contains close to truth examples ([#2](https://github.com/1999/sklad/issues/2))
  * **breaking change**: callbacks are now invoked with [DOMError](https://developer.mozilla.org/en/docs/Web/API/DOMError) instance as a first argument if error happens during operation, previously it could be either `String` or `Error`. Check out [docs](https://github.com/1999/sklad/tree/master/docs) for examples.
