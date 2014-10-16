@@ -159,6 +159,16 @@ sklad.open(dbName, options, function (err, conn) {
 });
 ```
 
+## Delete database
+```javascript
+/**
+ * @param {String} dbName
+ * @param {Function} callback invokes:
+ *     @param {DOMError|Null} err
+ */
+sklad.deleteDatabase(dbName, callback);
+```
+
 # Important notes
 There's an [unclear and scaring table](https://developer.mozilla.org/en-US/docs/IndexedDB/Using_IndexedDB#Structuring_the_database) on MDN called "Structuring the database". It means that there are 4 ways of storing your data in the object stores and you should choose which of them fits your needs best.
 

@@ -1,3 +1,7 @@
+## 1.1.0
+
+ * new: `sklad.deleteDatabase()` method
+
 ## 1.0.0
 
  * new: full tests coverage with Travis CI: [Travis CI](https://travis-ci.org/1999/sklad), [tests](https://github.com/1999/sklad/tree/master/tests)

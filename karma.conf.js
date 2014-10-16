@@ -5,8 +5,10 @@ module.exports = function (config) {
         files: [
             'sklad.js',
             'tests/test_utils.js',
+            'tests/interface.js',
             'tests/open.js',
-            'tests/blocked.js',
+            'tests/open_blocked_evt.js',
+            'tests/delete_database.js',
             'tests/close.js',
             'tests/insert.js',
             'tests/upsert.js',

@@ -732,6 +732,42 @@
         };
     };
 
+    /**
+     * Deletes database
+     *
+     * @param {String} dbName
+     * @param {Function} callback invokes:
+     *     @param {DOMError|Null} err
+     */
+    skladAPI.deleteDatabase = function sklad_deleteDatabase(dbName, callback) {
+        if (!window.indexedDB) {
+            var err = new DOMError('NotSupportedError', 'Your browser doesn\'t support IndexedDB');
+            callback(err);
+
+            return;
+        }
+
+        var openDbRequest = window.indexedDB.deleteDatabase(dbName);
+        var callbackRun = false;
+
+        openDbRequest.onsuccess = openDbRequest.onerror = openDbRequest.onblocked = function sklad_deleteDatabase_onFinish(evt) {
+            if (callbackRun) {
+                return;
+            }
+
+            var err = (evt.type === 'blocked')
+                ? new DOMError('InvalidStateError', 'Database ' + dbName + ' is blocked')
+                : evt.target.error;
+
+            callback(err || null);
+            callbackRun = true;
+
+            if (evt.type !== 'success') {
+                evt.preventDefault();
+            }
+        };
+    },
+
     skladAPI.keyValue = function sklad_keyValue(key, value) {
         return Object.create(skladKeyValueContainer, {
             key: {value: key, configurable: false, writable: false},
