@@ -57,6 +57,9 @@ describe('API interface tests', function () {
                     migrationsRun.push('current database version migration');
                 },
                 '2': function (database) {
+                    expect(this instanceof IDBOpenDBRequest).toEqual(true);
+                    expect(this.result).toBe(database);
+
                     migrationsRun.push('new database version migration');
                     expect(database instanceof window.IDBDatabase).toBe(true);
 

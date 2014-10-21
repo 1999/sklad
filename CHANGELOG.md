@@ -1,3 +1,7 @@
+## 1.2.0
+
+ * new: `this` in migration scripts now refers to IDBOpenDBRequest so that you can create indexes on top of already created object stores. Check out [docs](https://github.com/1999/sklad/blob/master/docs/README_sklad_open.md) for more info.
+
 ## 1.1.0
 
  * new: `sklad.deleteDatabase()` method

@@ -662,7 +662,7 @@
                 if (!options.migration[i])
                     continue;
 
-                options.migration[i](this.result);
+                options.migration[i].call(this, this.result);
             }
         };
 

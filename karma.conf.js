@@ -8,6 +8,7 @@ module.exports = function (config) {
             'tests/interface.js',
             'tests/open.js',
             'tests/open_blocked_evt.js',
+            'tests/migration_context.js',
             'tests/delete_database.js',
             'tests/close.js',
             'tests/insert.js',

@@ -25,6 +25,10 @@ sklad.open('dbName', {
         '2': function (database) {
             // This migration part starts when your database migrates from "1" to "2" version
             var objStore = database.createObjectStore('users_likes', {keyPath: 'date'});
+
+            // The `this` keyword refers to current IDBOpenDBRequest
+            var usersObjStore = this.transaction.objectStore('users');
+            usersObjStore.createIndex('github_search', 'github_login', {unique: true});
         }
     }
 }, function (err, conn) {
