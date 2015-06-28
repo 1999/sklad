@@ -58,6 +58,8 @@
     skladAPI.DESC = window.IDBCursor.PREV || 'prev';
     skladAPI.DESC_UNIQUE = window.IDBCursor.PREV_NO_DUPLICATE || 'prevunique';
 
+    var indexOf = Array.prototype.indexOf;
+
     /**
      * Generates UUIDs for objects without keys set
      * @link http://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid-in-javascript/2117523#2117523
@@ -100,6 +102,18 @@
         }
 
         return key ? [value, key] : [value];
+    }
+
+    /**
+     * Check whether database contains all needed stores
+     *
+     * @param {Array} objStoreNames
+     * @return {Boolean}
+     */
+    function checkContainingStores(objStoreNames) {
+        return objStoreNames.every(function (storeName) {
+            return (indexOf.call(this.database.objectStoreNames, storeName) !== -1);
+        }, this);
     }
 
     // @todo how to create indicies on existing object store / delete them?
@@ -221,8 +235,8 @@
                 data[arguments[0]] = [arguments[1]];
             }
 
-            var contains = DOMStringList.prototype.contains.bind(this.database.objectStoreNames);
-            if (!objStoreNames.every(contains)) {
+            var allObjStoresExist = checkContainingStores.call(this, objStoreNames);
+            if (!allObjStoresExist) {
                 var err = new DOMError('NotFoundError', 'Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain all needed stores');
                 callback(err);
 
@@ -309,8 +323,8 @@
                 data[arguments[0]] = [arguments[1]];
             }
 
-            var contains = DOMStringList.prototype.contains.bind(this.database.objectStoreNames);
-            if (!objStoreNames.every(contains)) {
+            var allObjStoresExist = checkContainingStores.call(this, objStoreNames);
+            if (!allObjStoresExist) {
                 var err = new DOMError('NotFoundError', 'Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain all needed stores');
                 callback(err);
 
@@ -360,8 +374,8 @@
             var callbackRun = false;
             var abortErr;
 
-            var contains = DOMStringList.prototype.contains.bind(this.database.objectStoreNames);
-            if (!objStoreNames.every(contains)) {
+            var allObjStoresExist = checkContainingStores.call(this, objStoreNames);
+            if (!allObjStoresExist) {
                 var err = new DOMError('NotFoundError', 'Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain all needed stores');
                 callback(err);
 
@@ -426,8 +440,8 @@
                 data[arguments[0]] = (typeof arguments[1] === 'function') ? null : arguments[1];
             }
 
-            var contains = DOMStringList.prototype.contains.bind(this.database.objectStoreNames);
-            if (!objStoreNames.every(contains)) {
+            var allObjStoresExist = checkContainingStores.call(this, objStoreNames);
+            if (!allObjStoresExist) {
                 var err = new DOMError('NotFoundError', 'Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain all needed stores');
                 callback(err);
 
@@ -550,8 +564,8 @@
                 data[arguments[0]] = (typeof arguments[1] === 'function') ? null : arguments[1];
             }
 
-            var contains = DOMStringList.prototype.contains.bind(this.database.objectStoreNames);
-            if (!objStoreNames.every(contains)) {
+            var allObjStoresExist = checkContainingStores.call(this, objStoreNames);
+            if (!allObjStoresExist) {
                 var err = new DOMError('NotFoundError', 'Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain all needed stores');
                 callback(err);
 
