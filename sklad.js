@@ -318,7 +318,7 @@
          * @see https://dvcs.w3.org/hg/IndexedDB/raw-file/tip/Overview.html#dfn-key-range
          */
         delete: function skladConnection_delete() {
-            var isMulti = (arguments.length === 2);
+            var isMulti = (arguments.length === 2 && typeof arguments[1] === 'function');
             var objStoreNames = isMulti ? Object.keys(arguments[0]) : [arguments[0]];
             var callback = isMulti ? arguments[1] : arguments[2];
             var callbackRun = false;
