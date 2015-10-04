@@ -114,6 +114,20 @@ function runCommonAddTests(method) {
             });
         });
 
+        it('should not fail if no callback is set', function (done) {
+            conn[method]({
+                'keypath_true__keygen_true_1': [
+                    {name: 'Fred'},
+                    {name: 'Sam'},
+                    {name: 'John'},
+                    {name: 'Wes'},
+                    {name: 'Lee'}
+                ]
+            });
+
+            setTimeout(done, 3000);
+        });
+
         afterEach(closeConnection);
     });
 

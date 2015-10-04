@@ -43,5 +43,10 @@ describe('Clear operations', function () {
         });
     });
 
+    it('should not fail if no callback is set', function (done) {
+        conn.clear('keypath_true__keygen_false_0');
+        setTimeout(done, 3000);
+    });
+
     afterEach(closeConnection);
 });

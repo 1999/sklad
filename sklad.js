@@ -59,6 +59,7 @@
     skladAPI.DESC_UNIQUE = window.IDBCursor.PREV_NO_DUPLICATE || 'prevunique';
 
     var indexOf = Array.prototype.indexOf;
+    var slice = Array.prototype.slice;
 
     /**
      * Generates UUIDs for objects without keys set
@@ -71,6 +72,13 @@
 
             return v.toString(16);
         });
+    }
+
+    function runCallback(callback) {
+        if (typeof callback === 'function') {
+            var args = slice.call(arguments, 1);
+            callback.apply(undefined, args);
+        }
     }
 
     /**
@@ -123,13 +131,13 @@
          * 1) Insert one record into the object store
          * @param {String} objStoreName name of object store
          * @param {Mixed} data
-         * @param {Function} callback invokes:
+         * @param {Function} [callback] invokes:
          *    @param {String|Null} err
          *    @param {Mixed} inserted object key
          *
          * 2) Insert multiple records into the object stores (during one transaction)
          * @param {Object} data
-         * @param {Function} callback invokes:
+         * @param {Function} [callback] invokes:
          *    @param {String|Null} err
          *    @param {Object} inserted objects' keys
          */
@@ -151,7 +159,7 @@
             var contains = DOMStringList.prototype.contains.bind(this.database.objectStoreNames);
             if (!objStoreNames.every(contains)) {
                 var err = new DOMError('NotFoundError', 'Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain all needed stores');
-                callback(err);
+                runCallback(callback, err);
 
                 return;
             }
@@ -166,9 +174,9 @@
                 var isSuccess = !err && evt.type === 'complete';
 
                 if (isSuccess) {
-                    callback(null, isMulti ? result : result[objStoreNames[0]][0]);
+                    runCallback(callback, null, isMulti ? result : result[objStoreNames[0]][0]);
                 } else {
-                    callback(err);
+                    runCallback(callback, err);
                 }
 
                 callbackRun = true;
@@ -210,13 +218,13 @@
          * 1) Insert or update one record in the object store
          * @param {String} objStoreName name of object store
          * @param {Mixed} data
-         * @param {Function} callback invokes:
+         * @param {Function} [callback] invokes:
          *    @param {String|Null} err
          *    @param {Mixed} inserted/updated object key
          *
          * 2) Insert or update multiple records in the object stores (during one transaction)
          * @param {Object} data
-         * @param {Function} callback invokes:
+         * @param {Function} [callback] invokes:
          *    @param {String|Null} err
          *    @param {Object} inserted/updated objects' keys
          */
@@ -238,7 +246,7 @@
             var allObjStoresExist = checkContainingStores.call(this, objStoreNames);
             if (!allObjStoresExist) {
                 var err = new DOMError('NotFoundError', 'Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain all needed stores');
-                callback(err);
+                runCallback(callback, err);
 
                 return;
             }
@@ -253,9 +261,9 @@
                 var isSuccess = !err && evt.type === 'complete';
 
                 if (isSuccess) {
-                    callback(null, isMulti ? result : result[objStoreNames[0]][0]);
+                    runCallback(callback, null, isMulti ? result : result[objStoreNames[0]][0]);
                 } else {
-                    callback(err);
+                    runCallback(callback, err);
                 }
 
                 callbackRun = true;
@@ -297,12 +305,12 @@
          * 1) Delete one record from the object store
          * @param {String} objStoreName name of object store
          * @param {Mixed} key
-         * @param {Function} callback invokes:
+         * @param {Function} [callback] invokes:
          *    @param {String|Null} err
          *
          * 2) Delete multiple records from the object stores (during one transaction)
          * @param {Object} data
-         * @param {Function} callback invokes:
+         * @param {Function} [callback] invokes:
          *    @param {String|Null} err
          *
          * ATTENTION: you can pass only VALID KEYS OR KEY RANGES to delete records
@@ -326,7 +334,7 @@
             var allObjStoresExist = checkContainingStores.call(this, objStoreNames);
             if (!allObjStoresExist) {
                 var err = new DOMError('NotFoundError', 'Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain all needed stores');
-                callback(err);
+                runCallback(callback, err);
 
                 return;
             }
@@ -340,7 +348,7 @@
                 var err = abortErr || evt.target.error;
                 var isSuccess = !err && evt.type === 'complete';
 
-                callback(isSuccess ? undefined : err);
+                runCallback(callback, isSuccess ? undefined : err);
                 callbackRun = true;
 
                 if (evt.type === 'error') {
@@ -366,7 +374,7 @@
          * Clear object store(s)
          *
          * @param {Array|String} objStoreNames array of object stores or a single object store
-         * @param {Function} callback invokes:
+         * @param {Function} [callback] invokes:
          *    @param {String|Null} err
          */
         clear: function skladConnection_clear(objStoreNames, callback) {
@@ -377,7 +385,7 @@
             var allObjStoresExist = checkContainingStores.call(this, objStoreNames);
             if (!allObjStoresExist) {
                 var err = new DOMError('NotFoundError', 'Database ' + this.database.name + ' (version ' + this.database.version + ') doesn\'t contain all needed stores');
-                callback(err);
+                runCallback(callback, err);
 
                 return;
             }
@@ -391,7 +399,7 @@
                 var err = abortErr || evt.target.error;
                 var isSuccess = !err && evt.type === 'complete';
 
-                callback(isSuccess ? undefined : err);
+                runCallback(callback, isSuccess ? undefined : err);
                 callbackRun = true;
 
                 if (evt.type === 'error') {

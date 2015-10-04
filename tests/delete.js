@@ -57,5 +57,10 @@ describe('Delete operations', function () {
         });
     });
 
+    it('should not fail if no callback is set', function (done) {
+        conn.delete('keypath_true__keygen_false_0', 'whatever_key');
+        setTimeout(done, 3000);
+    });
+
     afterEach(closeConnection);
 });
