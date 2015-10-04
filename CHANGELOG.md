@@ -1,3 +1,7 @@
+## 1.3.0
+
+ * insert, delete, upsert and clear methods don't fail if no callbck is supplied ([#10](https://github.com/1999/sklad/issues/10))
+
 ## 1.2.1
 
  * obsolete `DOMStringList.prototype.contains` replaced with `Array.prototype.indexOf` search ([#7](https://github.com/1999/sklad/issues/7))
