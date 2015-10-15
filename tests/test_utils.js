@@ -31,12 +31,8 @@ function openBaseConnection(dbName, cb) {
                 }
             }
         }
-    }, function (err, connection) {
-        if (err) {
-            throw err;
-        }
-
-        cb(connection);
+    }).then(done).catch(function (err) {
+        done.fail('Open returns rejected promise: ' + err.name + ' (' + err.message + ')');
     });
 }
 
@@ -72,13 +68,14 @@ function runCommonAddTests(method) {
                     {name: 'Wes'},
                     {name: 'Lee'}
                 ]
-            }, function (err, keys) {
-                expect(err).toBeFalsy();
+            }).then(function (keys) {
                 expect(keys).toEqual({
                     'keypath_true__keygen_true_1': ['Fred', 'Sam', 'John', 'Wes', 'Lee']
                 });
 
                 done();
+            }).catch(function () {
+                done.fail(method + ' returns rejected promise');
             });
         });
 
@@ -102,8 +99,7 @@ function runCommonAddTests(method) {
                 ]
             };
 
-            conn[method](data, function (err, keys) {
-                expect(err).toBeFalsy();
+            conn[method](data).then(function (keys) {
                 expect(Object.keys(keys)).toEqual(Object.keys(data));
 
                 expect(keys['keypath_true__keygen_false_0'].every(isValidID)).toBe(true);
@@ -111,21 +107,9 @@ function runCommonAddTests(method) {
                 expect(isValidID(keys['keypath_true__keygen_false_2'])).toBe(true);
 
                 done();
+            }).catch(function () {
+                done.fail(method + ' returns rejected promise');
             });
-        });
-
-        it('should not fail if no callback is set', function (done) {
-            conn[method]({
-                'keypath_true__keygen_true_1': [
-                    {name: 'Fred'},
-                    {name: 'Sam'},
-                    {name: 'John'},
-                    {name: 'Wes'},
-                    {name: 'Lee'}
-                ]
-            });
-
-            setTimeout(done, 3000);
         });
 
         afterEach(closeConnection);
@@ -135,21 +119,19 @@ function runCommonAddTests(method) {
         beforeEach(openConnection);
 
         it('should ' + method + ' objects with keypath set', function (done) {
-            conn[method]('keypath_true__keygen_true_2', {name: 'Barbara'}, function (err, key) {
-                expect(err).toBeFalsy();
+            conn[method]('keypath_true__keygen_true_2', {name: 'Barbara'}).then(function (key) {
                 expect(key).toBe('Barbara');
-
                 done();
+            }).catch(function () {
+                done.fail(method + ' returns rejected promise');
             });
         });
 
-        it('should ' + method + ' objects with no keypath set', function (done) {
-            conn[method]('keypath_true__keygen_false_0', {foo: 'bar'}, function (err, key) {
-                expect(err).toBeFalsy();
-                expect(isValidID(key)).toBe(true);
-
-                done();
-            });
+        it('should ' + method + ' objects with no keypath set').then(function (key) {
+            expect(isValidID(key)).toBe(true);
+            done();
+        }).catch(function () {
+            done.fail(method + ' returns rejected promise');
         });
 
         afterEach(closeConnection);
@@ -158,23 +140,21 @@ function runCommonAddTests(method) {
     describe('Key path not used, key generator used', function () {
         beforeEach(openConnection);
 
-        it('should ' + method + ' records and generate autoincremented primary key', function (done) {
-            conn[method]('keypath_false__keygen_true_0', 'hello world', function (err, key) {
-                expect(err).toBeFalsy();
-                expect(key).toBe(1);
-
-                done();
-            });
+        it('should ' + method + ' records and generate autoincremented primary key').then(function (key) {
+            expect(key).toBe(1);
+            done();
+        }).catch(function () {
+            done.fail(method + ' returns rejected promise');
         });
 
         it('should ' + method + ' records with explicitly set primary key', function (done) {
             var data = sklad.keyValue('my_awesome_key', 'hello world');
 
-            conn[method]('keypath_false__keygen_true_0', data, function (err, key) {
-                expect(err).toBeFalsy();
+            conn[method]('keypath_false__keygen_true_0', data).then(function (key) {
                 expect(key).toBe('my_awesome_key');
-
                 done();
+            }).catch(function () {
+                done.fail(method + ' returns rejected promise');
             });
         });
 
@@ -185,20 +165,20 @@ function runCommonAddTests(method) {
         beforeEach(openConnection);
 
         it('should ' + method + ' objects with keypath set', function (done) {
-            conn[method]('keypath_true__keygen_true_0', {name: 'Barbara'}, function (err, key) {
-                expect(err).toBeFalsy();
+            conn[method]('keypath_true__keygen_true_0', {name: 'Barbara'}).then(function (key) {
                 expect(key).toBe('Barbara');
-
                 done();
+            }).catch(function () {
+                done.fail(method + ' returns rejected promise');
             });
         });
 
         it('should ' + method + ' objects with no keypath set and generate autoincremented primary key', function (done) {
-            conn[method]('keypath_true__keygen_true_0', {foo: 'bar'}, function (err, key) {
-                expect(err).toBeFalsy();
+            conn[method]('keypath_true__keygen_true_0', {foo: 'bar'}).then(function (key) {
                 expect(key).toBe(1);
-
                 done();
+            }).catch(function () {
+                done.fail(method + ' returns rejected promise');
             });
         });
 
@@ -209,22 +189,22 @@ function runCommonAddTests(method) {
         beforeEach(openConnection);
 
         it('should ' + method + ' records and generate autoincremented primary key', function (done) {
-            conn[method]('keypath_false__keygen_false_0', {foo: 'bar'}, function (err, key) {
-                expect(err).toBeFalsy();
+            conn[method]('keypath_false__keygen_false_0', {foo: 'bar'}).then(function (key) {
                 expect(isValidID(key)).toBe(true);
-
                 done();
+            }).catch(function () {
+                done.fail(method + ' returns rejected promise');
             });
         });
 
         it('should ' + method + ' records with explicitly set primary key', function (done) {
             var data = sklad.keyValue('my_awesome_key', [1, 4, 9]);
 
-            conn[method]('keypath_false__keygen_false_0', data, function (err, key) {
-                expect(err).toBeFalsy();
+            conn[method]('keypath_false__keygen_false_0', data).then(function (key) {
                 expect(key).toBe('my_awesome_key');
-
                 done();
+            }).catch(function () {
+                done.fail(method + ' returns rejected promise');
             });
         });
 

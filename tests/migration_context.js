@@ -30,13 +30,11 @@ describe('Migration scripts context tests', function () {
                     expect(objectStore.indexNames.contains("foo")).toBe(true);
                 }
             }
-        }, function (err, connection) {
-            if (err) {
-                throw new Error(err.name + ': ' + err.message);
-            }
-
+        }).then(function (connection) {
             connection.close();
             done();
+        }).catch(function (err) {
+            done.fail('Open returns rejected promise: ' + err.name + ' (' + err.message + ')');
         });
     });
 });

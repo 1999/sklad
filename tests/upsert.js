@@ -24,10 +24,10 @@ describe('Upsert operations', function () {
         it('should produce DOMError.NotFoundError when wrong object stores are used', function (done) {
             conn.upsert({
                 'missing_object_store': ['some', 'data']
-            }, function (err) {
-                expect(err).toBeTruthy();
+            }).then(function () {
+                done.fail('Upsert returns resolved promise');
+            }).catch(function (err) {
                 expect(err.name).toEqual('NotFoundError');
-
                 done();
             });
         });
@@ -41,17 +41,16 @@ describe('Upsert operations', function () {
                     {name: 'Matt'},
                     {name: 'Jordan'}
                 ]
-            }, function (err) {
-                expect(err).toBeFalsy();
-                done();
+            }).then(done).catch(function () {
+                done.fail('Upsert returns rejected promise');
             });
         });
 
         it('should throw DOMError.InvalidStateError when wrong data is passed', function (done) {
-            conn.upsert('keypath_true__keygen_false_2', 'string data', function (err, keys) {
-                expect(err).toBeTruthy();
+            conn.upsert('keypath_true__keygen_false_2', 'string data').then(function () {
+                done.fail('Upsert returns resolved promise');
+            }).catch(function (err) {
                 expect(err.name).toEqual('InvalidStateError');
-
                 done();
             });
         });

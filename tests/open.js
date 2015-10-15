@@ -2,11 +2,11 @@ describe('Basic open tests', function () {
     var dbName = 'dbName' + Math.random();
 
     it('should connect to database', function (done) {
-        sklad.open(dbName, function (err, connection) {
-            expect(err).toBeFalsy();
+        sklad.open(dbName).then(function (connection) {
             connection.close();
-
             done();
+        }).catch(function () {
+            done.fail('Open returns rejected promise');
         });
     });
 
@@ -29,14 +29,14 @@ describe('Basic open tests', function () {
                     expect(objStore instanceof window.IDBObjectStore).toBe(true);
                 }
             }
-        }, function (err, connection) {
-            expect(err).toBeFalsy();
-
+        }).then(function (connection) {
             expect(migrationsRun).not.toContain('current database version migration');
             expect(migrationsRun).toContain('new database version migration');
 
             connection.close();
             done();
+        }).catch(function () {
+            done.fail('Open returns rejected promise');
         });
     });
 });
