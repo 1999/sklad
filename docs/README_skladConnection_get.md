@@ -5,9 +5,9 @@
  *
  * @param {String} objStoreName name of object store
  * @param {Object} options (optional) object with keys 'index', 'range', 'offset', 'limit' and 'direction'
- * @param {Function} callback invokes:
- *      @param {DOMError|Null} err
- *      @param {Array} stored objects
+ * @return {Promise}
+ *   @param {DOMError} [err] if promise is rejected
+ *   @param {Array} stored objects otherwise
  */
 sklad.open('dbName', function (err, database) {
     database.get('objStoreName', {
@@ -16,19 +16,17 @@ sklad.open('dbName', function (err, database) {
         offset: 20,
         limit: 10,
         direction: sklad.DESC
-    }, function (err, records) {
-        if (err) {
-            // check err.name to get the reason of error
-            // err.message will also be useful
-            throw new Error(err.message);
-        }
-
+    }).then(function (records) {
         // records in an array containing objects with structure:
         // {
         //     key: ...,
         //     value: object1
         // },
         // ...
+    }).catch(function (err) {
+        // check err.name to get the reason of error
+        // err.message will also be useful
+        throw new Error(err.message);
     });
 });
 
@@ -36,9 +34,9 @@ sklad.open('dbName', function (err, database) {
  * Get objects from multiple object stores (during one transaction)
  *
  * @param {Object} data
- * @param {Function} callback invokes:
- *      @param {String|Null} err
- *      @param {Object} stored objects
+ * @return {Promise}
+ *   @param {DOMError} [err] if promise is rejected
+ *   @param {Object} number of stored objects otherwise
  */
 sklad.open('dbName', function (err, database) {
     database.get({
@@ -53,13 +51,7 @@ sklad.open('dbName', function (err, database) {
             limit: 3,
             direction: sklad.ASC_UNIQUE
         }
-    }, function (err, records) {
-        if (err) {
-            // check err.name to get the reason of error
-            // err.message will also be useful
-            throw new Error(err.message);
-        }
-
+    }).then(function (records) {
         // records in an object with arrays:
         // {
         //     objStoreName_1: [
@@ -71,6 +63,10 @@ sklad.open('dbName', function (err, database) {
         //     ],
         //     objStoreName_2: [ ... ]
         // }
+    }).catch(function (err) {
+        // check err.name to get the reason of error
+        // err.message will also be useful
+        throw new Error(err.message);
     });
 });
 ```
