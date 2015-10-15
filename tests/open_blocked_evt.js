@@ -21,7 +21,7 @@ describe('Database block tests', function () {
             }
         }).then(function () {
             done.fail('Open returns resolved promise');
-        }).catch(function () {
+        }).catch(function (err) {
             expect(err.name).toBe('InvalidStateError');
 
             // migration code should not execute even if blocked database is closed
