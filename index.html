@@ -50,7 +50,7 @@
                         log(output, 'Migration scripts finished');
                     }
                 }
-            }, function (err, conn) {
+            }).then(function (conn) {
                 log(output, 'Connected to database');
 
                 if (id === 'sklad_open') {
@@ -76,11 +76,7 @@
 
                 log(output, 'Start insert operation with data: ' + JSON.stringify(data));
 
-                conn.insert(data, function (err, insertedKeys) {
-                    if (err) {
-                        throw new Error(err.message);
-                    }
-
+                conn.insert(data).then(function (insertedKeys) {
                     log(output, 'Inserted keys: ' + JSON.stringify(insertedKeys));
 
                     switch (id) {
@@ -91,12 +87,10 @@
 
                             log(output, 'Start upsert operation with data: ' + JSON.stringify(data));
 
-                            conn.upsert(data, function (err, upsertedKeys) {
-                                if (err) {
-                                    throw new Error(err.message);
-                                }
-
+                            conn.upsert(data).then(function (upsertedKeys) {
                                 log(output, 'Upserted keys: ' + JSON.stringify(upsertedKeys));
+                            }).catch(function (err) {
+                                throw new Error(err.message);
                             });
 
                             break;
@@ -108,12 +102,10 @@
 
                             log(output, 'Start delete operation with data: ' + JSON.stringify(data));
 
-                            conn.delete(data, function (err) {
-                                if (err) {
-                                    throw new Error(err.message);
-                                }
-
+                            conn.delete(data).then(function () {
                                 log(output, 'Delete operation finished');
+                            }).catch(function (err) {
+                                throw new Error(err.message);
                             });
 
                             break;
@@ -121,13 +113,12 @@
                         case 'conn_clear':
                             log(output, 'Start clear object stores operation');
 
-                            conn.clear(['users', 'foo_obj_store'], function (err) {
-                                if (err) {
-                                    throw new Error(err.message);
-                                }
-
+                            conn.clear(['users', 'foo_obj_store']).then(function () {
                                 log(output, 'Clear operation finished');
+                            }).catch(function (err) {
+                                throw new Error(err.message);
                             });
+
                             break;
 
                         case 'conn_get':
@@ -136,12 +127,10 @@
                             conn.get({
                                 users: {direction: sklad.DESC, index: 'name_search'},
                                 foo_obj_store: {offset: 10, limit: 5}
-                            }, function (err, data) {
-                                if (err) {
-                                    throw new Error(err.message);
-                                }
-
+                            }).then(function (data) {
                                 log(output, 'Get operation finished: ' + JSON.stringify(data));
+                            }).catch(function (err) {
+                                throw new Error(err.message);
                             });
 
                             break;
@@ -149,17 +138,17 @@
                         case 'conn_count':
                             log(output, 'Count number of records between A and l')
 
-                            conn.count('foo_obj_store', {range: IDBKeyRange.bound('A', 'l')}, function (err, total) {
-                                if (err) {
-                                    throw new Error(err.message);
-                                }
-
+                            conn.count('foo_obj_store', {range: IDBKeyRange.bound('A', 'l')}).then(function (total) {
                                 log(output, 'Count operation finished. Total records between "A" and "l" is: ' + total);
+                            }).catch(function (err) {
+                                throw new Error(err.message);
                             });
 
                         case 'conn_close':
                             break;
                     }
+                }).catch(function (err) {
+                    throw new Error(err.message);
                 });
             });
         };
@@ -217,7 +206,7 @@
     <h3>How to start</h3>
     <hr>
 
-    <p>Sklad library supports CommonJS, AMD (require.js) and global namespace module declaration syntax. <code>bower install sklad --save</code> or <a href="https://github.com/1999/sklad/blob/master/sklad.js">download</a> library and include into your project code. Now you can connect to IndexedDB databases using <code>sklad.open()</code>. More details <a href="https://github.com/1999/sklad/blob/master/docs/README_sklad_open.md">here</a>. Beware that all operations run faster if you use multiple object stores in one call instead of using multiple simple operations. This happens because each operation runs inside its own transaction.</p>
+    <p>Sklad library supports CommonJS, AMD (require.js) and global namespace module declaration syntax. Also sklad library needs Promise support. If your browser doesn't support promises you should also include promises <a href="https://github.com/jakearchibald/es6-promise">polyfill</a>. if you don't like promises you can use deprecated <a href="https://github.com/1999/sklad/releases">1.x branch</a> releases. <code>bower install sklad --save</code> or <a href="https://github.com/1999/sklad/blob/master/sklad.js">download</a> library and include into your project code. Now you can connect to IndexedDB databases using <code>sklad.open()</code>. More details <a href="https://github.com/1999/sklad/blob/master/docs/README_sklad_open.md">here</a>. Beware that all operations run faster if you use multiple object stores in one call instead of using multiple simple operations. This happens because each operation runs inside its own transaction.</p>
     <script src="https://gist.github.com/1999/ca2f4af78eafa050521f.js?file=sklad_open.js"></script>
     <button type="button" class="btn btn-default" data-id="sklad_open">Run example</button>
     <pre class="example" id="sklad_open" style="display: none"></pre>
