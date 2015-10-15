@@ -485,8 +485,23 @@
             for (var objStoreName in data) {
                 var objStore = transaction.objectStore(objStoreName);
                 var options = data[objStoreName] || {};
+                // shortcut to get single element
+                if (typeof options === 'string' || typeof options === 'number') {
+                    options = {
+                        range: window.IDBKeyRange.bound(options, options, false, false)
+                    };
+                }
                 var direction = options.direction || skladAPI.ASC;
-                var range = options.range instanceof window.IDBKeyRange ? options.range : null;
+                var range;
+                if (options.range instanceof window.IDBKeyRange) {
+                    range = options.range;
+                } else if (!options.range) {
+                    range = null
+                } else {
+                    abortErr = new DOMError('NotSupportedError', 'Invalid range type');
+                    return;
+                }
+
                 var iterateRequest;
 
                 if (options.index) {
