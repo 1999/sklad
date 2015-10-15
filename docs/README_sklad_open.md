@@ -31,7 +31,7 @@ sklad.open('dbName', {
             usersObjStore.createIndex('github_search', 'github_login', {unique: true});
         }
     }
-}, function (err, conn) {
+}).then(function (conn) {
     // work with database connection
 });
 ```

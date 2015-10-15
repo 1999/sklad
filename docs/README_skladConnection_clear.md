@@ -4,18 +4,16 @@
  * Clear one object store
  *
  * @param {String} objStoreName name of object store
- * @param {Function} callback invokes:
- *    @param {DOMError|Null} err
+ * @return {Promise}
+ *   @param {DOMError} err
  */
 sklad.open('dbName', function (err, database) {
-    database.clear('objStoreName', function (err) {
-        if (err) {
-            // check err.name to get the reason of error
-            // err.message will also be useful
-            throw new Error(err.message);
-        }
-
+    database.clear('objStoreName').then(function () {
         // object store is clear
+    }).catch(function (err) {
+        // check err.name to get the reason of error
+        // err.message will also be useful
+        throw new Error(err.message);
     });
 });
 
@@ -23,18 +21,16 @@ sklad.open('dbName', function (err, database) {
  * Clear multiple object stores (during one transaction)
  *
  * @param {Array} objStoreNames
- * @param {Function} callback invokes:
- *    @param {DOMError|Null} err
+ * @return {Promise}
+ *   @param {DOMError} err
  */
 sklad.open('dbName', function (err, database) {
-    database.clear(['objStoreName_1', 'objStoreName_2', 'objStoreName_3'], function (err) {
-        if (err) {
-            // check err.name to get the reason of error
-            // err.message will also be useful
-            throw new Error(err.message);
-        }
-
+    database.clear(['objStoreName_1', 'objStoreName_2', 'objStoreName_3']).then(function () {
         // object stores are clear
+    }).catch(function (err) {
+        // check err.name to get the reason of error
+        // err.message will also be useful
+        throw new Error(err.message);
     });
 });
 ```

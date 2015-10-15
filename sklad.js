@@ -408,7 +408,7 @@
          * @param {Object} options (optional) object with keys 'index', 'range', 'offset', 'limit' and 'direction'
          * @return {Promise}
          *   @param {DOMError} [err] if promise is rejected
-         *   @param {Object} stored objects otherwise
+         *   @param {Array} stored objects otherwise
          *
          * 2) Get objects from multiple object stores (during one transaction)
          * @param {Object} data
@@ -729,7 +729,7 @@
      *
      * @param {String} dbName
      * @return {Promise}
-     *   @param {DOMError} [err] - if promise is rejected
+     *   @param {DOMError} [err] if promise is rejected
      */
     skladAPI.deleteDatabase = function sklad_deleteDatabase(dbName) {
         return new Promise(function (resolve, reject) {

@@ -5,18 +5,16 @@
  *
  * @param {String} objStoreName name of object store
  * @param {Mixed} key
- * @param {Function} callback invokes:
- *    @param {DOMError|Null} err
+ * @return {Promise}
+ *   @param {DOMError} [err] if promise is rejected
  */
 sklad.open('dbName', function (err, database) {
-    database.delete('objStoreName', 'key', function (err) {
-        if (err) {
-            // check err.name to get the reason of error
-            // err.message will also be useful
-            throw new Error(err.message);
-        }
-
+    database.delete('objStoreName', 'key').then(function () {
         // record is deleted
+    }).catch(function (err) {
+        // check err.name to get the reason of error
+        // err.message will also be useful
+        throw new Error(err.message);
     });
 });
 
@@ -24,21 +22,19 @@ sklad.open('dbName', function (err, database) {
  * Delete multiple records from the object stores (during one transaction)
  *
  * @param {Object} data
- * @param {Function} callback invokes:
- *    @param {String|Null} err
+ * @return {Promise}
+ *   @param {DOMError} [err] if promise is rejected
  */
 sklad.open('dbName', function (err, database) {
     database.delete({
         'objStoreName_1': ['key_1', 'key_2', 'key_3'],
         'objStoreName_2': ['key1']
-    }, function (err) {
-        if (err) {
-            // check err.name to get the reason of error
-            // err.message will also be useful
-            throw new Error(err.message);
-        }
-
+    }).then(function () {
         // all records are deleted
+    }).catch(function (err) {
+        // check err.name to get the reason of error
+        // err.message will also be useful
+        throw new Error(err.message);
     });
 });
 ```

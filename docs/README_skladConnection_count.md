@@ -5,22 +5,20 @@
  *
  * @param {String} objStoreName name of object store
  * @param {Object} options (optional) object with keys 'index' or/and 'range'
- * @param {Function} callback invokes:
- *      @param {DOMError|Null} err
- *      @param {Number} number of stored objects
+ * @return {Promise}
+ *   @param {DOMError} [err] if promise is rejected
+ *   @param {Number} number of stored objects otherwise
  */
 sklad.open('dbName', function (err, database) {
     database.count('objStoreName', {
         range: IDBKeyRange.bound('lower', 'upper', true, true),
         index: 'index_name'
-    }, function (err, totalNum) {
-        if (err) {
-            // check err.name to get the reason of error
-            // err.message will also be useful
-            throw new Error(err.message);
-        }
-
+    }).then(function (totalNum) {
         // total number of records in "objStoreName" (with this range and index) is totalNum
+    }).catch(function (err) {
+        // check err.name to get the reason of error
+        // err.message will also be useful
+        throw new Error(err.message);
     });
 });
 
@@ -28,28 +26,26 @@ sklad.open('dbName', function (err, database) {
  * Count objects in multiple object stores (during one transaction)
  *
  * @param {Object} data
- * @param {Function} callback invokes:
- *      @param {String|Null} err
- *      @param {Object} number of stored objects
+ * @return {Promise}
+ *   @param {DOMError} [err] if promise is rejected
+ *   @param {Object} number of stored objects otherwise
  */
 sklad.open('dbName', function (err, database) {
     database.count({
         'objStoreName_1': null,
         'objStoreName_2': {range: IDBKeyRange.upperBound('upper')},
         'objStoreName_3': {index: 'index_name', range: IDBKeyRange.only('key')}
-    }, function (err, total) {
-        if (err) {
-            // check err.name to get the reason of error
-            // err.message will also be useful
-            throw new Error(err.message);
-        }
-
+    }).then(function (total) {
         // total is smth like this:
         // {
         //     objStoreName_1: 0,
         //     objStoreName_2: 10
         //     objStoreName_3: 4
         // }
+    }).catch(function (err) {
+        // check err.name to get the reason of error
+        // err.message will also be useful
+        throw new Error(err.message);
     });
 });
 ```
