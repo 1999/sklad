@@ -1,3 +1,8 @@
+## 2.0.0
+
+ * new: promises support added
+ * **breaking change**: old node-style API is now used only in 1.x branch releases
+
 ## 1.3.0
 
  * insert, delete, upsert and clear methods don't fail if no callbck is supplied ([#10](https://github.com/1999/sklad/issues/10))
