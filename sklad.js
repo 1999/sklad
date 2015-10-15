@@ -145,18 +145,19 @@
                 return Promise.reject(err);
             }
 
+            var data;
+            if (isMulti) {
+                data = arguments[0];
+            } else {
+                data = {};
+                data[arguments[0]] = [arguments[1]];
+            }
+
             return new Promise(function (resolve, reject) {
                 var result = {};
-                var data, abortErr;
-
-                if (isMulti) {
-                    data = arguments[0];
-                } else {
-                    data = {};
-                    data[arguments[0]] = [arguments[1]];
-                }
-
                 var transaction = that.database.transaction(objStoreNames, TRANSACTION_READWRITE);
+                var abortErr;
+
                 transaction.oncomplete = transaction.onerror = transaction.onabort = function skladConnection_insert_onFinish(evt) {
                     var err = abortErr || evt.target.error;
                     var isSuccess = !err && evt.type === 'complete';
@@ -226,18 +227,19 @@
                 return Promise.reject(err);
             }
 
+            var data;
+            if (isMulti) {
+                data = arguments[0];
+            } else {
+                data = {};
+                data[arguments[0]] = [arguments[1]];
+            }
+
             return new Promise(function (resolve, reject) {
                 var result = {};
-                var data, abortErr;
-
-                if (isMulti) {
-                    data = arguments[0];
-                } else {
-                    data = {};
-                    data[arguments[0]] = [arguments[1]];
-                }
-
                 var transaction = that.database.transaction(objStoreNames, TRANSACTION_READWRITE);
+                var abortErr;
+
                 transaction.oncomplete = transaction.onerror = transaction.onabort = function skladConnection_upsert_onFinish(evt) {
                     var err = abortErr || evt.target.error;
                     var isSuccess = !err && evt.type === 'complete';
@@ -309,17 +311,18 @@
                 return Promise.reject(err);
             }
 
-            return new Promise(function () {
-                var data, abortErr;
+            var data;
+            if (isMulti) {
+                data = arguments[0];
+            } else {
+                data = {};
+                data[arguments[0]] = [arguments[1]];
+            }
 
-                if (isMulti) {
-                    data = arguments[0];
-                } else {
-                    data = {};
-                    data[arguments[0]] = [arguments[1]];
-                }
-
+            return new Promise(function (resolve, reject) {
                 var transaction = that.database.transaction(objStoreNames, TRANSACTION_READWRITE);
+                var abortErr;
+
                 transaction.oncomplete = transaction.onerror = transaction.onabort = function skladConnection_delete_onFinish(evt) {
                     var err = abortErr || evt.target.error;
                     var isSuccess = !err && evt.type === 'complete';
@@ -438,7 +441,7 @@
                 result[objStoreName] = [];
             });
 
-            return new Promise(function () {
+            return new Promise(function (resolve, reject) {
                 var transaction = that.database.transaction(objStoreNames, TRANSACTION_READONLY);
                 transaction.oncomplete = transaction.onerror = transaction.onabort = function skladConnection_get_onFinish(evt) {
                     var err = abortErr || evt.target.error;
@@ -535,6 +538,7 @@
             var that = this;
             var isMulti = (arguments.length === 1 && typeof arguments[0] === 'object');
             var objStoreNames = isMulti ? Object.keys(arguments[0]) : [arguments[0]];
+            var data;
 
             if (isMulti) {
                 data = arguments[0];
@@ -551,7 +555,7 @@
 
             return new Promise(function (resolve, reject) {
                 var result = {};
-                var countRequest, data, abortErr;
+                var countRequest, abortErr;
                 var transaction = that.database.transaction(objStoreNames, TRANSACTION_READONLY);
 
                 transaction.oncomplete = transaction.onerror = transaction.onabort = function skladConnection_count_onFinish(evt) {

@@ -11,9 +11,11 @@ describe('Migration scripts context tests', function () {
     }
 
     it('should create index during first migration', function (done) {
-        openBaseConnection(dbName, function (connection) {
+        openBaseConnection(dbName).then(function (connection) {
             connection.close();
             done();
+        }).catch(function (connection) {
+            done.fail('Open connection op failed');
         });
     });
 

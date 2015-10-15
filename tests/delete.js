@@ -2,10 +2,12 @@ describe('Delete operations', function () {
     var dbName = 'dbName' + Math.random();
     var conn;
 
-    function openConnection(cb) {
-        openBaseConnection(dbName, function (connection) {
+    function openConnection(done) {
+        openBaseConnection(dbName).then(function (connection) {
             conn = connection;
-            cb();
+            done();
+        }).catch(function () {
+            done.fail('Open connection op failed');
         });
     }
 
@@ -31,13 +33,13 @@ describe('Delete operations', function () {
 
     it('should not throw error when missing key is passed', function (done) {
         conn.delete('keypath_true__keygen_false_2', 'missing_key').then(done).catch(function () {
-            done.fail('Delete returns rejected promise');
+            done.fail('Delete op returns rejected promise');
         });
     });
 
     it('should delete records from one store', function (done) {
         conn.delete('keypath_true__keygen_false_0', 'whatever_key').then(done).catch(function () {
-            done.fail('Delete returns rejected promise');
+            done.fail('Delete op returns rejected promise');
         });
     });
 
@@ -50,7 +52,7 @@ describe('Delete operations', function () {
                 IDBKeyRange.bound('lower', 'upper', true, true)
             ]
         }).then(done).catch(function () {
-            done.fail('Delete returns rejected promise');
+            done.fail('Delete op returns rejected promise');
         });
     });
 

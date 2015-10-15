@@ -2,10 +2,12 @@ describe('Get operations', function () {
     var dbName = 'dbName' + Math.random();
     var conn;
 
-    function openConnection(cb) {
-        openBaseConnection(dbName, function (connection) {
+    function openConnection(done) {
+        openBaseConnection(dbName).then(function (connection) {
             conn = connection;
-            cb();
+            done();
+        }).catch(function () {
+            done.fail('Open connection op failed');
         });
     }
 

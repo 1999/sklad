@@ -2,8 +2,8 @@ function isValidID(id) {
     return /[\w]{8}\-[\w]{4}\-4[\w]{3}\-[\w]{4}\-[\w]{12}/.test(id);
 }
 
-function openBaseConnection(dbName, cb) {
-    sklad.open(dbName, {
+function openBaseConnection(dbName) {
+    return sklad.open(dbName, {
         version: 1,
         migration: {
             '1': function (database) {
@@ -31,8 +31,6 @@ function openBaseConnection(dbName, cb) {
                 }
             }
         }
-    }).then(done).catch(function (err) {
-        done.fail('Open returns rejected promise: ' + err.name + ' (' + err.message + ')');
     });
 }
 
@@ -40,10 +38,12 @@ function runCommonAddTests(method) {
     var dbName = 'dbName' + Math.random();
     var conn;
 
-    function openConnection(cb) {
-        openBaseConnection(dbName, function (connection) {
+    function openConnection(done) {
+        openBaseConnection(dbName).then(function (connection) {
             conn = connection;
-            cb();
+            done();
+        }).catch(function () {
+            done.fail('Open connection op failed');
         });
     }
 
@@ -127,11 +127,13 @@ function runCommonAddTests(method) {
             });
         });
 
-        it('should ' + method + ' objects with no keypath set').then(function (key) {
-            expect(isValidID(key)).toBe(true);
-            done();
-        }).catch(function () {
-            done.fail(method + ' returns rejected promise');
+        it('should ' + method + ' objects with no keypath set', function (done) {
+            conn[method]('keypath_true__keygen_false_0', {foo: 'bar'}).then(function (key) {
+                expect(isValidID(key)).toBe(true);
+                done();
+            }).catch(function () {
+                done.fail(method + ' op failed');
+            });
         });
 
         afterEach(closeConnection);
@@ -140,11 +142,13 @@ function runCommonAddTests(method) {
     describe('Key path not used, key generator used', function () {
         beforeEach(openConnection);
 
-        it('should ' + method + ' records and generate autoincremented primary key').then(function (key) {
-            expect(key).toBe(1);
-            done();
-        }).catch(function () {
-            done.fail(method + ' returns rejected promise');
+        it('should ' + method + ' records and generate autoincremented primary key', function (done) {
+            conn[method]('keypath_false__keygen_true_0', 'hello world').then(function (key) {
+                expect(key).toBe(1);
+                done();
+            }).catch(function () {
+                done.fail(method + ' op failed');
+            });
         });
 
         it('should ' + method + ' records with explicitly set primary key', function (done) {

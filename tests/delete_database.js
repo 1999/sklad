@@ -2,12 +2,14 @@ describe('Delete database tests', function () {
     it('should delete database', function (done) {
         var dbName = 'dbName' + Math.random();
 
-        openBaseConnection(dbName, function (conn) {
+        openBaseConnection(dbName).then(function (conn) {
             conn.close();
 
             sklad.deleteDatabase(dbName).then(done).catch(function () {
                 done.fail('deleteDatabase returns rejected promise');
             });
+        }).catch(function () {
+            done.fail('Open connection op failed');
         });
     });
 
@@ -15,10 +17,14 @@ describe('Delete database tests', function () {
         var dbName = 'dbName' + Math.random();
 
         openBaseConnection(dbName).then(function () {
-            done.fail('Connect op failed: promise is resolved');
-        }).catch(function (err) {
-            expect(err.name).toBe('InvalidStateError');
-            done();
+            sklad.deleteDatabase(dbName).then(function () {
+                done.fail('Delete database promise is resolved');
+            }).catch(function (err) {
+                expect(err.name).toBe('InvalidStateError');
+                done();
+            });
+        }).catch(function () {
+            done.fail('Open connection op failed');
         });
     });
 });
