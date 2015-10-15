@@ -5,19 +5,17 @@
  *
  * @param {String} objStoreName name of object store
  * @param {Mixed} data
- * @param {Function} callback invokes:
- *    @param {DOMError|Null} err
- *    @param {Mixed} inserted object key
+ * @return {Promise}
+ *   @param {DOMError} [err] if promise is rejected
+ *   @param {*} inserted object key
  */
 sklad.open('dbName', function (err, conn) {
-    conn.insert('objStoreName', {foo: 'bar'}, function (err, insertedKey) {
-        if (err) {
-            // check err.name to get the reason of error
-            // err.message will also be useful
-            throw new Error(err.message);
-        }
-
+    conn.insert('objStoreName', {foo: 'bar'}).then(function (insertedKey) {
         // work with inserted key
+    }).catch(function (err) {
+        // check err.name to get the reason of error
+        // err.message will also be useful
+        throw new Error(err.message);
     });
 });
 
@@ -25,26 +23,24 @@ sklad.open('dbName', function (err, conn) {
  * Insert multiple records into the object stores (during one transaction)
  *
  * @param {Object} data
- * @param {Function} callback invokes:
- *    @param {DOMError|Null} err
- *    @param {Object} inserted objects' keys
+ * @return {Promise}
+ *   @param {DOMError} [err] if promise is rejected
+ *   @param {Object} inserted objects' keys
  */
 sklad.open('dbName', function (err, database) {
     database.insert({
         'objStoreName_1': ['Lorem', 'ipsum', 'dolor', 'sit', 'amet'],
         'objStoreName_2': [{foo: 'bar'}, {foo: 'bar'}]
-    }, function (err, insertedKeys) {
-        if (err) {
-            // check err.name to get the reason of error
-            // err.message will also be useful
-            throw new Error(err.message);
-        }
-
+    }).then(function (insertedKeys) {
         // insertedKeys is smth like this:
         // {
         //     objStoreName_1: [key1, key2, key3, key4, key5]
         //     objStoreName_2: [key6, key7]
         // }
+    }).catch(function (err) {
+        // check err.name to get the reason of error
+        // err.message will also be useful
+        throw new Error(err.message);
     });
 });
 ```
@@ -55,6 +51,6 @@ sklad.open('dbName', function (err, database) {
  * If you want to store a simple type value (object store without key path) with your own primary key, then you should use `sklad.keyValue()` function like this:
 ```javascript
 var data = sklad.keyValue('own_primary_key', some_value);
-database.insert('objStoreName', data, function (err, insertedKey) { ... });
+database.insert('objStoreName', data).then(...);
 ```
  * Check out [insert() tests](https://github.com/1999/sklad/blob/master/tests/insert.js) to see expected behaviour of this method.

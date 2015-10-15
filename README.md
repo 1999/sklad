@@ -14,9 +14,9 @@ The problem of IndexedDB is following: its API is too geeky, unfamiliar and comp
  * @param {Object} [options = {}] connection options
  * @param {Number} [options.version] database version
  * @param {Object} [options.migration] migration scripts
- * @param {Function} callback invokes:
- *    @param {DOMError|Null} err
- *    @param {Object} conn
+ * @return {Promise}
+ *   @param {Object} [conn] if - promise is resolved
+ *   @param {DOMError} [err] - if promise is rejected
  */
 sklad.open(dbName, {
     version: 2,
@@ -32,8 +32,10 @@ sklad.open(dbName, {
             var objStore = database.createObjectStore('users_likes', {keyPath: 'date'});
         }
     }
-}, function (err, conn) {
-	// work with database connection
+}).then(function (conn) {
+    // work with database connection
+}).catch(err) {
+    // handle error
 });
 ```
 
@@ -42,19 +44,19 @@ sklad.open(dbName, {
 /**
  * 1) Insert one record into the object store
  * @param {String} objStoreName name of object store
- * @param {Mixed} data
- * @param {Function} callback invokes:
- *    @param {DOMError|Null} err
- *    @param {Mixed} inserted object key
+ * @param {*} data
+ * @return {Promise}
+ *   @param {DOMError} [err] if promise is rejected
+ *   @param {*} inserted object key
  *
  * 2) Insert multiple records into the object stores (during one transaction)
  * @param {Object} data
- * @param {Function} callback invokes:
- *    @param {DOMError|Null} err
- *    @param {Object} inserted objects' keys
+ * @return {Promise}
+ *   @param {DOMError} [err] if promise is rejected
+ *   @param {Object} inserted objects' keys
  */
 sklad.open(dbName, options, function (err, conn) {
-	conn.insert(objStoreName, data, callback);
+	conn.insert(objStoreName, data).then(...);
 });
 ```
 
@@ -63,19 +65,19 @@ sklad.open(dbName, options, function (err, conn) {
 /**
  * 1) Insert or update one record in the object store
  * @param {String} objStoreName name of object store
- * @param {Mixed} data
- * @param {Function} callback invokes:
- *    @param {DOMError|Null} err
- *    @param {Mixed} inserted/updated object key
+ * @param {*} data
+ * @return {Promise}
+ *   @param {DOMError} [err] if promise is rejected
+ *   @param {*} inserted/updated object key otherwise
  *
  * 2) Insert or update multiple records in the object stores (during one transaction)
  * @param {Object} data
- * @param {Function} callback invokes:
- *    @param {DOMError|Null} err
- *    @param {Object} inserted/updated objects' keys
+ * @return {Promise}
+ *   @param {DOMError} [err] if promise is rejected
+ *   @param {Object} inserted/updated objects' keys otherwise
  */
 sklad.open(dbName, options, function (err, conn) {
-	conn.upsert(objStoreName, data, callback);
+	conn.upsert(objStoreName, data).then(...);
 });
 ```
 
@@ -85,16 +87,16 @@ sklad.open(dbName, options, function (err, conn) {
  * 1) Delete one record from the object store
  * @param {String} objStoreName name of object store
  * @param {Mixed} key
- * @param {Function} callback invokes:
- *    @param {DOMError|Null} err
+ * @return {Promise}
+ *   @param {DOMError} [err] if promise is rejected
  *
  * 2) Delete multiple records from the object stores (during one transaction)
  * @param {Object} data
- * @param {Function} callback invokes:
- *    @param {DOMError|Null} err
+ * @return {Promise}
+ *   @param {DOMError} [err] if promise is rejected
  */
 sklad.open(dbName, options, function (err, conn) {
-	conn.delete(objStoreName, key, callback);
+	conn.delete(objStoreName, key).then(...);
 });
 ```
 
@@ -102,11 +104,11 @@ sklad.open(dbName, options, function (err, conn) {
 ```javascript
 /**
  * @param {Array|String} objStoreNames array of object stores or a single object store
-         * @param {Function} callback invokes:
-         *    @param {DOMError|Null} err
+ * @return {Promise}
+ *   @param {DOMError} err
  */
 sklad.open(dbName, options, function (err, conn) {
-	conn.clear(objStoreName, callback);
+	conn.clear(objStoreName).then(...);
 });
 ```
 
@@ -116,18 +118,20 @@ sklad.open(dbName, options, function (err, conn) {
  * 1) Get objects from one object store
  * @param {String} objStoreName name of object store
  * @param {Object} options (optional) object with keys 'index', 'range', 'offset', 'limit' and 'direction'
- * @param {Function} callback invokes:
- *      @param {DOMError|Null} err
- *      @param {Array} stored objects
+ * @return {Promise}
+ *   @param {DOMError} [err] if promise is rejected
+ *   @param {Object} stored objects otherwise
  *
  * 2) Get objects from multiple object stores (during one transaction)
  * @param {Object} data
- * @param {Function} callback invokes:
- *      @param {DOMError|Null} err
- *      @param {Object} stored objects
+ * @return {Promise}
+ *   @param {DOMError} [err] if promise is rejected
+ *   @param {Object} stored objects otherwise
  */
 sklad.open(dbName, options, function (err, conn) {
-	conn.get(objStoreName, {direction: sklad.DESC, limit: 10, offset: 5}, callback);
+	conn.get(objStoreName, {direction: sklad.DESC, limit: 10, offset: 5}).then(function (records) {
+        // ...
+    });
 });
 ```
 
@@ -137,18 +141,20 @@ sklad.open(dbName, options, function (err, conn) {
  * 1) Count objects in one object store
  * @param {String} objStoreName name of object store
  * @param {Object} options (optional) object with keys 'index' or/and 'range'
- * @param {Function} callback invokes:
- *      @param {DOMError|Null} err
- *      @param {Number} number of stored objects
+ * @return {Promise}
+ *   @param {DOMError} [err] if promise is rejected
+ *   @param {Number} number of stored objects otherwise
  *
  * 2) Count objects in multiple object stores (during one transaction)
  * @param {Object} data
- * @param {Function} callback invokes:
- *      @param {DOMError|Null} err
- *      @param {Object} number of stored objects
+ * @return {Promise}
+ *   @param {DOMError} [err] if promise is rejected
+ *   @param {Object} number of stored objects otherwise
  */
 sklad.open(dbName, options, function (err, conn) {
-	conn.count(objStoreName, {range: IDBKeyRange.bound(x, y, true, true)}, callback);
+	conn.count(objStoreName, {range: IDBKeyRange.bound(x, y, true, true)}).then(function (total) {
+        // ...
+    });
 });
 ```
 
@@ -162,11 +168,13 @@ sklad.open(dbName, options, function (err, conn) {
 ## Delete database
 ```javascript
 /**
+ * Deletes database
+ *
  * @param {String} dbName
- * @param {Function} callback invokes:
- *     @param {DOMError|Null} err
+ * @return {Promise}
+ *   @param {DOMError} [err] if promise is rejected
  */
-sklad.deleteDatabase(dbName, callback);
+sklad.deleteDatabase(dbName).then(...);
 ```
 
 # Important notes
@@ -191,7 +199,7 @@ var objStore = database.createObjectStore('obj_store_title', {autoIncrement: tru
 In this case you **can** store **any type of data** in the object store. Primary key for the new created record will be generated by the auto incrementing key generator, but you **can** also specify your own primary key like this:
 ```javascript
 var data = sklad.keyValue('your_unique_key', value);
-database.insert('obj_store_title', data, callback);
+database.insert('obj_store_title', data).then(...);
 ```
 
 **SAMPLE USE CASE:** a simple set of data or even hierarchical objects which don't need a special field to be unique. This is a closest analogue of SQL-like tables with auto-incrementing IDs.
@@ -214,7 +222,7 @@ var objStore = database.createObjectStore('obj_store_title');
 In this case you **can** store **any type of data** in the object store. You **can** also specify a key to be used as a primary key for the record like this:
 ```javascript
 var data = sklad.keyValue('your_unique_key', value);
-database.insert('obj_store_title', data, callback);
+database.insert('obj_store_title', data).then(...);
 ```
 
 Otherwise Sklad library will generate this value.

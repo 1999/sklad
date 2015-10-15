@@ -19,9 +19,10 @@ describe('API interface tests', function () {
     });
 
     it('should contain all needed methods in connection', function (done) {
-        sklad.open(dbName, function (err, connection) {
-            expect(err).toBeFalsy();
+        var promise = sklad.open(dbName);
+        expect(promise instanceof Promise).toBe(true);
 
+        promise.then(function (connection) {
             expect(typeof connection.insert).toBe('function');
             expect(typeof connection.upsert).toBe('function');
             expect(typeof connection.delete).toBe('function');
@@ -42,6 +43,8 @@ describe('API interface tests', function () {
             conn = connection;
 
             done();
+        }).catch(function (err) {
+            done.fail('Open returns rejected promise');
         });
     });
 
@@ -67,9 +70,7 @@ describe('API interface tests', function () {
                     expect(objStore instanceof window.IDBObjectStore).toBe(true);
                 }
             }
-        }, function (err, connection) {
-            expect(err).toBeFalsy();
-
+        }).then(function (connection) {
             expect(migrationsRun).not.toContain('current database version migration');
             expect(migrationsRun).toContain('new database version migration');
 
@@ -77,6 +78,8 @@ describe('API interface tests', function () {
             conn = connection;
 
             done();
+        }).catch(function (err) {
+            done.fail('Open returns rejected promise');
         });
     });
 

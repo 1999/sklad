@@ -2,10 +2,12 @@ describe('Count operations', function () {
     var dbName = 'dbName' + Math.random();
     var conn;
 
-    function openConnection(cb) {
-        openBaseConnection(dbName, function (connection) {
+    function openConnection(done) {
+        openBaseConnection(dbName).then(function (connection) {
             conn = connection;
-            cb();
+            done();
+        }).catch(function () {
+            done.fail('Open connection op failed');
         });
     }
 
@@ -21,7 +23,9 @@ describe('Count operations', function () {
     beforeEach(openConnection);
 
     it('should produce DOMError.NotFoundError when wrong object stores are used', function (done) {
-        conn.count('missing_object_store', 'some_key', function (err) {
+        conn.count('missing_object_store', 'some_key').then(function () {
+            done.fail('Count returns resolved promise');
+        }).catch(function (err) {
             expect(err).toBeTruthy();
             expect(err.name).toBe('NotFoundError');
 
@@ -32,20 +36,22 @@ describe('Count operations', function () {
     it('should produce DOMError.NotFoundError when missing index is used', function (done) {
         conn.count('keypath_true__keygen_false_0', {
             index: 'missing_index'
-        }, function (err) {
+        }).then(function () {
+            done.fail('Count returns resolved promise');
+        }).catch(function (err) {
             expect(err).toBeTruthy();
             expect(err.name).toBe('NotFoundError');
 
             done();
-        });
+        });;
     });
 
     it('should output 0 records when object store is empty', function (done) {
-        conn.count('keypath_false__keygen_false_2', function (err, total) {
-            expect(err).toBeFalsy();
+        conn.count('keypath_false__keygen_false_2').then(function (total) {
             expect(total).toBe(0);
-
             done();
+        }).catch(function (err) {
+            done.fail('Count returns rejected promise');
         });
     });
 
@@ -60,15 +66,15 @@ describe('Count operations', function () {
                 {'some_array_containing_field': 'Hi my name is my name is my name is Slim Shady'.split(' ')}
             ];
 
-            conn.insert(insertData, done);
+            conn.insert(insertData).then(done, done.fail);
         });
 
         it('should count all records', function (done) {
-            conn.count('keypath_false__keygen_true_0', function (err, total) {
-                expect(err).toBeFalsy();
+            conn.count('keypath_false__keygen_true_0').then(function (total) {
                 expect(total).toBe(1);
-
                 done();
+            }).catch(function () {
+                done.fail('Count returns rejected promise');
             });
         });
 
@@ -76,12 +82,12 @@ describe('Count operations', function () {
             conn.count('keypath_false__keygen_true_1', {
                 index: 'some_multi_index',
                 range: IDBKeyRange.bound('A', 'a'), // not 12 because 'my name is' repeats 3 times, not 6 because this IDBKeyRange gets only uppercase-starting words
-            }, function (err, total) {
-                expect(err).toBeFalsy();
+            }).then(function (total) {
                 expect(total).toBe(3);
-
                 done();
-            });
+            }).catch(function () {
+                done.fail('Count returns rejected promise');
+            })
         });
     });
 
@@ -90,18 +96,18 @@ describe('Count operations', function () {
             'keypath_false__keygen_true_2': [{
                 'some_array_containing_field': 'One for the trouble Two for the bass Three to get ready Let\'s rock this place'.split(' ')
             }]
-        }, function (err) {
-            expect(err).toBeFalsy();
-
+        }).then(function () {
             conn.count({
                 'keypath_true__keygen_true_0': null,
                 'keypath_false__keygen_true_2': {index: 'some_multi_index'}
-            }, function (err, total) {
-                expect(err).toBeFalsy();
+            }).then(function (total) {
                 expect(total).toEqual({keypath_true__keygen_true_0: 0, keypath_false__keygen_true_2: 14});
-
                 done();
+            }).catch(function () {
+                done.fail('Count returns rejected promise');
             });
+        }).catch(function () {
+            done.fail('Insert returns rejected promise');
         });
     });
 
