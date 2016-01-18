@@ -1,11 +1,14 @@
 'use strict';
 
+const webpack = require('webpack');
+const IS_PRODUCTION_BUILD = (process.env.NODE_ENV === 'production');
+
 module.exports = {
     context: __dirname,
     entry: './lib/sklad.js',
     output: {
         path: `${__dirname}/dist`,
-        filename: 'bundle.js',
+        filename: IS_PRODUCTION_BUILD ? 'sklad.min.js' : 'sklad.uncompressed.js',
         library: 'sklad',
         libraryTarget: 'umd',
     },
@@ -23,10 +26,18 @@ module.exports = {
         ]
     },
 
-    // devtool:
+    devtool: IS_PRODUCTION_BUILD ? 'source-map' : 'inline-source-map',
 
-    watch: (process.env.NODE_ENV !== 'production'),
+    watch: !IS_PRODUCTION_BUILD,
     watchOptions: {
         aggregateTimeout: 100
-    }
+    },
+
+    plugins: []
 };
+
+if (IS_PRODUCTION_BUILD) {
+    module.exports.plugins.push(
+        new webpack.optimize.UglifyJsPlugin()
+    );
+}
