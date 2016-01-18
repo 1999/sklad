@@ -3,7 +3,7 @@ module.exports = function (config) {
         frameworks: ['jasmine'],
 
         files: [
-            'sklad.js',
+            'dist/bundle.js',
             'tests/test_utils.js',
             'tests/interface.js',
             'tests/open.js',
