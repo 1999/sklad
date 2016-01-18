@@ -33,7 +33,9 @@ module.exports = {
         aggregateTimeout: 100
     },
 
-    plugins: []
+    plugins: [
+        new webpack.NoErrorsPlugin()
+    ]
 };
 
 if (IS_PRODUCTION_BUILD) {

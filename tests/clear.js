@@ -35,13 +35,13 @@ describe('Clear operations', function () {
 
     it('should clear one object store without errors', function (done) {
         conn.clear('keypath_true__keygen_false_0').then(done).catch(function (err) {
-            done.fail('Clear returns rejected promise: ' + err.message);
+            done.fail('Clear returns rejected promise: ' + err.message + '\n' + err.stack);
         });
     });
 
     it('should clear multiple object stores without errors', function (done) {
         conn.clear(['keypath_true__keygen_false_0', 'keypath_true__keygen_false_1']).then(done).catch(function (err) {
-            done.fail('Clear returns rejected promise: ' + err.message);
+            done.fail('Clear returns rejected promise: ' + err.message + '\n' + err.stack);
         });
     });
 
