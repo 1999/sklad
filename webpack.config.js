@@ -20,7 +20,7 @@ module.exports = {
                 loader: 'babel',
                 query: {
                     presets: ['es2015'],
-                    plugins: ['add-module-exports']
+                    plugins: ['add-module-exports', 'transform-es2015-typeof-symbol']
                 }
             }
         ]

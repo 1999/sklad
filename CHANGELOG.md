@@ -1,6 +1,6 @@
 ## 3.0.0
 
- * Sklad is now built with Webpack. No new changes introduces, all tests passed but library code is now transpiled from ES2015 into ES5 which leads to some overhead.
+ * Sklad is now built with Webpack. No new changes introduced, all tests passed but library code is now transpiled from ES2015 into ES5 which leads to some overhead.
 
 ## 2.0.0
 
