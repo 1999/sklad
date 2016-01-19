@@ -32,14 +32,14 @@ describe('Delete operations', function () {
     });
 
     it('should not throw error when missing key is passed', function (done) {
-        conn.delete('keypath_true__keygen_false_2', 'missing_key').then(done).catch(function () {
-            done.fail('Delete op returns rejected promise');
+        conn.delete('keypath_true__keygen_false_2', 'missing_key').then(done).catch(function (err) {
+            done.fail('Delete op returns rejected promise: ' + err.message + '\n' + err.stack);
         });
     });
 
     it('should delete records from one store', function (done) {
-        conn.delete('keypath_true__keygen_false_0', 'whatever_key').then(done).catch(function () {
-            done.fail('Delete op returns rejected promise');
+        conn.delete('keypath_true__keygen_false_0', 'whatever_key').then(done).catch(function (err) {
+            done.fail('Delete op returns rejected promise: ' + err.message + '\n' + err.stack);
         });
     });
 
@@ -51,8 +51,8 @@ describe('Delete operations', function () {
                 'whatever_wherever',
                 IDBKeyRange.bound('lower', 'upper', true, true)
             ]
-        }).then(done).catch(function () {
-            done.fail('Delete op returns rejected promise');
+        }).then(done).catch(function (err) {
+            done.fail('Delete op returns rejected promise: ' + err.message + '\n' + err.stack);
         });
     });
 
