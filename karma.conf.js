@@ -1,4 +1,6 @@
 module.exports = function (config) {
+    var customLaunchers = require('./tests/browsers');
+
     var configuration = {
         frameworks: ['jasmine'],
 
@@ -23,29 +25,40 @@ module.exports = function (config) {
         colors: true,
         logLevel: config.LOG_INFO,
         autoWatch: true,
-        reporters: ['mocha'],
+        reporters: ['mocha', 'saucelabs'],
 
         plugins: [
             'karma-jasmine',
-            'karma-chrome-launcher',
-            'karma-firefox-launcher',
-            'karma-mocha-reporter'
+            //'karma-chrome-launcher',
+            //'karma-firefox-launcher',
+            'karma-mocha-reporter',
+            'karma-sauce-launcher'
         ],
 
-        customLaunchers: {
-            Chrome_travis_ci: {
-                base: 'Chrome',
-                flags: ['--no-sandbox']
-            }
-        },
+        //customLaunchers: {
+        //    Chrome_travis_ci: {
+        //        base: 'Chrome',
+        //        flags: ['--no-sandbox']
+        //    }
+        //},
 
         // browsers: ['Chrome', 'ChromeCanary', 'Firefox']
+
+        sauceLabs: {
+            testName: 'Sklad Unit Tests',
+            connectOptions: {
+                port: 5757,
+                logfile: 'sauce_connect.log'
+            },
+        },
+        captureTimeout: 120000,
+        customLaunchers: customLaunchers
     };
 
     // run chrome in travis
     // @link https://github.com/karma-runner/karma/issues/1144
     if (process.env.TRAVIS) {
-        configuration.browsers = ['Chrome_travis_ci', 'Firefox'];
+        configuration.browsers = Object.keys(customLaunchers);
     }
 
     config.set(configuration);
