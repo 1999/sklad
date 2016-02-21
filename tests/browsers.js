@@ -98,7 +98,7 @@ module.exports = {
     },
 
     // Android Browser
-    sl_android_4_4: {
+    sl_android_5_1: {
         base: 'SauceLabs',
         browserName: 'android',
         platform: 'Linux',
