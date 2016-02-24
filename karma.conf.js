@@ -1,3 +1,11 @@
+'use strict';
+
+if (!process.env.SAUCE_USERNAME || !process.env.SAUCE_ACCESS_KEY) {
+    throw new Error('No SauceLabs credentials set. ' +
+        'Please set SAUCE_USERNAME and SAUCE_ACCESS_KEY environment variables ' +
+        'and run test again');
+}
+
 module.exports = function (config) {
     var customLaunchers = require('./tests/browsers');
 
@@ -29,37 +37,19 @@ module.exports = function (config) {
 
         plugins: [
             'karma-jasmine',
-            //'karma-chrome-launcher',
-            //'karma-firefox-launcher',
             'karma-mocha-reporter',
             'karma-sauce-launcher'
         ],
 
-        //customLaunchers: {
-        //    Chrome_travis_ci: {
-        //        base: 'Chrome',
-        //        flags: ['--no-sandbox']
-        //    }
-        //},
-
-        // browsers: ['Chrome', 'ChromeCanary', 'Firefox']
-
         sauceLabs: {
             testName: 'Sklad Unit Tests',
-            connectOptions: {
-                port: 5757,
-                logfile: 'sauce_connect.log'
-            },
+            tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER,
+            tags: ['indexeddb', 'clientside']
         },
         captureTimeout: 120000,
-        customLaunchers: customLaunchers
+        customLaunchers: customLaunchers,
+        browsers: Object.keys(customLaunchers)
     };
-
-    // run chrome in travis
-    // @link https://github.com/karma-runner/karma/issues/1144
-    if (process.env.TRAVIS) {
-        configuration.browsers = Object.keys(customLaunchers);
-    }
 
     config.set(configuration);
 };
