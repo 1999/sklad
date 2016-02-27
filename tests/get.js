@@ -6,8 +6,8 @@ describe('Get operations', function () {
         openBaseConnection(dbName).then(function (connection) {
             conn = connection;
             done();
-        }).catch(function () {
-            done.fail('Open connection op failed');
+        }).catch(function (err) {
+            done.fail(`Open connection op failed: ${err.stack}`);
         });
     }
 
@@ -78,8 +78,8 @@ describe('Get operations', function () {
                     {name: 'Alex', login: 'Yarex'},
                     {name: 'Anton', login: 'ukkk'}
                 ]
-            }).then(done).catch(function () {
-                done.fail('Insert returns rejected promise');
+            }).then(done).catch(function (err) {
+                done.fail(`Insert returns rejected promise: ${err.stack}`);
             });
         });
 
@@ -96,8 +96,8 @@ describe('Get operations', function () {
                 }]);
 
                 done();
-            }).catch(function () {
-                done.fail('Get returns rejected promise');
+            }).catch(function (err) {
+                done.fail(`Get returns rejected promise: ${err.stack}`);
             });
         });
 
@@ -121,8 +121,8 @@ describe('Get operations', function () {
 
                 expect(records).toEqual(expectation);
                 done();
-            }).catch(function () {
-                done.fail('Get returns rejected promise');
+            }).catch(function (err) {
+                done.fail(`Get returns rejected promise: ${err.stack}`);
             });
         });
 
@@ -133,8 +133,8 @@ describe('Get operations', function () {
             }).then(function (records) {
                 expect(records.length).toBe(7);
                 done();
-            }).catch(function () {
-                done.fail('Get returns rejected promise');
+            }).catch(function (err) {
+                done.fail(`Get returns rejected promise: ${err.stack}`);
             });
         });
 
@@ -154,8 +154,8 @@ describe('Get operations', function () {
 
                 expect(records).toEqual(expectation);
                 done();
-            }).catch(function () {
-                done.fail('Get returns rejected promise');
+            }).catch(function (err) {
+                done.fail(`Get returns rejected promise: ${err.stack}`);
             });
         });
 
@@ -172,8 +172,8 @@ describe('Get operations', function () {
                 })).toEqual(['Alex', 'Anton', 'Anton', 'Denis'])
 
                 done();
-            }).catch(function () {
-                done.fail('Get returns rejected promise');
+            }).catch(function (err) {
+                done.fail(`Get returns rejected promise: ${err.stack}`);
             });
         });
     });
