@@ -6,13 +6,14 @@ if (!process.env.SAUCE_USERNAME || !process.env.SAUCE_ACCESS_KEY) {
         'and run test again');
 }
 
-module.exports = function (config) {
-    var customLaunchers = require('./tests/browsers');
+const customLaunchers = require('./tests/browsers');
 
-    var configuration = {
+module.exports = function (config) {
+    const configuration = {
         frameworks: ['jasmine'],
 
         files: [
+            'node_modules/es6-promise/dist/es6-promise.js', // ie11 support
             'dist/sklad.uncompressed.js',
             'tests/test_utils.js',
             'tests/interface.js',
@@ -46,7 +47,9 @@ module.exports = function (config) {
             tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER,
             tags: ['indexeddb', 'clientside']
         },
-        captureTimeout: 120000,
+        captureTimeout: 300000,
+        browserDisconnectTimeout: 20000,
+        browserNoActivityTimeout: 300000,
         customLaunchers: customLaunchers,
         browsers: Object.keys(customLaunchers)
     };
