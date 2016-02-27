@@ -3,8 +3,6 @@
 [![Build Status](https://img.shields.io/travis/1999/sklad.svg?style=flat)](https://travis-ci.org/1999/sklad)
 [![DevDependency Status](http://img.shields.io/david/dev/1999/sklad.svg?style=flat)](https://david-dm.org/1999/sklad#info=devDependencies)
 
-[![Selenium Test Status](https://saucelabs.com/browser-matrix/stay_positive.svg)](https://saucelabs.com/u/stay_positive)
-
 IndexedDB is HTML5 standard for a local database of records holding practically any kind of data - from simple numbers to even Blobs. It is not the same as a relational database which has tables with collections rows and columns. IndexedDB has databases, which have objects stores with data stored there. In fact IndexedDB is a NoSQL database similar to MongoDB and CouchDB. It can also search for data with indexes which you create when start working with the database..
 
 The problem of IndexedDB is following: its API is too geeky, unfamiliar and complicated. **Sklad** library allows you to build apps for modern browsers with IndexedDB in a simple and convenient way. This is not ORM - it's just a thin abstraction layer on top of IndexedDB native API.
@@ -237,7 +235,7 @@ Otherwise Sklad library will generate this value.
 [Of course](http://1999.github.io/sklad). Btw, [detailed docs](https://github.com/1999/sklad/tree/master/docs) contain nice pieces of code using Sklad library.
 
 # Any tests?
-Tests are located in [tests](https://github.com/1999/sklad/tree/master/tests) folder. You can run them with `npm test`. Tests are written with Jasmine testing framework and run with Karma runner.
+Tests are located in [tests](https://github.com/1999/sklad/tree/master/tests) folder. You can run them with `npm test`. Tests are written with Jasmine testing framework and run with Karma runner. You need to have SauceLabs account to run tests in multiple browsers.
 
 # Development/release process
  * Work starts with `make`
