@@ -6,7 +6,9 @@
     "doc": "docs"
   },
   "scripts": {
-    "test": "./node_modules/karma/bin/karma start --single-run"
+    "test": "./node_modules/karma/bin/karma start --single-run",
+    "release": "NODE_ENV=production ./node_modules/.bin/webpack && NODE_ENV=development ./node_modules/.bin/webpack",
+    "watch": "IS_DEVELOPMENT_PROCESS=1 ./node_modules/.bin/webpack"
   },
   "repository": {
     "type": "git",
