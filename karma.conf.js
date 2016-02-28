@@ -15,8 +15,15 @@ module.exports = function (config) {
     const configuration = {
         frameworks: ['jasmine'],
 
+        // open_blocked_evt - safari
+        // delete_database - safari
+        // close - ie edge
+        // insert, upsert, delete - safari, ie11_win10
+        // count - safari, ie11_win10
+        // get - safari, ie11_win10
         files: [
             'node_modules/promise-polyfill/Promise.js', // ie11 support
+            'node_modules/indexeddbshim/dist/indexeddbshim.js', // for safari browsers
             'dist/sklad.uncompressed.js',
             'tests/test_utils.js',
             'tests/interface.js',

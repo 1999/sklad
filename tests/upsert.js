@@ -23,18 +23,19 @@ describe('Upsert operations', function () {
     describe('Errors tests', function () {
         beforeEach(openConnection);
 
-        it('should produce DOMError.NotFoundError when wrong object stores are used', function (done) {
+        it('should produce Error with NotFoundError name field when wrong object stores are used', function (done) {
             conn.upsert({
                 'missing_object_store': ['some', 'data']
             }).then(function () {
                 done.fail('Upsert returns resolved promise');
             }).catch(function (err) {
+                expect(err instanceof Error).toBe(true);
                 expect(err.name).toEqual('NotFoundError');
                 done();
             });
         });
 
-        it('should NOT throw DOMError when same unique keys are passed', function (done) {
+        it('should NOT throw Error when same unique keys are passed', function (done) {
             conn.upsert({
                 'keypath_true__keygen_false_0': [
                     {name: 'Oli'},
@@ -48,10 +49,11 @@ describe('Upsert operations', function () {
             });
         });
 
-        it('should throw DOMError.InvalidStateError when wrong data is passed', function (done) {
+        it('should throw Error with InvalidStateError name field when wrong data is passed', function (done) {
             conn.upsert('keypath_true__keygen_false_2', 'string data').then(function () {
                 done.fail('Upsert returns resolved promise');
             }).catch(function (err) {
+                expect(err instanceof Error).toBe(true);
                 expect(err.name).toEqual('InvalidStateError');
                 done();
             });

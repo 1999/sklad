@@ -22,24 +22,24 @@ describe('Count operations', function () {
 
     beforeEach(openConnection);
 
-    it('should produce DOMError.NotFoundError when wrong object stores are used', function (done) {
+    it('should produce Error with NotFoundError name field when wrong object stores are used', function (done) {
         conn.count('missing_object_store', 'some_key').then(function () {
             done.fail('Count returns resolved promise');
         }).catch(function (err) {
-            expect(err).toBeTruthy();
+            expect(err instanceof Error).toBe(true);
             expect(err.name).toBe('NotFoundError');
 
             done();
         });
     });
 
-    it('should produce DOMError.NotFoundError when missing index is used', function (done) {
+    it('should produce Error with NotFoundError name field when missing index is used', function (done) {
         conn.count('keypath_true__keygen_false_0', {
             index: 'missing_index'
         }).then(function () {
             done.fail('Count returns resolved promise');
         }).catch(function (err) {
-            expect(err).toBeTruthy();
+            expect(err instanceof Error).toBe(true);
             expect(err.name).toBe('NotFoundError');
 
             done();

@@ -1,6 +1,16 @@
 describe('Migration scripts context tests', function () {
     var dbName = 'dbName' + Math.random();
 
+    // enable IndexedDB polyfill for Safari browsers
+    // unfortunately Safari support for IndexedDB is really buggy
+    // moreover Safari8 can't even be shimed, so Sklad library won't work in this browser too
+    //
+    // @see https://github.com/dfahlander/Dexie.js/wiki/IndexedDB-on-Safari
+    // @see https://github.com/axemclion/IndexedDBShim/issues/167
+    if (is_safari) {
+        window.shimIndexedDB.__useShim();
+    }
+
     function closeConnection(cb) {
         if (conn) {
             conn.close();
@@ -11,7 +21,9 @@ describe('Migration scripts context tests', function () {
     }
 
     it('should create index during first migration', function (done) {
+        console.log('start first test...');
         openBaseConnection(dbName).then(function (connection) {
+            console.log('whoa!');
             connection.close();
             done();
         }).catch(function (connection) {

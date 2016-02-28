@@ -7,7 +7,7 @@ describe('Get operations', function () {
             conn = connection;
             done();
         }).catch(function (err) {
-            done.fail(`Open connection op failed: ${err.stack}`);
+            done.fail('Open connection op failed: ' + err.stack);
         });
     }
 
@@ -22,24 +22,26 @@ describe('Get operations', function () {
 
     beforeEach(openConnection);
 
-    it('should produce DOMError.NotFoundError when wrong object stores are used', function (done) {
+    it('should produce Error with NotFoundError name field when wrong object stores are used', function (done) {
         conn.get('missing_object_store', {
             range: IDBKeyRange.only('some_key')
         }).then(function () {
             done.fail('Get returns resolved promise');
         }).catch(function (err) {
+            expect(err instanceof Error).toBe(true);
             expect(err.name).toBe('NotFoundError');
             done();
         });
     });
 
-    it('should produce DOMError.NotFoundError when missing index is used', function (done) {
+    it('should produce Error with NotFoundError name field when missing index is used', function (done) {
         conn.get('keypath_true__keygen_false_0', {
             index: 'missing_index',
             range: IDBKeyRange.only('some_key')
         }).then(function () {
             done.fail('Get returns resolved promise');
         }).catch(function (err) {
+            expect(err instanceof Error).toBe(true);
             expect(err.name).toBe('NotFoundError');
             done();
         });
@@ -79,7 +81,7 @@ describe('Get operations', function () {
                     {name: 'Anton', login: 'ukkk'}
                 ]
             }).then(done).catch(function (err) {
-                done.fail(`Insert returns rejected promise: ${err.stack}`);
+                done.fail('Insert returns rejected promise: ' + err.stack);
             });
         });
 
@@ -97,7 +99,7 @@ describe('Get operations', function () {
 
                 done();
             }).catch(function (err) {
-                done.fail(`Get returns rejected promise: ${err.stack}`);
+                done.fail('Get returns rejected promise: ' + err.stack);
             });
         });
 
@@ -122,7 +124,7 @@ describe('Get operations', function () {
                 expect(records).toEqual(expectation);
                 done();
             }).catch(function (err) {
-                done.fail(`Get returns rejected promise: ${err.stack}`);
+                done.fail('Get returns rejected promise: ' + err.stack);
             });
         });
 
@@ -134,7 +136,7 @@ describe('Get operations', function () {
                 expect(records.length).toBe(7);
                 done();
             }).catch(function (err) {
-                done.fail(`Get returns rejected promise: ${err.stack}`);
+                done.fail('Get returns rejected promise: ' + err.stack);
             });
         });
 
@@ -155,7 +157,7 @@ describe('Get operations', function () {
                 expect(records).toEqual(expectation);
                 done();
             }).catch(function (err) {
-                done.fail(`Get returns rejected promise: ${err.stack}`);
+                done.fail('Get returns rejected promise: ' + err.stack);
             });
         });
 
@@ -173,7 +175,7 @@ describe('Get operations', function () {
 
                 done();
             }).catch(function (err) {
-                done.fail(`Get returns rejected promise: ${err.stack}`);
+                done.fail('Get returns rejected promise: ' + err.stack);
             });
         });
     });

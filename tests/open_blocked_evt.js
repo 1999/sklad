@@ -11,7 +11,7 @@ describe('Database block tests', function () {
         });
     });
 
-    it('should return DOMError.InvalidStateError when database is blocked', function (done) {
+    it('should return Error with InvalidStateError name field when database is blocked', function (done) {
         sklad.open(dbName, {
             version: 2,
             migration: {
@@ -22,6 +22,7 @@ describe('Database block tests', function () {
         }).then(function () {
             done.fail('Open returns resolved promise');
         }).catch(function (err) {
+            expect(err instanceof Error).toBe(true);
             expect(err.name).toBe('InvalidStateError');
 
             // migration code should not execute even if blocked database is closed

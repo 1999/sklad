@@ -22,10 +22,11 @@ describe('Delete operations', function () {
 
     beforeEach(openConnection);
 
-    it('should produce DOMError.NotFoundError when wrong object stores are used', function (done) {
+    it('should produce Error with NotFoundError name field when wrong object stores are used', function (done) {
         conn.delete('missing_object_store', 'some_key').then(function () {
             done.fail('Delete returns resolved promise');
         }).catch(function (err) {
+            expect(err instanceof Error).toBe(true);
             expect(err.name).toEqual('NotFoundError');
             done();
         });

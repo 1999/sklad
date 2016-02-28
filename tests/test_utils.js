@@ -215,3 +215,6 @@ function runCommonAddTests(method) {
         afterEach(closeConnection);
     });
 }
+
+var is_chrome = navigator.userAgent.indexOf('Chrome') !== -1;
+var is_safari = navigator.userAgent.indexOf('Safari') !== -1 && !is_chrome;
