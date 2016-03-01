@@ -13,12 +13,9 @@ describe('Close operation', function () {
 
 
         sklad.open(dbName).then(function (connection) {
-            console.log(111);
             // close existing connection
             connection.close();
-            console.log(222);
             expect(connection.database).toBeUndefined();
-            console.log(333);
 
             done();
         }).catch(function (err) {
