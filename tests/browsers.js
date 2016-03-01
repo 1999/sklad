@@ -52,29 +52,29 @@ module.exports = {
     //     version: '9'
     // },
 
-    // // IE
-    // ie11_windows_10: {
-    //     base: 'SauceLabs',
-    //     browserName: 'internet explorer',
-    //     platform: 'Windows 10',
-    //     version: '11'
-    // },
-    // ie11_windows_8: {
-    //     base: 'SauceLabs',
-    //     browserName: 'internet explorer',
-    //     platform: 'Windows 8.1',
-    //     version: '11'
-    // },
+    // IE
+    ie11_windows_10: {
+        base: 'SauceLabs',
+        browserName: 'internet explorer',
+        platform: 'Windows 10',
+        version: '11'
+    },
+    ie11_windows_8: {
+        base: 'SauceLabs',
+        browserName: 'internet explorer',
+        platform: 'Windows 8.1',
+        version: '11'
+    },
     ie_edge_windows_10: {
         base: 'SauceLabs',
         browserName: 'MicrosoftEdge',
         platform: 'Windows 10'
     },
 
-    // // Android Browser
-    // android_5_1: {
-    //     base: 'SauceLabs',
-    //     browserName: 'android',
-    //     version: '5.1'
-    // }
+    // Android Browser
+    android_5_1: {
+        base: 'SauceLabs',
+        browserName: 'android',
+        version: '5.1'
+    }
 }
