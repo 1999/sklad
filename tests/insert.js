@@ -39,6 +39,7 @@ describe('Insert operations', function () {
             conn.insert('keypath_true__keygen_false_2', 'string data').then(function () {
                 done.fail('Insert returns resolved promise');
             }).catch(function (err) {
+                console.log(err.stack)
                 expect(err instanceof Error).toBe(true);
                 expect(err.name).toEqual('InvalidStateError');
                 done();

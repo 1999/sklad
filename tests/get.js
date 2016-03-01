@@ -49,6 +49,18 @@ describe('Get operations', function () {
 
     describe('Get operations in one store', function () {
         var arr = 'Hi my name is my name is my name is Slim Shady'.split(' ');
+        var forumUsers = [
+            {name: 'Dmitry', login: '1999'},
+            {name: 'Alex', login: 'Skiller'},
+            {name: 'Anton', login: 'Clon'},
+            {name: 'Leonid', login: 'Dollars'},
+            {name: 'Denis', login: 'win32'},
+            {name: 'Sergey', login: 'bizkid-e-burg'},
+            {name: 'Roman', login: 'Backenbart'},
+            {name: 'Alex', login: 'Yarex'},
+            {name: 'Anton', login: 'ukkk'}
+        ];
+
         var i = 0;
         var arrUniqueSorted = arr.reduce(function (previousValue, currentValue) {
             if (previousValue.indexOf(currentValue) === -1) {
@@ -69,17 +81,7 @@ describe('Get operations', function () {
                 'keypath_false__keygen_true_0': [
                     {'some_array_containing_field': arr}
                 ],
-                'keypath_true__keygen_false_0': [
-                    {name: 'Dmitry', login: '1999'},
-                    {name: 'Alex', login: 'Skiller'},
-                    {name: 'Anton', login: 'Clon'},
-                    {name: 'Leonid', login: 'Dollars'},
-                    {name: 'Denis', login: 'win32'},
-                    {name: 'Sergey', login: 'bizkid-e-burg'},
-                    {name: 'Roman', login: 'Backenbart'},
-                    {name: 'Alex', login: 'Yarex'},
-                    {name: 'Anton', login: 'ukkk'}
-                ]
+                'keypath_true__keygen_false_0': forumUsers
             }).then(done).catch(function (err) {
                 done.fail('Insert returns rejected promise: ' + err.stack);
             });
@@ -104,6 +106,40 @@ describe('Get operations', function () {
         });
 
         it('should get all records within index', function (done) {
+            conn.get('keypath_true__keygen_false_0', {
+                index: 'sort_login'
+            }).then(function (records) {
+                var expectation = forumUsers.sort(function (a, b) {
+                    return indexedDB.cmp(a.login, b.login);
+                }).map(function (user) {
+                    return {
+                        key: user.login,
+                        value: user
+                    };
+                });
+
+                expect(records.length).toBe(expectation.length);
+                records.forEach(function (record, i) {
+                    var expectationRecord = expectation[i];
+
+                    expect(record.key).toBe(expectationRecord.key);
+                    expect(record.value).toEqual(expectationRecord.value);
+                });
+
+                done();
+            }).catch(function (err) {
+                done.fail('Get returns rejected promise: ' + err.stack);
+            });
+        });
+
+        it('should get all records within multiEntry index (skip IE)', function (done) {
+            // IE11 and Microsoft Edge don't support multiEntry indexes
+            // @see https://dev.windows.com/en-us/microsoft-edge/platform/status/indexeddbarraysandmultientrysupport
+            if (is_ie_edge || is_explorer) {
+                console.warn('IE doesn\'t support multiEntry indexes. Skip this test');
+                done();
+            }
+
             conn.get('keypath_false__keygen_true_0', {
                 index: 'some_multi_index'
             }).then(function (records) {
@@ -141,6 +177,41 @@ describe('Get operations', function () {
         });
 
         it('should get all records within index in descending order', function (done) {
+            conn.get('keypath_true__keygen_false_0', {
+                index: 'sort_login',
+                direction: sklad.DESC
+            }).then(function (records) {
+                var expectation = forumUsers.sort(function (a, b) {
+                    return indexedDB.cmp(a.login, b.login);
+                }).reverse().map(function (user) {
+                    return {
+                        key: user.login,
+                        value: user
+                    };
+                });
+
+                expect(records.length).toBe(expectation.length);
+                records.forEach(function (record, i) {
+                    var expectationRecord = expectation[i];
+
+                    expect(record.key).toBe(expectationRecord.key);
+                    expect(record.value).toEqual(expectationRecord.value);
+                });
+
+                done();
+            }).catch(function (err) {
+                done.fail('Get returns rejected promise: ' + err.stack);
+            });
+        });
+
+        it('should get all records within multiEntry index in descending order (skip IE)', function (done) {
+            // IE11 and Microsoft Edge don't support multiEntry indexes
+            // @see https://dev.windows.com/en-us/microsoft-edge/platform/status/indexeddbarraysandmultientrysupport
+            if (is_ie_edge || is_explorer) {
+                console.warn('IE doesn\'t support multiEntry indexes. Skip this test');
+                done();
+            }
+
             conn.get('keypath_false__keygen_true_0', {
                 index: 'some_multi_index',
                 direction: sklad.DESC

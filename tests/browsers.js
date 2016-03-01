@@ -65,11 +65,11 @@ module.exports = {
     //     platform: 'Windows 8.1',
     //     version: '11'
     // },
-    // ie_edge_windows_10: {
-    //     base: 'SauceLabs',
-    //     browserName: 'MicrosoftEdge',
-    //     platform: 'Windows 10'
-    // },
+    ie_edge_windows_10: {
+        base: 'SauceLabs',
+        browserName: 'MicrosoftEdge',
+        platform: 'Windows 10'
+    },
 
     // // Android Browser
     // android_5_1: {

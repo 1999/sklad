@@ -21,9 +21,7 @@ describe('Migration scripts context tests', function () {
     }
 
     it('should create index during first migration', function (done) {
-        console.log('start first test...');
         openBaseConnection(dbName).then(function (connection) {
-            console.log('whoa!');
             connection.close();
             done();
         }).catch(function (connection) {

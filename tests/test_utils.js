@@ -218,3 +218,5 @@ function runCommonAddTests(method) {
 
 var is_chrome = navigator.userAgent.indexOf('Chrome') !== -1;
 var is_safari = navigator.userAgent.indexOf('Safari') !== -1 && !is_chrome;
+var is_explorer = navigator.userAgent.indexOf('MSIE') !== -1;
+var is_ie_edge = navigator.userAgent.indexOf('Edge') !== -1;

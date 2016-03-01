@@ -46,11 +46,10 @@ describe('Delete operations', function () {
 
     it('should delete records from multiple stores', function (done) {
         conn.delete({
-            'keypath_true__keygen_false_0': ['whatever_key', 1, []],
+            'keypath_true__keygen_false_0': ['whatever_key', 1],
             'keypath_true__keygen_false_1': [
                 'smth',
-                'whatever_wherever',
-                IDBKeyRange.bound('lower', 'upper', true, true)
+                'whatever_wherever'
             ]
         }).then(done).catch(function (err) {
             done.fail('Delete op returns rejected promise: ' + err.message + '\n' + err.stack);
