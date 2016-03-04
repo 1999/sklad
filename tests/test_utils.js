@@ -113,8 +113,8 @@ function runCommonAddTests(method) {
                 expect(isValidID(keys['keypath_true__keygen_false_2'])).toBe(true);
 
                 done();
-            }).catch(function () {
-                done.fail(method + ' returns rejected promise');
+            }).catch(function (err) {
+                done.fail(method + ' returns rejected promise: ' + err.message);
             });
         });
 

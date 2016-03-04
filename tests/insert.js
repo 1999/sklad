@@ -52,7 +52,16 @@ describe('Insert operations', function () {
             });
         });
 
-        it('should produce Error with ConstraintError name field when same unique keys are passed', function (done) {
+        it('should produce Error with ConstraintError name field when same unique keys are passed (skip Safari)', function (done) {
+            // Safari doesn't throw ConstraintErrors for unique keys
+            // @see https://bugs.webkit.org/show_bug.cgi?id=149107
+            if (is_safari) {
+                console.warn('Safari doesn\'t throw ConstraintErrors for unique keys. Skip this test');
+                done();
+
+                return;
+            }
+
             conn.insert({
                 'keypath_true__keygen_false_0': [
                     {login: 'Alex'},
