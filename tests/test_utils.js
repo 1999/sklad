@@ -1,5 +1,6 @@
 // IE11 is sometimes waiting too much for 'success' event to fire
-// change timeout for this case
+// Microsoft Edge is sometimes waiting too much for 'onupgradeneeded' event to fire
+// change timeout for these cases
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 30000;
 
 function isValidID(id) {
