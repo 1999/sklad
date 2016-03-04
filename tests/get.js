@@ -1,8 +1,10 @@
 describe('Get operations', function () {
-    var dbName = 'dbName' + Math.random();
+    var dbName;
     var conn;
 
     function openConnection(done) {
+        dbName = 'dbName' + Math.random();
+
         openBaseConnection(dbName).then(function (connection) {
             conn = connection;
             done();
@@ -11,13 +13,18 @@ describe('Get operations', function () {
         });
     }
 
-    function closeConnection(cb) {
-        if (conn) {
-            conn.close();
-            conn = null;
-
-            cb();
+    function closeConnection(done) {
+        if (!conn) {
+            done();
+            return;
         }
+
+        conn.close();
+        conn = null;
+
+        sklad.deleteDatabase(dbName).then(done).catch(function () {
+            done();
+        });
     }
 
     beforeEach(openConnection);
@@ -61,7 +68,6 @@ describe('Get operations', function () {
             {name: 'Anton', login: 'ukkk'}
         ];
 
-        var i = 0;
         var arrUniqueSorted = arr.reduce(function (previousValue, currentValue) {
             if (previousValue.indexOf(currentValue) === -1) {
                 previousValue.push(currentValue);
@@ -71,12 +77,6 @@ describe('Get operations', function () {
         }, []).sort();
 
         beforeEach(function (done) {
-            if (i > 0) {
-                done();
-                return;
-            }
-
-            i += 1;
             conn.insert({
                 'keypath_false__keygen_true_0': [
                     {'some_array_containing_field': arr}
@@ -138,6 +138,8 @@ describe('Get operations', function () {
             if (is_ie_edge || is_explorer) {
                 console.warn('IE doesn\'t support multiEntry indexes. Skip this test');
                 done();
+
+                return;
             }
 
             conn.get('keypath_false__keygen_true_0', {
@@ -210,6 +212,8 @@ describe('Get operations', function () {
             if (is_ie_edge || is_explorer) {
                 console.warn('IE doesn\'t support multiEntry indexes. Skip this test');
                 done();
+
+                return;
             }
 
             conn.get('keypath_false__keygen_true_0', {

@@ -72,9 +72,9 @@ module.exports = {
     },
 
     // Android Browser
-    android_5_1: {
-        base: 'SauceLabs',
-        browserName: 'android',
-        version: '5.1'
-    }
+    // android_5_1: {
+    //     base: 'SauceLabs',
+    //     browserName: 'android',
+    //     version: '5.1'
+    // }
 }

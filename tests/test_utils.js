@@ -1,8 +1,13 @@
+// IE11 is sometimes waiting too much for 'success' event to fire
+// change timeout for this case
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 30000;
+
 function isValidID(id) {
     return /[\w]{8}\-[\w]{4}\-4[\w]{3}\-[\w]{4}\-[\w]{12}/.test(id);
 }
-
+var i = 0;
 function openBaseConnection(dbName) {
+    i += 1;
     return sklad.open(dbName, {
         version: 1,
         migration: {

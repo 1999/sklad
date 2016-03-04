@@ -1,27 +1,31 @@
 describe('Count operations', function () {
     var conn;
+    var dbName;
 
-    function openConnection(done) {
-        var dbName = 'dbName' + Math.random();
+    beforeEach(function (done) {
+        dbName = 'dbName' + Math.random();
 
         openBaseConnection(dbName).then(function (connection) {
             conn = connection;
             done();
-        }).catch(function () {
-            done.fail('Open connection op failed');
+        }).catch(function (err) {
+            done.fail('Open connection op failed: ' + err.message);
         });
-    }
+    });
 
-    function closeConnection(cb) {
-        if (conn) {
-            conn.close();
-            conn = null;
-
-            cb();
+    afterEach(function (done) {
+        if (!conn) {
+            done();
+            return;
         }
-    }
 
-    beforeEach(openConnection);
+        conn.close();
+        conn = null;
+
+        sklad.deleteDatabase(dbName).then(done).catch(function () {
+            done();
+        });
+    });
 
     it('should produce Error with NotFoundError name field when wrong object stores are used', function (done) {
         conn.count('missing_object_store', 'some_key').then(function () {
@@ -138,6 +142,8 @@ describe('Count operations', function () {
         if (is_ie_edge || is_explorer) {
             console.warn('IE doesn\'t support multiEntry indexes. Skip this test');
             done();
+
+            return;
         }
 
         conn.insert({
@@ -162,6 +168,4 @@ describe('Count operations', function () {
             done.fail('Insert returns rejected promise: ' + err.message);
         });
     });
-
-    afterEach(closeConnection);
 });

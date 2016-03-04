@@ -11,12 +11,10 @@ describe('Migration scripts context tests', function () {
         window.shimIndexedDB.__useShim();
     }
 
-    function closeConnection(cb) {
+    function closeConnection() {
         if (conn) {
             conn.close();
             conn = null;
-
-            cb();
         }
     }
 
