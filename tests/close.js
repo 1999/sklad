@@ -9,7 +9,7 @@ describe('Close operation', function () {
 
             done();
         }).catch(function (err) {
-            done.fail('Open returns rejected promise');
+            done.fail('Open returns rejected promise: ' + err.stack);
         });
     });
 });

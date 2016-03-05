@@ -13,13 +13,14 @@ describe('Delete database tests', function () {
         });
     });
 
-    it('should produce DOMError.InvalidStateError if database is blocked', function (done) {
+    it('should produce Error with InvalidStateError name field if database is blocked', function (done) {
         var dbName = 'dbName' + Math.random();
 
         openBaseConnection(dbName).then(function () {
             sklad.deleteDatabase(dbName).then(function () {
                 done.fail('Delete database promise is resolved');
             }).catch(function (err) {
+                expect(err instanceof Error).toBe(true);
                 expect(err.name).toBe('InvalidStateError');
                 done();
             });

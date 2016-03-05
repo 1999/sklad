@@ -1,8 +1,23 @@
+'use strict';
+
+if (!process.env.SAUCE_USERNAME || !process.env.SAUCE_ACCESS_KEY) {
+    throw new Error('No SauceLabs credentials set. ' +
+        'Please set SAUCE_USERNAME and SAUCE_ACCESS_KEY environment variables ' +
+        'and run test again');
+}
+
+const customLaunchers = require('./tests/browsers');
+
 module.exports = function (config) {
-    var configuration = {
+    // @see https://github.com/karma-runner/karma-sauce-launcher/issues/73
+    const sauceLabsStartConnect = process.env.TRAVIS ? false : true;
+
+    const configuration = {
         frameworks: ['jasmine'],
 
         files: [
+            'node_modules/promise-polyfill/Promise.js', // ie11 support
+            'node_modules/indexeddbshim/dist/indexeddbshim.js', // for safari browsers
             'dist/sklad.uncompressed.js',
             'tests/test_utils.js',
             'tests/interface.js',
@@ -23,30 +38,26 @@ module.exports = function (config) {
         colors: true,
         logLevel: config.LOG_INFO,
         autoWatch: true,
-        reporters: ['mocha'],
+        reporters: ['mocha', 'saucelabs'],
 
         plugins: [
             'karma-jasmine',
-            'karma-chrome-launcher',
-            'karma-firefox-launcher',
-            'karma-mocha-reporter'
+            'karma-mocha-reporter',
+            'karma-sauce-launcher'
         ],
 
-        customLaunchers: {
-            Chrome_travis_ci: {
-                base: 'Chrome',
-                flags: ['--no-sandbox']
-            }
+        sauceLabs: {
+            startConnect: sauceLabsStartConnect,
+            testName: 'Sklad Unit Tests',
+            tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER,
+            tags: ['indexeddb', 'clientside']
         },
-
-        // browsers: ['Chrome', 'ChromeCanary', 'Firefox']
+        captureTimeout: 300000,
+        browserDisconnectTimeout: 20000,
+        browserNoActivityTimeout: 300000,
+        customLaunchers: customLaunchers,
+        browsers: Object.keys(customLaunchers)
     };
-
-    // run chrome in travis
-    // @link https://github.com/karma-runner/karma/issues/1144
-    if (process.env.TRAVIS) {
-        configuration.browsers = ['Chrome_travis_ci', 'Firefox'];
-    }
 
     config.set(configuration);
 };

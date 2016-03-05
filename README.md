@@ -235,10 +235,8 @@ Otherwise Sklad library will generate this value.
 [Of course](http://1999.github.io/sklad). Btw, [detailed docs](https://github.com/1999/sklad/tree/master/docs) contain nice pieces of code using Sklad library.
 
 # Any tests?
-Tests are located in [tests](https://github.com/1999/sklad/tree/master/tests) folder. You can run them with `npm test`. Tests are written with Jasmine testing framework and run with Karma runner.
+Tests are located in [tests](https://github.com/1999/sklad/tree/master/tests) folder. You can run them with `npm test`. Tests are written with Jasmine testing framework and run with Karma runner. You need to have SauceLabs account to run tests in multiple browsers.
 
 # Development/release process
- * Work starts with `make`
- * Watcher is started with `make watch`
- * Release files are built with `make release`
- * `make clean` deletes `node_modules/` directory
+ * Watcher is started with `npm run watch`
+ * Release files are built with `npm run release`

@@ -1,15 +1,6 @@
 describe('Migration scripts context tests', function () {
     var dbName = 'dbName' + Math.random();
 
-    function closeConnection(cb) {
-        if (conn) {
-            conn.close();
-            conn = null;
-
-            cb();
-        }
-    }
-
     it('should create index during first migration', function (done) {
         openBaseConnection(dbName).then(function (connection) {
             connection.close();
@@ -19,7 +10,18 @@ describe('Migration scripts context tests', function () {
         });
     });
 
-    it('should add index to existing object store', function (done) {
+    it('should add index to existing object store (skip Safari)', function (done) {
+        if (is_safari) {
+            // Safari doesn't expose existing indexes in 2+ `upgradeneeded`
+            // @see https://bugs.webkit.org/show_bug.cgi?id=155045
+            if (is_safari) {
+                console.warn('Safari doesn\'t expose existing indexes during 2+ upgradeneeded transaction. Skip this test');
+                done();
+
+                return;
+            }
+        }
+
         sklad.open(dbName, {
             version: 2,
             migration: {

@@ -1,8 +1,14 @@
+// IE11 is sometimes waiting too much for 'success' event to fire
+// Microsoft Edge is sometimes waiting too much for 'onupgradeneeded' event to fire
+// change timeout for these cases
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 30000;
+
 function isValidID(id) {
     return /[\w]{8}\-[\w]{4}\-4[\w]{3}\-[\w]{4}\-[\w]{12}/.test(id);
 }
-
+var i = 0;
 function openBaseConnection(dbName) {
+    i += 1;
     return sklad.open(dbName, {
         version: 1,
         migration: {
@@ -107,8 +113,8 @@ function runCommonAddTests(method) {
                 expect(isValidID(keys['keypath_true__keygen_false_2'])).toBe(true);
 
                 done();
-            }).catch(function () {
-                done.fail(method + ' returns rejected promise');
+            }).catch(function (err) {
+                done.fail(method + ' returns rejected promise: ' + err.message);
             });
         });
 
@@ -215,3 +221,8 @@ function runCommonAddTests(method) {
         afterEach(closeConnection);
     });
 }
+
+var is_chrome = navigator.userAgent.indexOf('Chrome') !== -1;
+var is_safari = navigator.userAgent.indexOf('Safari') !== -1 && !is_chrome;
+var is_explorer = navigator.userAgent.indexOf('Trident') !== -1 || navigator.userAgent.indexOf('MSIE') !== -1;
+var is_ie_edge = navigator.userAgent.indexOf('Edge') !== -1;

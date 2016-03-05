@@ -1,45 +1,54 @@
 describe('Get operations', function () {
-    var dbName = 'dbName' + Math.random();
+    var dbName;
     var conn;
 
     function openConnection(done) {
+        dbName = 'dbName' + Math.random();
+
         openBaseConnection(dbName).then(function (connection) {
             conn = connection;
             done();
-        }).catch(function () {
-            done.fail('Open connection op failed');
+        }).catch(function (err) {
+            done.fail('Open connection op failed: ' + err.stack);
         });
     }
 
-    function closeConnection(cb) {
-        if (conn) {
-            conn.close();
-            conn = null;
-
-            cb();
+    function closeConnection(done) {
+        if (!conn) {
+            done();
+            return;
         }
+
+        conn.close();
+        conn = null;
+
+        sklad.deleteDatabase(dbName).then(done).catch(function () {
+            done();
+        });
     }
 
     beforeEach(openConnection);
 
-    it('should produce DOMError.NotFoundError when wrong object stores are used', function (done) {
+    it('should produce Error with NotFoundError name field when wrong object stores are used', function (done) {
         conn.get('missing_object_store', {
             range: IDBKeyRange.only('some_key')
         }).then(function () {
             done.fail('Get returns resolved promise');
         }).catch(function (err) {
+            expect(err instanceof Error).toBe(true);
             expect(err.name).toBe('NotFoundError');
             done();
         });
     });
 
-    it('should produce DOMError.NotFoundError when missing index is used', function (done) {
+    it('should produce Error with NotFoundError name field when missing index is used', function (done) {
         conn.get('keypath_true__keygen_false_0', {
             index: 'missing_index',
             range: IDBKeyRange.only('some_key')
         }).then(function () {
             done.fail('Get returns resolved promise');
         }).catch(function (err) {
+            expect(err instanceof Error).toBe(true);
             expect(err.name).toBe('NotFoundError');
             done();
         });
@@ -47,7 +56,18 @@ describe('Get operations', function () {
 
     describe('Get operations in one store', function () {
         var arr = 'Hi my name is my name is my name is Slim Shady'.split(' ');
-        var i = 0;
+        var forumUsers = [
+            {name: 'Dmitry', login: '1999'},
+            {name: 'Alex', login: 'Skiller'},
+            {name: 'Anton', login: 'Clon'},
+            {name: 'Leonid', login: 'Dollars'},
+            {name: 'Denis', login: 'win32'},
+            {name: 'Sergey', login: 'bizkid-e-burg'},
+            {name: 'Roman', login: 'Backenbart'},
+            {name: 'Alex', login: 'Yarex'},
+            {name: 'Anton', login: 'ukkk'}
+        ];
+
         var arrUniqueSorted = arr.reduce(function (previousValue, currentValue) {
             if (previousValue.indexOf(currentValue) === -1) {
                 previousValue.push(currentValue);
@@ -57,29 +77,13 @@ describe('Get operations', function () {
         }, []).sort();
 
         beforeEach(function (done) {
-            if (i > 0) {
-                done();
-                return;
-            }
-
-            i += 1;
             conn.insert({
                 'keypath_false__keygen_true_0': [
                     {'some_array_containing_field': arr}
                 ],
-                'keypath_true__keygen_false_0': [
-                    {name: 'Dmitry', login: '1999'},
-                    {name: 'Alex', login: 'Skiller'},
-                    {name: 'Anton', login: 'Clon'},
-                    {name: 'Leonid', login: 'Dollars'},
-                    {name: 'Denis', login: 'win32'},
-                    {name: 'Sergey', login: 'bizkid-e-burg'},
-                    {name: 'Roman', login: 'Backenbart'},
-                    {name: 'Alex', login: 'Yarex'},
-                    {name: 'Anton', login: 'ukkk'}
-                ]
-            }).then(done).catch(function () {
-                done.fail('Insert returns rejected promise');
+                'keypath_true__keygen_false_0': forumUsers
+            }).then(done).catch(function (err) {
+                done.fail('Insert returns rejected promise: ' + err.stack);
             });
         });
 
@@ -96,12 +100,48 @@ describe('Get operations', function () {
                 }]);
 
                 done();
-            }).catch(function () {
-                done.fail('Get returns rejected promise');
+            }).catch(function (err) {
+                done.fail('Get returns rejected promise: ' + err.stack);
             });
         });
 
         it('should get all records within index', function (done) {
+            conn.get('keypath_true__keygen_false_0', {
+                index: 'sort_login'
+            }).then(function (records) {
+                var expectation = forumUsers.sort(function (a, b) {
+                    return indexedDB.cmp(a.login, b.login);
+                }).map(function (user) {
+                    return {
+                        key: user.login,
+                        value: user
+                    };
+                });
+
+                expect(records.length).toBe(expectation.length);
+                records.forEach(function (record, i) {
+                    var expectationRecord = expectation[i];
+
+                    expect(record.key).toBe(expectationRecord.key);
+                    expect(record.value).toEqual(expectationRecord.value);
+                });
+
+                done();
+            }).catch(function (err) {
+                done.fail('Get returns rejected promise: ' + err.stack);
+            });
+        });
+
+        it('should get all records within multiEntry index (skip IE)', function (done) {
+            // IE11 and Microsoft Edge don't support multiEntry indexes
+            // @see https://dev.windows.com/en-us/microsoft-edge/platform/status/indexeddbarraysandmultientrysupport
+            if (is_ie_edge || is_explorer) {
+                console.warn('IE doesn\'t support multiEntry indexes. Skip this test');
+                done();
+
+                return;
+            }
+
             conn.get('keypath_false__keygen_true_0', {
                 index: 'some_multi_index'
             }).then(function (records) {
@@ -121,8 +161,8 @@ describe('Get operations', function () {
 
                 expect(records).toEqual(expectation);
                 done();
-            }).catch(function () {
-                done.fail('Get returns rejected promise');
+            }).catch(function (err) {
+                done.fail('Get returns rejected promise: ' + err.stack);
             });
         });
 
@@ -133,12 +173,49 @@ describe('Get operations', function () {
             }).then(function (records) {
                 expect(records.length).toBe(7);
                 done();
-            }).catch(function () {
-                done.fail('Get returns rejected promise');
+            }).catch(function (err) {
+                done.fail('Get returns rejected promise: ' + err.stack);
             });
         });
 
         it('should get all records within index in descending order', function (done) {
+            conn.get('keypath_true__keygen_false_0', {
+                index: 'sort_login',
+                direction: sklad.DESC
+            }).then(function (records) {
+                var expectation = forumUsers.sort(function (a, b) {
+                    return indexedDB.cmp(a.login, b.login);
+                }).reverse().map(function (user) {
+                    return {
+                        key: user.login,
+                        value: user
+                    };
+                });
+
+                expect(records.length).toBe(expectation.length);
+                records.forEach(function (record, i) {
+                    var expectationRecord = expectation[i];
+
+                    expect(record.key).toBe(expectationRecord.key);
+                    expect(record.value).toEqual(expectationRecord.value);
+                });
+
+                done();
+            }).catch(function (err) {
+                done.fail('Get returns rejected promise: ' + err.stack);
+            });
+        });
+
+        it('should get all records within multiEntry index in descending order (skip IE)', function (done) {
+            // IE11 and Microsoft Edge don't support multiEntry indexes
+            // @see https://dev.windows.com/en-us/microsoft-edge/platform/status/indexeddbarraysandmultientrysupport
+            if (is_ie_edge || is_explorer) {
+                console.warn('IE doesn\'t support multiEntry indexes. Skip this test');
+                done();
+
+                return;
+            }
+
             conn.get('keypath_false__keygen_true_0', {
                 index: 'some_multi_index',
                 direction: sklad.DESC
@@ -154,8 +231,8 @@ describe('Get operations', function () {
 
                 expect(records).toEqual(expectation);
                 done();
-            }).catch(function () {
-                done.fail('Get returns rejected promise');
+            }).catch(function (err) {
+                done.fail('Get returns rejected promise: ' + err.stack);
             });
         });
 
@@ -172,8 +249,8 @@ describe('Get operations', function () {
                 })).toEqual(['Alex', 'Anton', 'Anton', 'Denis'])
 
                 done();
-            }).catch(function () {
-                done.fail('Get returns rejected promise');
+            }).catch(function (err) {
+                done.fail('Get returns rejected promise: ' + err.stack);
             });
         });
     });

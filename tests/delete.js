@@ -1,8 +1,10 @@
 describe('Delete operations', function () {
-    var dbName = 'dbName' + Math.random();
+    var dbName;
     var conn;
 
     function openConnection(done) {
+        dbName = 'dbName' + Math.random();
+
         openBaseConnection(dbName).then(function (connection) {
             conn = connection;
             done();
@@ -11,21 +13,27 @@ describe('Delete operations', function () {
         });
     }
 
-    function closeConnection(cb) {
-        if (conn) {
-            conn.close();
-            conn = null;
-
-            cb();
+    function closeConnection(done) {
+        if (!conn) {
+            done();
+            return;
         }
+
+        conn.close();
+        conn = null;
+
+        sklad.deleteDatabase(dbName).then(done).catch(function () {
+            done();
+        });
     }
 
     beforeEach(openConnection);
 
-    it('should produce DOMError.NotFoundError when wrong object stores are used', function (done) {
+    it('should produce Error with NotFoundError name field when wrong object stores are used', function (done) {
         conn.delete('missing_object_store', 'some_key').then(function () {
             done.fail('Delete returns resolved promise');
         }).catch(function (err) {
+            expect(err instanceof Error).toBe(true);
             expect(err.name).toEqual('NotFoundError');
             done();
         });
@@ -45,11 +53,10 @@ describe('Delete operations', function () {
 
     it('should delete records from multiple stores', function (done) {
         conn.delete({
-            'keypath_true__keygen_false_0': ['whatever_key', 1, []],
+            'keypath_true__keygen_false_0': ['whatever_key', 1],
             'keypath_true__keygen_false_1': [
                 'smth',
-                'whatever_wherever',
-                IDBKeyRange.bound('lower', 'upper', true, true)
+                'whatever_wherever'
             ]
         }).then(done).catch(function (err) {
             done.fail('Delete op returns rejected promise: ' + err.message + '\n' + err.stack);

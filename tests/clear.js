@@ -1,8 +1,10 @@
 describe('Clear operations', function () {
-    var dbName = 'dbName' + Math.random();
+    var dbName;
     var conn;
 
     function openConnection(done) {
+        dbName = 'dbName' + Math.random();
+
         openBaseConnection(dbName).then(function (connection) {
             conn = connection;
             done();
@@ -11,22 +13,27 @@ describe('Clear operations', function () {
         });
     }
 
-    function closeConnection(cb) {
-        if (conn) {
-            conn.close();
-            conn = null;
-
-            cb();
+    function closeConnection(done) {
+        if (!conn) {
+            done();
+            return;
         }
+
+        conn.close();
+        conn = null;
+
+        sklad.deleteDatabase(dbName).then(done).catch(function () {
+            done();
+        });
     }
 
     beforeEach(openConnection);
 
-    it('should produce DOMError.NotFoundError when wrong object stores are used', function (done) {
+    it('should produce Error with NotFoundError name field when wrong object stores are used', function (done) {
         conn.clear('missing_object_store').then(function () {
             done.fail('Clear returns resolved promise');
         }).catch(function (err) {
-            expect(err).toBeTruthy();
+            expect(err instanceof Error).toBe(true);
             expect(err.name).toEqual('NotFoundError');
 
             done();
