@@ -1,3 +1,33 @@
+## 4.0.0
+
+A huge work has been done to support library in all major browsers. Now Sklad supports stable versions of Chrome, Firefox, IE11 in Win8/10, Microsoft Edge, Safari9 desktop/mobile and Android browser. All tests run in SauceLabs platform for continuous integration through TravisCI. Special thanks goes to [Paul Kilmurray](https://github.com/kilbot), you're the man!
+
+Short list of changes:
+
+* **breaking change**: promises now reject with Error instances, not DOMError. The reason for this is that interface is supported only in Firefox/Chrome. If you checked `name` field of `err` to understand what kind of error occured, nothing changes for you ([related commit](https://github.com/1999/sklad/commit/5ddd46ae53bb81dfe880f3f77d84751ee566837e))
+* **new**: support for IE11 and Microsoft Edge introduced
+* **new**: support for Safari9 introduced
+* **new**: support for Firefox introduced
+* I got rid of separate Makefile and now all targets are described inside `package.json` which is more natural to Javascript project ([related commit](https://github.com/1999/sklad/commit/cc30b51b40f978623648a01e7cd3d27862127adc))
+
+Check this PR if you want to see all changes: https://github.com/1999/sklad/pull/15/files
+
+### IE support
+`sklad` is now working in IE11 and Microsoft Edge browsers. Still there is one browser bug which cannot be fixed inside library: both IE11 and Edge don't support multiEntry indexes ([more info](https://dev.windows.com/en-us/microsoft-edge/platform/status/indexeddbarraysandmultientrysupport)). Other library features like working with data, upgrading database and others work as expected. An absence of `autoIncrement` field in IDBObjectStore (both IE11 and Edge) is patched inside library ([related commit](https://github.com/1999/sklad/commit/91c6259cde40df213e324d4143007e0f521b4fef), [bug](https://connect.microsoft.com/IE/Feedback/Details/772726)).
+
+IE11 is missing support for native Promise, so you should add some. I was using [promise-polyfill](https://www.npmjs.com/package/promise-polyfill) inside my tests mostly because it's simple and doesn't replace native Promise with its own implementation.
+
+### Safari9 support
+Safari8 IndexedDB implementation is [buggy](https://github.com/dfahlander/Dexie.js/wiki/IndexedDB-on-Safari) and is not available to be replaced/shimmed with [indexeddbshim](https://www.npmjs.com/package/indexeddbshim) so I had to give up on its support. Still IndexedDB implementation in Safari9 is quite okay and `sklad` is now working in these browsers (desktop/mobile). Still there are some browser bugs which you should keep in mind:
+
+ * Safari doesn't throw ConstraintErrors for unique keys ([link](https://bugs.webkit.org/show_bug.cgi?id=149107), [test](https://github.com/1999/sklad/blob/4c441ecff0fb47d0933c3a6a388dbfce7e2c4bbd/tests/insert.js#L55))
+ * Safari doesn't expose existing indexes in 2+ `upgradeneeded` ([link](https://bugs.webkit.org/show_bug.cgi?id=155045)). So you can't use indexNames of object store inside versionchange transaction.
+
+Safari also fails to work with multiple object stores inside one transaction, but I made a patch for this inside `sklad` library ([related commit](https://github.com/1999/sklad/commit/41b61173b0c55f6b15791f59034a616e238793de)).
+
+### Firefox support
+Tests are now passing in Firefox.
+
 ## 3.0.0
 
  * Sklad is now built with Webpack. Library code is now transpiled from ES2015 into ES5 which leads to some overhead. New release has new major version only for safety reasons: no new changes are introduced, all tests passed :smiley:
