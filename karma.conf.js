@@ -17,7 +17,6 @@ module.exports = function (config) {
 
         files: [
             'node_modules/promise-polyfill/Promise.js', // ie11 support
-            'node_modules/indexeddbshim/dist/indexeddbshim.js', // for safari browsers
             'dist/sklad.uncompressed.js',
             'tests/test_utils.js',
             'tests/interface.js',
