@@ -21,7 +21,8 @@ IE11 is missing support for native Promise, so you should add some. I was using 
 Safari8 IndexedDB implementation is [buggy](https://github.com/dfahlander/Dexie.js/wiki/IndexedDB-on-Safari) and is not available to be replaced/shimmed with [indexeddbshim](https://www.npmjs.com/package/indexeddbshim) so I had to give up on its support. Still IndexedDB implementation in Safari9 is quite okay and `sklad` is now working in these browsers (desktop/mobile). Still there are some browser bugs which you should keep in mind:
 
  * Safari doesn't throw ConstraintErrors for unique keys ([link](https://bugs.webkit.org/show_bug.cgi?id=149107), [test](https://github.com/1999/sklad/blob/4c441ecff0fb47d0933c3a6a388dbfce7e2c4bbd/tests/insert.js#L55))
- * Safari doesn't expose existing indexes in 2+ `upgradeneeded` ([link](https://bugs.webkit.org/show_bug.cgi?id=155045)). So you can't use indexNames of object store inside versionchange transaction.
+ * Safari 9.0.0 doesn't expose existing indexes in 2+ `upgradeneeded` ([link](https://bugs.webkit.org/show_bug.cgi?id=155045)). So you can't use indexNames of object store inside versionchange transaction.
+ * Safari 9.0.3 replaces indexes in 2+ versionchange transaction ([link](http://jsbin.com/duribuvece/edit?js,console)). This is fixed in current Webkit Nightly. So you should better create all indexes during first migration.
 
 Safari also fails to work with multiple object stores inside one transaction, but I made a patch for this inside `sklad` library ([related commit](https://github.com/1999/sklad/commit/41b61173b0c55f6b15791f59034a616e238793de)).
 

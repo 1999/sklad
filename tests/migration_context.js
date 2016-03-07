@@ -11,15 +11,13 @@ describe('Migration scripts context tests', function () {
     });
 
     it('should add index to existing object store (skip Safari)', function (done) {
+        // Safari 9.0.0 doesn't expose existing indexes in 2+ `upgradeneeded`
+        // @see https://bugs.webkit.org/show_bug.cgi?id=155045#c5
         if (is_safari) {
-            // Safari doesn't expose existing indexes in 2+ `upgradeneeded`
-            // @see https://bugs.webkit.org/show_bug.cgi?id=155045
-            if (is_safari) {
-                console.warn('Safari doesn\'t expose existing indexes during 2+ upgradeneeded transaction. Skip this test');
-                done();
+            console.warn('Safari doesn\'t expose existing indexes during 2+ upgradeneeded transaction. Skip this test');
+            done();
 
-                return;
-            }
+            return;
         }
 
         sklad.open(dbName, {
