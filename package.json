@@ -5,6 +5,7 @@
   "directories": {
     "doc": "docs"
   },
+  "main": "lib/sklad.js",
   "scripts": {
     "test": "./node_modules/karma/bin/karma start --single-run",
     "release": "NODE_ENV=production ./node_modules/.bin/webpack && NODE_ENV=development ./node_modules/.bin/webpack",
