@@ -1,3 +1,7 @@
+## 4.1.0
+
+`Get` operations are now using [IDBObjectStore.prototype.getAll](https://developer.mozilla.org/en-US/docs/Web/API/IDBObjectStore/getAll) internally in all browsers which support this API. Currently these browsers are stable Chromium-based and Firefox. This API is activated when you run fetch operations without index and special direction (e.g. when only `limit`, `offset` or `range` are specified). [JSPerf test](http://jsperf.com/idb-idbcursor-vs-idbobjectstore-getall-ops/3) shows that you get 200%-1000% speed increase for your get operations when using this API, so it's time to update `sklad` to this version :)
+
 ## 4.0.0
 
 A huge work has been done to support library in all major browsers. Now Sklad supports stable versions of Chrome, Firefox, IE11 in Win8/10, Microsoft Edge, Safari9 desktop/mobile and Android browser. All tests run in SauceLabs platform for continuous integration through TravisCI. Special thanks goes to [Paul Kilmurray](https://github.com/kilbot), you're the man!
