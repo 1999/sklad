@@ -1,0 +1,7 @@
+test/
+docs/
+.editorconfig
+.jscsrc
+.jshintrc
+.travis.yml
+webpack.config.js
