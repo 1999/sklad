@@ -255,7 +255,61 @@ describe('Get operations', function () {
         });
     });
 
-    // multiple
+    describe('Get operations in multiple stores', function () {
+        beforeEach(function (done) {
+            conn.insert({
+                keypath_true__keygen_true_1: [
+                    {name: 'Dmitry', login: '1999'},
+                    {name: 'George', login: 'go1664'},
+                    {name: 'Slava', login: 'ixax'}
+                ],
+                keypath_true__keygen_true_2: [
+                    {name: 'Irina', login: 'mar4uk'},
+                    {name: 'Stas', login: 'antipovs'},
+                    {name: 'Vadim', login: 'maiordom'}
+                ]
+            }).then(done).catch(function (err) {
+                done.fail('Insert returns rejected promise: ' + err.stack);
+            });
+        });
+
+        it('should get all records', function (done) {
+            conn.get({
+                keypath_true__keygen_true_1: {},
+                keypath_true__keygen_true_2: {limit: 1, offset: 1}
+            }).then(function (records) {
+                expect(Object.keys(records).length).toBe(2);
+                expect(Array.isArray(records.keypath_true__keygen_true_1)).toBe(true);
+                expect(Array.isArray(records.keypath_true__keygen_true_2)).toBe(true);
+
+                expect(records.keypath_true__keygen_true_1).toEqual([
+                    {
+                        key: 'Dmitry',
+                        value: {name: 'Dmitry', login: '1999'}
+                    },
+                    {
+                        key: 'George',
+                        value: {name: 'George', login: 'go1664'}
+                    },
+                    {
+                        key: 'Slava',
+                        value: {name: 'Slava', login: 'ixax'}
+                    }
+                ]);
+
+                expect(records.keypath_true__keygen_true_2).toEqual([
+                    {
+                        key: 'Stas',
+                        value: {name: 'Stas', login: 'antipovs'}
+                    }
+                ]);
+
+                done();
+            }).catch(function (err) {
+                done.fail('Get returns rejected promise: ' + err.stack);
+            });
+        });
+    });
 
     afterEach(closeConnection);
 });
