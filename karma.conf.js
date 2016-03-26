@@ -16,7 +16,7 @@ module.exports = function (config) {
         frameworks: ['jasmine'],
 
         files: [
-            'node_modules/promise-polyfill/Promise.js', // ie11 support
+            'node_modules/promise-polyfill/promise.js', // ie11 support
             'dist/sklad.uncompressed.js',
             'tests/test_utils.js',
             'tests/interface.js',
