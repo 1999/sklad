@@ -9,7 +9,7 @@ The problem of IndexedDB is following: its API is too geeky, unfamiliar and comp
 
 Sklad library requires browser promises support. If your browser doesn't support promises you can use deprecated 1.x branch releases or include [polyfill](https://www.npmjs.com/package/promise-polyfill).
 
-Starting from 4.0.0 Sklad library is working in all major browsers: Chrome, Firefox, IE11, Microsoft Edge, Safari9 and Android browser. Still there are some browser issues for IE11, Microsoft Edge and Safari9 with can't be patched inside library. Read [changelog](https://github.com/1999/sklad/blob/master/CHANGELOG.md#400) for more info.
+Starting from 4.0.0 Sklad library is working in all major browsers: Chrome, Firefox, IE11, Microsoft Edge, Safari9 and Android browser. Still there are some browser issues for IE11, Microsoft Edge and Safari9 which can't be patched inside library. Read [changelog](https://github.com/1999/sklad/blob/master/CHANGELOG.md#400) for more info.
 
 ## Open database ([details](https://github.com/1999/sklad/blob/master/docs/README_sklad_open.md))
 ```javascript
