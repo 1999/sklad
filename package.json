@@ -8,7 +8,9 @@
   "main": "lib/sklad.js",
   "scripts": {
     "test": "./node_modules/karma/bin/karma start --single-run",
-    "release": "NODE_ENV=production ./node_modules/.bin/webpack && NODE_ENV=development ./node_modules/.bin/webpack",
+    "release": "npm run release:dev && npm run release:prod",
+    "release:dev": "NODE_ENV=development ./node_modules/.bin/webpack",
+    "release:prod": "NODE_ENV=production ./node_modules/.bin/webpack",
     "watch": "IS_DEVELOPMENT_PROCESS=1 ./node_modules/.bin/webpack"
   },
   "repository": {
@@ -26,6 +28,9 @@
     "url": "https://github.com/1999/sklad/issues"
   },
   "homepage": "https://github.com/1999/sklad",
+  "dependencies": {
+    "kinopromise": "^0.3.0"
+  },
   "devDependencies": {
     "babel-core": "^6.7.4",
     "babel-loader": "^6.2.4",
@@ -37,7 +42,6 @@
     "karma-jasmine": "^0.3.8",
     "karma-mocha-reporter": "^2.0.0",
     "karma-sauce-launcher": "^0.3.1",
-    "kinopromise": "^0.3.0",
     "promise-polyfill": "^4.0.3",
     "webpack": "^1.12.14"
   }
