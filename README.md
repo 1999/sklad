@@ -36,9 +36,9 @@ sklad.open(dbName, {
             var objStore = database.createObjectStore('users_likes', {keyPath: 'date'});
         }
     }
-}).then(function (conn) {
+}).then(conn => {
     // work with database connection
-}).catch(err) {
+}).catch(err => {
     // handle error
 });
 ```
@@ -59,7 +59,7 @@ sklad.open(dbName, {
  *   @param {DOMError} [err] if promise is rejected
  *   @param {Object} inserted objects' keys
  */
-sklad.open(dbName, options, function (err, conn) {
+sklad.open(dbName, options).then(conn => {
 	conn.insert(objStoreName, data).then(...);
 });
 ```
@@ -80,7 +80,7 @@ sklad.open(dbName, options, function (err, conn) {
  *   @param {DOMError} [err] if promise is rejected
  *   @param {Object} inserted/updated objects' keys otherwise
  */
-sklad.open(dbName, options, function (err, conn) {
+sklad.open(dbName, options).then(conn => {
 	conn.upsert(objStoreName, data).then(...);
 });
 ```
@@ -99,7 +99,7 @@ sklad.open(dbName, options, function (err, conn) {
  * @return {Promise}
  *   @param {DOMError} [err] if promise is rejected
  */
-sklad.open(dbName, options, function (err, conn) {
+sklad.open(dbName, options).then(conn => {
 	conn.delete(objStoreName, key).then(...);
 });
 ```
@@ -111,7 +111,7 @@ sklad.open(dbName, options, function (err, conn) {
  * @return {Promise}
  *   @param {DOMError} err
  */
-sklad.open(dbName, options, function (err, conn) {
+sklad.open(dbName, options).then(conn => {
 	conn.clear(objStoreName).then(...);
 });
 ```
@@ -132,8 +132,8 @@ sklad.open(dbName, options, function (err, conn) {
  *   @param {DOMError} [err] if promise is rejected
  *   @param {Object} stored objects otherwise
  */
-sklad.open(dbName, options, function (err, conn) {
-	conn.get(objStoreName, {direction: sklad.DESC, limit: 10, offset: 5}).then(function (records) {
+sklad.open(dbName, options).then(conn => {
+	conn.get(objStoreName, {direction: sklad.DESC, limit: 10, offset: 5}).then(records => {
         // ...
     });
 });
@@ -155,8 +155,8 @@ sklad.open(dbName, options, function (err, conn) {
  *   @param {DOMError} [err] if promise is rejected
  *   @param {Object} number of stored objects otherwise
  */
-sklad.open(dbName, options, function (err, conn) {
-	conn.count(objStoreName, {range: IDBKeyRange.bound(x, y, true, true)}).then(function (total) {
+sklad.open(dbName, options).then(conn => {
+	conn.count(objStoreName, {range: IDBKeyRange.bound(x, y, true, true)}).then(total => {
         // ...
     });
 });
@@ -164,7 +164,7 @@ sklad.open(dbName, options, function (err, conn) {
 
 ## Close existing database connection ([details](https://github.com/1999/sklad/blob/master/docs/README_skladConnection_close.md))
 ```javascript
-sklad.open(dbName, options, function (err, conn) {
+sklad.open(dbName, options).then(conn => {
     conn.close();
 });
 ```
