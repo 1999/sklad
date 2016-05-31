@@ -36,7 +36,7 @@ sklad.open(dbName, {
 ```javascript
 sklad.open(dbName, options).then(conn => {
     // insert one document into store
-    conn.insert(obj_store_name, 'hello world').then(insertedKey => ...);
+    conn.insert(objStoreName, 'hello world').then(insertedKey => ...);
 
     // insert data into multiple stores inside one transaction
     conn.insert({
@@ -59,7 +59,7 @@ sklad.open(dbName, options).then(conn => {
 ```javascript
 sklad.open(dbName, options).then(conn => {
     // upsert one document inside store
-    conn.insert(obj_store_name, {id: 'BMTH', bandMembersCount: 5}).then(upsertedKey => ...);
+    conn.insert(objStoreName, {id: 'BMTH', bandMembersCount: 5}).then(upsertedKey => ...);
 
     // upsert data in multiple stores inside one transaction
     conn.upsert({
@@ -80,20 +80,19 @@ sklad.open(dbName, options).then(conn => {
 
 ## Delete one or mutiple records ([details](https://github.com/1999/sklad/blob/master/docs/README_skladConnection_delete.md))
 ```javascript
-/**
- * 1) Delete one record from the object store
- * @param {String} objStoreName name of object store
- * @param {Mixed} key
- * @return {Promise}
- *   @param {DOMError} [err] if promise is rejected
- *
- * 2) Delete multiple records from the object stores (during one transaction)
- * @param {Object} data
- * @return {Promise}
- *   @param {DOMError} [err] if promise is rejected
- */
 sklad.open(dbName, options).then(conn => {
-	conn.delete(objStoreName, key).then(...);
+    // delete document from the object store
+    conn.delete(objStoreName, 'key').then(() => {
+        // record has been deleted
+    });
+
+    // delete multiple documents from different object stores inside one transaction
+    conn.delete({
+        objStoreName1: ['key_1', 'key_2', 'key_3'],
+        objStoreName2: ['key1']
+    }).then(() => {
+        // all records have been deleted
+    });
 });
 ```
 
