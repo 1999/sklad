@@ -3,37 +3,26 @@
 [![Build Status](https://img.shields.io/travis/1999/sklad.svg?style=flat)](https://travis-ci.org/1999/sklad)
 [![DevDependency Status](http://img.shields.io/david/dev/1999/sklad.svg?style=flat)](https://david-dm.org/1999/sklad#info=devDependencies)
 
-IndexedDB is HTML5 standard for a local database of records holding practically any kind of data - from simple numbers to even Blobs. It is not the same as a relational database which has tables with collections rows and columns. IndexedDB has databases, which have objects stores with data stored there. In fact IndexedDB is a NoSQL database similar to MongoDB and CouchDB. It can also search for data with indexes which you create when start working with the database..
+IndexedDB is HTML5 standard for a local database of records holding practically any kind of data - from simple numbers to even Blobs. It is not the same as a relational database which has tables with collections rows and columns. IndexedDB has databases, which have objects stores with data stored there. In fact IndexedDB is a NoSQL database similar to MongoDB and CouchDB. It can also search for data with indexes which you create when you start working with the database.
 
-The problem of IndexedDB is following: its API is too geeky, unfamiliar and complicated. **Sklad** library allows you to build apps for modern browsers with IndexedDB in a simple and convenient way. This is not ORM - it's just a thin abstraction layer on top of IndexedDB native API.
-
-Sklad library requires browser promises support. If your browser doesn't support promises you can use deprecated 1.x branch releases or include [polyfill](https://www.npmjs.com/package/promise-polyfill).
+Sklad library makes work with IndexedDB less weird by providing a tiny Promise-based API on top of IndexedDB. It also requires promises support. If your browser doesn't support promises you can include [polyfill](https://www.npmjs.com/package/promise-polyfill) for this.
 
 Starting from 4.0.0 Sklad library is working in all major browsers: Chrome, Firefox, IE11, Microsoft Edge, Safari9 and Android browser. Still there are some browser issues for IE11, Microsoft Edge and Safari9 which can't be patched inside library. Read [changelog](https://github.com/1999/sklad/blob/master/CHANGELOG.md#400) for more info.
 
 ## Open database ([details](https://github.com/1999/sklad/blob/master/docs/README_sklad_open.md))
 ```javascript
-/**
- * @param {String} dbName database name
- * @param {Object} [options = {}] connection options
- * @param {Number} [options.version] database version
- * @param {Object} [options.migration] migration scripts
- * @return {Promise}
- *   @param {Object} [conn] if - promise is resolved
- *   @param {DOMError} [err] - if promise is rejected
- */
 sklad.open(dbName, {
     version: 2,
     migration: {
-        '1': function (database) {
+        '1': (database) => {
             // This migration part starts when your code runs first time in the browser.
             // This is a migration from "didn't exist" to "1" database version
-            var objStore = database.createObjectStore('users', {autoIncrement: true});
+            const objStore = database.createObjectStore('users', {autoIncrement: true});
             objStore.createIndex('fb_search', 'facebook_id', {unique: true});
         },
-        '2': function (database) {
+        '2': (database) => {
             // This migration part starts when your database migrates from "1" to "2" version
-            var objStore = database.createObjectStore('users_likes', {keyPath: 'date'});
+            const objStore = database.createObjectStore('users_likes', {keyPath: 'date'});
         }
     }
 }).then(conn => {
@@ -45,22 +34,24 @@ sklad.open(dbName, {
 
 ## Insert one or multiple records ([details](https://github.com/1999/sklad/blob/master/docs/README_skladConnection_insert.md))
 ```javascript
-/**
- * 1) Insert one record into the object store
- * @param {String} objStoreName name of object store
- * @param {*} data
- * @return {Promise}
- *   @param {DOMError} [err] if promise is rejected
- *   @param {*} inserted object key
- *
- * 2) Insert multiple records into the object stores (during one transaction)
- * @param {Object} data
- * @return {Promise}
- *   @param {DOMError} [err] if promise is rejected
- *   @param {Object} inserted objects' keys
- */
 sklad.open(dbName, options).then(conn => {
-	conn.insert(objStoreName, data).then(...);
+    // insert one document into store
+    conn.insert(obj_store_name, 'hello world').then(insertedKey => ...);
+
+    // insert data into multiple stores inside one transaction
+    conn.insert({
+        users: [
+            {email: 'example1@gmail.com', firstname: 'John'},
+            {email: 'example2@gmail.com', firstname: 'Jack'},
+            {email: 'example3@gmail.com', firstname: 'Peter'},
+        ],
+        foo_obj_store: ['truly', 'madly', 'deeply']
+    }).then(insertedKeys => {
+        assert.equal(insertedKeys, {
+            users: [id1, id2, id3],
+            foo_obj_store: [id4, id5, id6]
+        });
+    });
 });
 ```
 
