@@ -57,22 +57,24 @@ sklad.open(dbName, options).then(conn => {
 
 ## Upsert one or multiple records ([details](https://github.com/1999/sklad/blob/master/docs/README_skladConnection_upsert.md))
 ```javascript
-/**
- * 1) Insert or update one record in the object store
- * @param {String} objStoreName name of object store
- * @param {*} data
- * @return {Promise}
- *   @param {DOMError} [err] if promise is rejected
- *   @param {*} inserted/updated object key otherwise
- *
- * 2) Insert or update multiple records in the object stores (during one transaction)
- * @param {Object} data
- * @return {Promise}
- *   @param {DOMError} [err] if promise is rejected
- *   @param {Object} inserted/updated objects' keys otherwise
- */
 sklad.open(dbName, options).then(conn => {
-	conn.upsert(objStoreName, data).then(...);
+    // upsert one document inside store
+    conn.insert(obj_store_name, {id: 'BMTH', bandMembersCount: 5}).then(upsertedKey => ...);
+
+    // upsert data in multiple stores inside one transaction
+    conn.upsert({
+        users: [
+            {email: 'example1@gmail.com', firstname: 'John'},
+            {email: 'example2@gmail.com', firstname: 'Jack'},
+            {email: 'example3@gmail.com', firstname: 'Peter'},
+        ],
+        foo_obj_store: ['truly', 'madly', 'deeply']
+    }).then(upsertedKeys => {
+        assert.equal(insertedKeys, {
+            users: [id1, id2, id3],
+            foo_obj_store: [id4, id5, id6]
+        });
+    });
 });
 ```
 
