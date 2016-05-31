@@ -3,8 +3,6 @@
 [![Build Status](https://img.shields.io/travis/1999/sklad.svg?style=flat)](https://travis-ci.org/1999/sklad)
 [![DevDependency Status](http://img.shields.io/david/dev/1999/sklad.svg?style=flat)](https://david-dm.org/1999/sklad#info=devDependencies)
 
-IndexedDB is HTML5 standard for a local database of records holding practically any kind of data - from simple numbers to even Blobs. It is not the same as a relational database which has tables with collections rows and columns. IndexedDB has databases, which have objects stores with data stored there. In fact IndexedDB is a NoSQL database similar to MongoDB and CouchDB. It can also search for data with indexes which you create when you start working with the database.
-
 **Sklad library makes work with IndexedDB less weird by providing a tiny Promise-based API** on top of IndexedDB. It also requires promises support. If your browser doesn't support promises you can include [polyfill](https://www.npmjs.com/package/promise-polyfill) for this.
 
 Starting from 4.0.0 Sklad library is working in all major browsers: Chrome, Firefox, IE11, Microsoft Edge, Safari9 and Android browser. Still there are some browser issues for IE11, Microsoft Edge and Safari9 which can't be patched inside library. Read [changelog](https://github.com/1999/sklad/blob/master/CHANGELOG.md#400) for more info.
