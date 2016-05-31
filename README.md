@@ -1,4 +1,4 @@
-# Sklad: IndexedDB abstraction layer
+# Sklad: Promise-based API for IndexedDB
 
 [![Build Status](https://img.shields.io/travis/1999/sklad.svg?style=flat)](https://travis-ci.org/1999/sklad)
 [![DevDependency Status](http://img.shields.io/david/dev/1999/sklad.svg?style=flat)](https://david-dm.org/1999/sklad#info=devDependencies)
