@@ -36,7 +36,7 @@ sklad.open(dbName, {
 ```javascript
 sklad.open(dbName, options).then(conn => {
     // insert one document into store
-    conn.insert(objStoreName, 'hello world').then(insertedKey => ...);
+    conn.insert(objStoreName, 'hello world').then(insertedKey => ...)
 
     // insert data into multiple stores inside one transaction
     conn.insert({
@@ -59,7 +59,7 @@ sklad.open(dbName, options).then(conn => {
 ```javascript
 sklad.open(dbName, options).then(conn => {
     // upsert one document inside store
-    conn.insert(objStoreName, {id: 'BMTH', bandMembersCount: 5}).then(upsertedKey => ...);
+    conn.upsert(objStoreName, {id: 'BMTH', bandMembersCount: 5}).then(upsertedKey => ...)
 
     // upsert data in multiple stores inside one transaction
     conn.upsert({
@@ -69,7 +69,8 @@ sklad.open(dbName, options).then(conn => {
             {email: 'example3@gmail.com', firstname: 'Peter'},
         ],
         foo_obj_store: ['truly', 'madly', 'deeply']
-    }).then(upsertedKeys => {
+    }))
+    .then(upsertedKeys => {
         assert.equal(insertedKeys, {
             users: [id1, id2, id3],
             foo_obj_store: [id4, id5, id6]
@@ -82,51 +83,58 @@ sklad.open(dbName, options).then(conn => {
 ```javascript
 sklad.open(dbName, options).then(conn => {
     // delete document from the object store
-    conn.delete(objStoreName, 'key').then(() => {
-        // record has been deleted
-    });
+    conn.delete(objStoreName, 'key').then(...)
 
     // delete multiple documents from different object stores inside one transaction
     conn.delete({
         objStoreName1: ['key_1', 'key_2', 'key_3'],
         objStoreName2: ['key1']
-    }).then(() => {
-        // all records have been deleted
-    });
+    }).then(...);
 });
 ```
 
 ## Clear one or multiple object stores ([details](https://github.com/1999/sklad/blob/master/docs/README_skladConnection_clear.md))
 ```javascript
-/**
- * @param {Array|String} objStoreNames array of object stores or a single object store
- * @return {Promise}
- *   @param {DOMError} err
- */
 sklad.open(dbName, options).then(conn => {
-	conn.clear(objStoreName).then(...);
+    // clear everything in one object store
+    conn.clear(objStoreName).then(...);
+
+    // clear everything in multiple object stores
+    conn.clear([objStoreName1, objStoreName2]).then(...);
 });
 ```
 
 ## Get records from the object store(s) ([details](https://github.com/1999/sklad/blob/master/docs/README_skladConnection_get.md))
+Beware: if you use `index` or `direction` options in your request then fast `IDBObjectStore.prototype.getAll()` API is not used. This is still okay in most cases. More info [here](https://github.com/1999/sklad/releases/tag/4.1.0).
+
 ```javascript
-/**
- * 1) Get objects from one object store
- * @param {String} objStoreName name of object store
- * @param {Object} options (optional) object with keys 'index', 'range', 'offset', 'limit' and 'direction'
- * @return {Promise}
- *   @param {DOMError} [err] if promise is rejected
- *   @param {Object} stored objects otherwise
- *
- * 2) Get objects from multiple object stores (during one transaction)
- * @param {Object} data
- * @return {Promise}
- *   @param {DOMError} [err] if promise is rejected
- *   @param {Object} stored objects otherwise
- */
 sklad.open(dbName, options).then(conn => {
-	conn.get(objStoreName, {direction: sklad.DESC, limit: 10, offset: 5}).then(records => {
-        // ...
+    // get documents from one object store
+    conn.get(objStoreName, {
+        index: 'missing_index', // index name, optional
+        direction: sklad.ASC_UNIQUE, // one of: ASC, ASC_UNIQUE, DESC, DESC_UNIQUE, optional
+        limit: 4, // optional
+        offset: 1, // optional
+        range: IDBKeyRange.only('some_key') // range, instance of IDBKeyRange, optional
+    }).then(res => {
+        assert.equal(res, {
+            [objStoreName]: [
+                {key: ..., value: ...},
+                {key: ..., value: ...},
+                ...
+            ]
+        });
+    });
+
+    // get documents from multiple stores in one transaction
+    conn.get({
+        objStoreName1: {},
+        objStoreName1: {limit: 1, offset: 1}
+    }).then(res => {
+        assert.equal(res, {
+            objStoreName1: [{key: ..., value: ...}, ...],
+            objStoreName2: [{key: ..., value: ...}, ...]
+        });
     });
 });
 ```
