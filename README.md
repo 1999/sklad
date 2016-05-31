@@ -141,43 +141,33 @@ sklad.open(dbName, options).then(conn => {
 
 ## Count objects in the object store(s) ([details](https://github.com/1999/sklad/blob/master/docs/README_skladConnection_count.md))
 ```javascript
-/**
- * 1) Count objects in one object store
- * @param {String} objStoreName name of object store
- * @param {Object} options (optional) object with keys 'index' or/and 'range'
- * @return {Promise}
- *   @param {DOMError} [err] if promise is rejected
- *   @param {Number} number of stored objects otherwise
- *
- * 2) Count objects in multiple object stores (during one transaction)
- * @param {Object} data
- * @return {Promise}
- *   @param {DOMError} [err] if promise is rejected
- *   @param {Object} number of stored objects otherwise
- */
 sklad.open(dbName, options).then(conn => {
-	conn.count(objStoreName, {range: IDBKeyRange.bound(x, y, true, true)}).then(total => {
-        // ...
+    // count documents inside one object store
+    conn.count(objStoreName, {
+        range: IDBKeyRange.bound(x, y, true, true), // range, instance of IDBKeyRange, optional
+        index: 'index_name' // index name, optional
+    }).then(total => ...);
+
+    // count documents inside multiple object stores
+    conn.count({
+        objStoreName1: null,
+        objStoreName2: {index: 'index_name'}
+    }).then(res => {
+        assert.equal(res, {
+            objStoreName1: NUMBER_OF_DOCUMENTS_INSIDE_objStoreName1,
+            objStoreName2: NUMBER_OF_DOCUMENTS_INSIDE_objStoreName2
+        });
     });
 });
 ```
 
 ## Close existing database connection ([details](https://github.com/1999/sklad/blob/master/docs/README_skladConnection_close.md))
 ```javascript
-sklad.open(dbName, options).then(conn => {
-    conn.close();
-});
+sklad.open(dbName, options).then(conn => conn.close());
 ```
 
 ## Delete database
 ```javascript
-/**
- * Deletes database
- *
- * @param {String} dbName
- * @return {Promise}
- *   @param {DOMError} [err] if promise is rejected
- */
 sklad.deleteDatabase(dbName).then(...);
 ```
 
