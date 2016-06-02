@@ -1,3 +1,9 @@
+## 4.2.0
+
+ * new: support for service workers introduced
+ * bower config removed, you should install `sklad` with npm or access it via https://npmcdn.com/ instead
+ * main exported file is now ES5-compatible code
+
 ## 4.1.1
 
  * broken get operations within multiple stores fixed

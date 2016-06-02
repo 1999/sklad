@@ -1,7 +1,7 @@
 {
   "name": "sklad",
-  "version": "4.1.2",
-  "description": "Promise-based IndexedDB thin abstraction layer",
+  "version": "4.2.0",
+  "description": "Promise-based API for IndexedDB",
   "directories": {
     "doc": "docs"
   },
