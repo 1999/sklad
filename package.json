@@ -5,10 +5,10 @@
   "directories": {
     "doc": "docs"
   },
-  "main": "lib/sklad.js",
+  "main": "dist/sklad.uncompressed.js",
   "scripts": {
-    "test": "./node_modules/karma/bin/karma start --single-run",
-    "release": "npm run release:dev && npm run release:prod",
+    "test": "npm run prepublish && ./node_modules/karma/bin/karma start --single-run",
+    "prepublish": "npm run release:dev && npm run release:prod",
     "release:dev": "NODE_ENV=development ./node_modules/.bin/webpack",
     "release:prod": "NODE_ENV=production ./node_modules/.bin/webpack",
     "watch": "IS_DEVELOPMENT_PROCESS=1 ./node_modules/.bin/webpack"
