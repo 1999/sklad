@@ -9,7 +9,7 @@ Starting from 4.0.0 Sklad library is working in all major browsers: Chrome, Fire
 
 ## Open database ([details](https://github.com/1999/sklad/blob/master/docs/README_sklad_open.md))
 ```javascript
-sklad.open(dbName, {
+const conn = await sklad.open(dbName, {
     version: 2,
     migration: {
         '1': (database) => {
@@ -23,150 +23,146 @@ sklad.open(dbName, {
             const objStore = database.createObjectStore('users_likes', {keyPath: 'date'});
         }
     }
-}).then(conn => {
-    // work with database connection
-}).catch(err => {
-    // handle error
 });
 ```
 
 ## Insert one or multiple records ([details](https://github.com/1999/sklad/blob/master/docs/README_skladConnection_insert.md))
 ```javascript
-sklad.open(dbName, options).then(conn => {
-    // insert one document into store
-    conn.insert(objStoreName, 'hello world').then(insertedKey => ...)
+const conn = await sklad.open(dbName, options);
 
-    // insert data into multiple stores inside one transaction
-    conn.insert({
-        users: [
-            {email: 'example1@gmail.com', firstname: 'John'},
-            {email: 'example2@gmail.com', firstname: 'Jack'},
-            {email: 'example3@gmail.com', firstname: 'Peter'},
-        ],
-        foo_obj_store: ['truly', 'madly', 'deeply']
-    }).then(insertedKeys => {
-        assert.equal(insertedKeys, {
-            users: [id1, id2, id3],
-            foo_obj_store: [id4, id5, id6]
-        });
-    });
+// insert one document into store
+const insertedKey = await conn.insert(objStoreName, 'hello world');
+
+// insert data into multiple stores inside one transaction
+const insertedKeys = await conn.insert({
+    users: [
+        {email: 'example1@gmail.com', firstname: 'John'},
+        {email: 'example2@gmail.com', firstname: 'Jack'},
+        {email: 'example3@gmail.com', firstname: 'Peter'},
+    ],
+    foo_obj_store: ['truly', 'madly', 'deeply']
+});
+
+assert.equal(insertedKeys, {
+    users: [id1, id2, id3],
+    foo_obj_store: [id4, id5, id6]
 });
 ```
 
 ## Upsert one or multiple records ([details](https://github.com/1999/sklad/blob/master/docs/README_skladConnection_upsert.md))
 ```javascript
-sklad.open(dbName, options).then(conn => {
-    // upsert one document inside store
-    conn.upsert(objStoreName, {id: 'BMTH', bandMembersCount: 5}).then(upsertedKey => ...)
+const conn = await sklad.open(dbName, options);
 
-    // upsert data in multiple stores inside one transaction
-    conn.upsert({
-        users: [
-            {email: 'example1@gmail.com', firstname: 'John'},
-            {email: 'example2@gmail.com', firstname: 'Jack'},
-            {email: 'example3@gmail.com', firstname: 'Peter'},
-        ],
-        foo_obj_store: ['truly', 'madly', 'deeply']
-    }))
-    .then(upsertedKeys => {
-        assert.equal(insertedKeys, {
-            users: [id1, id2, id3],
-            foo_obj_store: [id4, id5, id6]
-        });
-    });
+// upsert one document inside store
+const upsertedKey = await conn.upsert(objStoreName, {id: 'BMTH', bandMembersCount: 5})
+
+// upsert data in multiple stores inside one transaction
+const upsertedKeys = await conn.upsert({
+    users: [
+        {email: 'example1@gmail.com', firstname: 'John'},
+        {email: 'example2@gmail.com', firstname: 'Jack'},
+        {email: 'example3@gmail.com', firstname: 'Peter'},
+    ],
+    foo_obj_store: ['truly', 'madly', 'deeply']
+});
+
+assert.equal(insertedKeys, {
+    users: [id1, id2, id3],
+    foo_obj_store: [id4, id5, id6]
 });
 ```
 
 ## Delete one or mutiple records ([details](https://github.com/1999/sklad/blob/master/docs/README_skladConnection_delete.md))
 ```javascript
-sklad.open(dbName, options).then(conn => {
-    // delete document from the object store
-    conn.delete(objStoreName, 'key').then(...)
+const conn = await sklad.open(dbName, options);
 
-    // delete multiple documents from different object stores inside one transaction
-    conn.delete({
-        objStoreName1: ['key_1', 'key_2', 'key_3'],
-        objStoreName2: ['key1']
-    }).then(...);
+// delete document from the object store
+await conn.delete(objStoreName, 'key');
+
+// delete multiple documents from different object stores inside one transaction
+await conn.delete({
+    objStoreName1: ['key_1', 'key_2', 'key_3'],
+    objStoreName2: ['key1']
 });
 ```
 
 ## Clear one or multiple object stores ([details](https://github.com/1999/sklad/blob/master/docs/README_skladConnection_clear.md))
 ```javascript
-sklad.open(dbName, options).then(conn => {
-    // clear everything in one object store
-    conn.clear(objStoreName).then(...);
+const conn = await sklad.open(dbName, options);
 
-    // clear everything in multiple object stores
-    conn.clear([objStoreName1, objStoreName2]).then(...);
-});
+// clear everything in one object store
+await conn.clear(objStoreName);
+
+// clear everything in multiple object stores
+await conn.clear([objStoreName1, objStoreName2]);
 ```
 
 ## Get records from the object store(s) ([details](https://github.com/1999/sklad/blob/master/docs/README_skladConnection_get.md))
 Beware: if you use `index` or `direction` options in your request then fast `IDBObjectStore.prototype.getAll()` API is not used. This is still okay in most cases. More info [here](https://github.com/1999/sklad/releases/tag/4.1.0).
 
 ```javascript
-sklad.open(dbName, options).then(conn => {
-    // get documents from one object store
-    conn.get(objStoreName, {
-        index: 'missing_index', // index name, optional
-        direction: sklad.ASC_UNIQUE, // one of: ASC, ASC_UNIQUE, DESC, DESC_UNIQUE, optional
-        limit: 4, // optional
-        offset: 1, // optional
-        range: IDBKeyRange.only('some_key') // range, instance of IDBKeyRange, optional
-    }).then(res => {
-        assert.equal(res, {
-            [objStoreName]: [
-                {key: ..., value: ...},
-                {key: ..., value: ...},
-                ...
-            ]
-        });
-    });
+const conn = await sklad.open(dbName, options);
 
-    // get documents from multiple stores in one transaction
-    conn.get({
-        objStoreName1: {},
-        objStoreName1: {limit: 1, offset: 1}
-    }).then(res => {
-        assert.equal(res, {
-            objStoreName1: [{key: ..., value: ...}, ...],
-            objStoreName2: [{key: ..., value: ...}, ...]
-        });
-    });
+// get documents from one object store
+const resOneStore = await conn.get(objStoreName, {
+    index: 'missing_index', // index name, optional
+    direction: sklad.ASC_UNIQUE, // one of: ASC, ASC_UNIQUE, DESC, DESC_UNIQUE, optional
+    limit: 4, // optional
+    offset: 1, // optional
+    range: IDBKeyRange.only('some_key') // range, instance of IDBKeyRange, optional
+});
+
+assert.equal(resOneStore, {
+    [objStoreName]: [
+        {key: ..., value: ...},
+        {key: ..., value: ...},
+        ...
+    ]
+});
+
+// get documents from multiple stores in one transaction
+const resMultipleStores = await conn.get({
+    objStoreName1: {},
+    objStoreName1: {limit: 1, offset: 1}
+});
+
+assert.equal(resMultipleStores, {
+    objStoreName1: [{key: ..., value: ...}, ...],
+    objStoreName2: [{key: ..., value: ...}, ...]
 });
 ```
 
 ## Count objects in the object store(s) ([details](https://github.com/1999/sklad/blob/master/docs/README_skladConnection_count.md))
 ```javascript
-sklad.open(dbName, options).then(conn => {
-    // count documents inside one object store
-    conn.count(objStoreName, {
-        range: IDBKeyRange.bound(x, y, true, true), // range, instance of IDBKeyRange, optional
-        index: 'index_name' // index name, optional
-    }).then(total => ...);
+const conn = await sklad.open(dbName, options);
 
-    // count documents inside multiple object stores
-    conn.count({
-        objStoreName1: null,
-        objStoreName2: {index: 'index_name'}
-    }).then(res => {
-        assert.equal(res, {
-            objStoreName1: NUMBER_OF_DOCUMENTS_INSIDE_objStoreName1,
-            objStoreName2: NUMBER_OF_DOCUMENTS_INSIDE_objStoreName2
-        });
-    });
+// count documents inside one object store
+const total = await conn.count(objStoreName, {
+    range: IDBKeyRange.bound(x, y, true, true), // range, instance of IDBKeyRange, optional
+    index: 'index_name' // index name, optional
+});
+
+// count documents inside multiple object stores
+const res = await conn.count({
+    objStoreName1: null,
+    objStoreName2: {index: 'index_name'}
+});
+
+assert.equal(res, {
+    objStoreName1: NUMBER_OF_DOCUMENTS_INSIDE_objStoreName1,
+    objStoreName2: NUMBER_OF_DOCUMENTS_INSIDE_objStoreName2
 });
 ```
 
 ## Close existing database connection ([details](https://github.com/1999/sklad/blob/master/docs/README_skladConnection_close.md))
 ```javascript
-sklad.open(dbName, options).then(conn => conn.close());
+const conn = await sklad.open(dbName, options);
+conn.close(); // it's sync
 ```
 
 ## Delete database
 ```javascript
-sklad.deleteDatabase(dbName).then(...);
+await sklad.deleteDatabase(dbName)
 ```
 
 # Structuring the database
