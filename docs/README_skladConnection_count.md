@@ -9,18 +9,18 @@
  *   @param {DOMError} [err] if promise is rejected
  *   @param {Number} number of stored objects otherwise
  */
-sklad.open('dbName', function (err, database) {
-    database.count('objStoreName', {
+const conn = await sklad.open('dbName');
+
+try {
+    const totalNum = await conn.count('objStoreName', {
         range: IDBKeyRange.bound('lower', 'upper', true, true),
         index: 'index_name'
-    }).then(function (totalNum) {
-        // total number of records in "objStoreName" (with this range and index) is totalNum
-    }).catch(function (err) {
-        // check err.name to get the reason of error
-        // err.message will also be useful
-        throw new Error(err.message);
     });
-});
+} catch (err) {
+    // check err.name to get the reason of error
+    // err.message will also be useful
+    throw new Error(err.message);
+}
 
 /**
  * Count objects in multiple object stores (during one transaction)
@@ -30,24 +30,25 @@ sklad.open('dbName', function (err, database) {
  *   @param {DOMError} [err] if promise is rejected
  *   @param {Object} number of stored objects otherwise
  */
-sklad.open('dbName', function (err, database) {
-    database.count({
+const conn = await sklad.open('dbName');
+
+try {
+    const res = await conn.count({
         'objStoreName_1': null,
         'objStoreName_2': {range: IDBKeyRange.upperBound('upper')},
         'objStoreName_3': {index: 'index_name', range: IDBKeyRange.only('key')}
-    }).then(function (total) {
-        // total is smth like this:
-        // {
-        //     objStoreName_1: 0,
-        //     objStoreName_2: 10
-        //     objStoreName_3: 4
-        // }
-    }).catch(function (err) {
-        // check err.name to get the reason of error
-        // err.message will also be useful
-        throw new Error(err.message);
     });
-});
+
+    assert.equal(res, {
+        objStoreName_1: 0,
+        objStoreName_2: 10
+        objStoreName_3: 4
+    });
+} catch (err) {
+    // check err.name to get the reason of error
+    // err.message will also be useful
+    throw new Error(err.message);
+}
 ```
 
 ## Important note

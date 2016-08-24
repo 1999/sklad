@@ -2,9 +2,8 @@
 You can close active database connection with `close` method. Method is not async and returns immediately, because it calls [IDBDatabse.close](https://developer.mozilla.org/en-US/docs/Web/API/IDBDatabase.close) internally.
 
 ```javascript
-sklad.open('dbName', function (err, conn) {
-    conn.close();
-});
+const conn = await sklad.open('dbName');
+conn.close(); // it's sync
 ```
 
 ## Important notes
