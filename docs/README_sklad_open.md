@@ -9,11 +9,9 @@ You should start working with your database(s) with ```sklad.open()```. New obje
  * @param {Object} [options = {}] connection options
  * @param {Number} [options.version] database version
  * @param {Object} [options.migration] migration scripts
- * @param {Function} callback invokes:
- *    @param {DOMError|Null} err
- *    @param {Object} conn
+ * @return {Promise}
  */
-sklad.open('dbName', {
+const conn = await sklad.open('dbName', {
     version: 2,
     migration: {
         '1': function (database) {
@@ -31,8 +29,6 @@ sklad.open('dbName', {
             usersObjStore.createIndex('github_search', 'github_login', {unique: true});
         }
     }
-}).then(function (conn) {
-    // work with database connection
 });
 ```
 

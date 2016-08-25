@@ -9,15 +9,15 @@
  *   @param {DOMError} [err] if promise is rejected
  *   @param {*} inserted object key
  */
-sklad.open('dbName', function (err, conn) {
-    conn.insert('objStoreName', {foo: 'bar'}).then(function (insertedKey) {
-        // work with inserted key
-    }).catch(function (err) {
-        // check err.name to get the reason of error
-        // err.message will also be useful
-        throw new Error(err.message);
-    });
-});
+const conn = await sklad.open('dbName');
+
+try {
+    const insertedKey = await conn.insert('objStoreName', {foo: 'bar'});
+} catch (err) {
+    // check err.name to get the reason of error
+    // err.message will also be useful
+    throw new Error(err.message);
+}
 
 /**
  * Insert multiple records into the object stores (during one transaction)
@@ -27,22 +27,23 @@ sklad.open('dbName', function (err, conn) {
  *   @param {DOMError} [err] if promise is rejected
  *   @param {Object} inserted objects' keys
  */
-sklad.open('dbName', function (err, database) {
-    database.insert({
+const conn = await sklad.open('dbName');
+
+try {
+    const insertedKeys = await conn.insert({
         'objStoreName_1': ['Lorem', 'ipsum', 'dolor', 'sit', 'amet'],
         'objStoreName_2': [{foo: 'bar'}, {foo: 'bar'}]
-    }).then(function (insertedKeys) {
-        // insertedKeys is smth like this:
-        // {
-        //     objStoreName_1: [key1, key2, key3, key4, key5]
-        //     objStoreName_2: [key6, key7]
-        // }
-    }).catch(function (err) {
-        // check err.name to get the reason of error
-        // err.message will also be useful
-        throw new Error(err.message);
     });
-});
+
+    assert.equal(insertedKeys, {
+        objStoreName_1: [key1, key2, key3, key4, key5]
+        objStoreName_2: [key6, key7]
+    });
+} catch (err) {
+    // check err.name to get the reason of error
+    // err.message will also be useful
+    throw new Error(err.message);
+}
 ```
 
 ## Important notes

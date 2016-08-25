@@ -9,25 +9,20 @@
  *   @param {DOMError} [err] if promise is rejected
  *   @param {Array} stored objects otherwise
  */
-sklad.open('dbName', function (err, database) {
-    database.get('objStoreName', {
-        range: IDBKeyRange.bound('lower', 'upper', true, true),
-        index: 'index_name',
-        offset: 20,
-        limit: 10,
-        direction: sklad.DESC
-    }).then(function (records) {
-        // records in an array containing objects with structure:
-        // {
-        //     key: ...,
-        //     value: object1
-        // },
-        // ...
-    }).catch(function (err) {
-        // check err.name to get the reason of error
-        // err.message will also be useful
-        throw new Error(err.message);
-    });
+const conn = await sklad.open('dbName');
+
+// records in an array containing objects with structure:
+// {
+//     key: ...,
+//     value: object1
+// },
+// ...
+const records = await conn.get('objStoreName', {
+    range: IDBKeyRange.bound('lower', 'upper', true, true),
+    index: 'index_name',
+    offset: 20,
+    limit: 10,
+    direction: sklad.DESC
 });
 
 /**
@@ -38,36 +33,31 @@ sklad.open('dbName', function (err, database) {
  *   @param {DOMError} [err] if promise is rejected
  *   @param {Object} number of stored objects otherwise
  */
-sklad.open('dbName', function (err, database) {
-    database.get({
-        'objStoreName_1': {
-            range: IDBKeyRange.bound('lower', 'upper', true, true),
-            index: 'index_name',
-            offset: 20,
-            limit: 10,
-            direction: sklad.DESC
-        },
-        'objStoreName_2': {
-            limit: 3,
-            direction: sklad.ASC_UNIQUE
-        }
-    }).then(function (records) {
-        // records in an object with arrays:
-        // {
-        //     objStoreName_1: [
-        //         {
-        //             key: ...,
-        //             value: object1,
-        //         },
-        //         ...
-        //     ],
-        //     objStoreName_2: [ ... ]
-        // }
-    }).catch(function (err) {
-        // check err.name to get the reason of error
-        // err.message will also be useful
-        throw new Error(err.message);
-    });
+const conn = await sklad.open('dbName');
+
+// records in an object with arrays:
+// {
+//     objStoreName_1: [
+//         {
+//             key: ...,
+//             value: object1,
+//         },
+//         ...
+//     ],
+//     objStoreName_2: [ ... ]
+// }
+const records = await conn.get({
+    'objStoreName_1': {
+        range: IDBKeyRange.bound('lower', 'upper', true, true),
+        index: 'index_name',
+        offset: 20,
+        limit: 10,
+        direction: sklad.DESC
+    },
+    'objStoreName_2': {
+        limit: 3,
+        direction: sklad.ASC_UNIQUE
+    }
 });
 ```
 
