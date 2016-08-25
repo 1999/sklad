@@ -4,13 +4,13 @@ module.exports = {
         base: 'SauceLabs',
         browserName: 'chrome',
         platform: 'OS X 10.11',
-        version: '48'
+        version: '52'
     },
     chrome_stable_win: {
         base: 'SauceLabs',
         browserName: 'chrome',
         platform: 'Windows 10',
-        version: '48'
+        version: '52'
     },
     chrome_stable_linux: {
         base: 'SauceLabs',
@@ -24,13 +24,13 @@ module.exports = {
         base: 'SauceLabs',
         browserName: 'firefox',
         platform: 'OS X 10.11',
-        version: '44'
+        version: '48'
     },
     firefox_stable_win: {
         base: 'SauceLabs',
         browserName: 'firefox',
         platform: 'Windows 10',
-        version: '44'
+        version: '48'
     },
     firefox_stable_linux: {
         base: 'SauceLabs',
@@ -46,11 +46,13 @@ module.exports = {
         platform: 'OS X 10.11',
         version: '9'
     },
-    safari_9_ios: {
-        base: 'SauceLabs',
-        browserName: 'iphone',
-        version: '9'
-    },
+
+    // SauceLabs has no Safari@9
+    // safari_9_ios: {
+    //     base: 'SauceLabs',
+    //     browserName: 'iphone',
+    //     version: ''
+    // },
 
     // IE
     ie11_windows_10: {

@@ -32,17 +32,17 @@
     "kinopromise": "^0.3.0"
   },
   "devDependencies": {
-    "babel-core": "^6.9.1",
-    "babel-loader": "^6.2.4",
+    "babel-core": "^6.13.2",
+    "babel-loader": "^6.2.5",
     "babel-plugin-add-module-exports": "^0.2.1",
     "babel-plugin-transform-es2015-typeof-symbol": "^6.8.0",
-    "babel-preset-es2015": "^6.9.0",
+    "babel-preset-es2015": "^6.13.2",
     "jasmine-core": "^2.4.1",
-    "karma": "^0.13.22",
+    "karma": "^1.2.0",
     "karma-jasmine": "^1.0.2",
-    "karma-mocha-reporter": "^2.0.3",
+    "karma-mocha-reporter": "^2.1.0",
     "karma-sauce-launcher": "^1.0.0",
-    "promise-polyfill": "^5.2.1",
-    "webpack": "^1.13.1"
+    "promise-polyfill": "^6.0.1",
+    "webpack": "^1.13.2"
   }
 }
