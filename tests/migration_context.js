@@ -5,7 +5,7 @@ describe('Migration scripts context tests', function () {
         openBaseConnection(dbName).then(function (connection) {
             connection.close();
             done();
-        }).catch(function (connection) {
+        }).catch(function () {
             done.fail('Open connection op failed');
         });
     });
@@ -25,11 +25,11 @@ describe('Migration scripts context tests', function () {
             migration: {
                 '2': function () {
                     var objectStore = this.transaction.objectStore('keypath_true__keygen_false_0');
-                    objectStore.createIndex("foo", "bar");
+                    objectStore.createIndex('foo', 'bar');
 
-                    expect(objectStore.indexNames.contains("sort_login")).toBe(true);
-                    expect(objectStore.indexNames.contains("sort_name")).toBe(true);
-                    expect(objectStore.indexNames.contains("foo")).toBe(true);
+                    expect(objectStore.indexNames.contains('sort_login')).toBe(true);
+                    expect(objectStore.indexNames.contains('sort_name')).toBe(true);
+                    expect(objectStore.indexNames.contains('foo')).toBe(true);
                 }
             }
         }).then(function (connection) {

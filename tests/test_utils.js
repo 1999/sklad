@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 // IE11 is sometimes waiting too much for 'success' event to fire
 // Microsoft Edge is sometimes waiting too much for 'onupgradeneeded' event to fire
 // change timeout for these cases
@@ -6,6 +7,7 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 30000;
 function isValidID(id) {
     return /[\w]{8}\-[\w]{4}\-4[\w]{3}\-[\w]{4}\-[\w]{12}/.test(id);
 }
+
 var i = 0;
 function openBaseConnection(dbName) {
     i += 1;
@@ -15,24 +17,24 @@ function openBaseConnection(dbName) {
             '1': function (database) {
                 // @link https://developer.mozilla.org/en-US/docs/Web/API/IDBDatabase.createObjectStore
                 // @link https://developer.mozilla.org/en-US/docs/Web/API/IDBObjectStore.createIndex
-                for (var i = 0; i < 3; i++) {
-                    var objStore = database.createObjectStore('keypath_true__keygen_false_' + i, {keyPath: 'some_unique_key'});
+                for (let i = 0; i < 3; i++) {
+                    const objStore = database.createObjectStore('keypath_true__keygen_false_' + i, {keyPath: 'some_unique_key'});
                     objStore.createIndex('sort_login', 'login', {unique: true});
                     objStore.createIndex('sort_name', 'name');
                 }
 
-                for (var i = 0; i < 3; i++) {
-                    var objStore = database.createObjectStore('keypath_false__keygen_true_' + i, {autoIncrement: true});
+                for (let i = 0; i < 3; i++) {
+                    const objStore = database.createObjectStore('keypath_false__keygen_true_' + i, {autoIncrement: true});
                     objStore.createIndex('some_index', 'some_field');
                     objStore.createIndex('some_multi_index', 'some_array_containing_field', {multiEntry: true});
                 }
 
-                for (var i = 0; i < 3; i++) {
-                    var objStore = database.createObjectStore('keypath_true__keygen_true_' + i, {keyPath: 'name', autoIncrement: true});
+                for (let i = 0; i < 3; i++) {
+                    database.createObjectStore('keypath_true__keygen_true_' + i, {keyPath: 'name', autoIncrement: true});
                 }
 
-                for (var i = 0; i < 3; i++) {
-                    var objStore = database.createObjectStore('keypath_false__keygen_false_' + i);
+                for (let i = 0; i < 3; i++) {
+                    const objStore = database.createObjectStore('keypath_false__keygen_false_' + i);
                     objStore.createIndex('sort_field_foo', 'foo');
                 }
             }
@@ -226,3 +228,4 @@ var is_chrome = navigator.userAgent.indexOf('Chrome') !== -1;
 var is_safari = navigator.userAgent.indexOf('Safari') !== -1 && !is_chrome;
 var is_explorer = navigator.userAgent.indexOf('Trident') !== -1 || navigator.userAgent.indexOf('MSIE') !== -1;
 var is_ie_edge = navigator.userAgent.indexOf('Edge') !== -1;
+/* eslint-enable no-unused-vars */
