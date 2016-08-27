@@ -91,7 +91,6 @@ describe('Get operations', function () {
             conn.get('keypath_false__keygen_true_0').then(function (records) {
                 expect(Object.keys(records).length).toBe(1);
 
-                var recordKey = Object.keys(records)[0];
                 expect(records).toEqual([{
                     key: 1,
                     value: {
@@ -246,7 +245,7 @@ describe('Get operations', function () {
 
                 expect(records.map(function (record) {
                     return record.key;
-                })).toEqual(['Alex', 'Anton', 'Anton', 'Denis'])
+                })).toEqual(['Alex', 'Anton', 'Anton', 'Denis']);
 
                 done();
             }).catch(function (err) {

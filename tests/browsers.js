@@ -79,4 +79,4 @@ module.exports = {
         browserName: 'android',
         version: '5.1'
     }
-}
+};

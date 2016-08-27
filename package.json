@@ -7,6 +7,7 @@
   },
   "main": "dist/sklad.uncompressed.js",
   "scripts": {
+    "lint": "./node_modules/.bin/eslint lib/ tests/",
     "test": "npm run prepublish && ./node_modules/karma/bin/karma start --single-run",
     "prepublish": "npm run release:dev && npm run release:prod",
     "release:dev": "NODE_ENV=development ./node_modules/.bin/webpack",
@@ -37,12 +38,16 @@
     "babel-plugin-add-module-exports": "^0.2.1",
     "babel-plugin-transform-es2015-typeof-symbol": "^6.8.0",
     "babel-preset-es2015": "^6.13.2",
+    "eslint": "^3.3.1",
+    "eslint-plugin-jasmine": "^1.8.1",
     "jasmine-core": "^2.4.1",
     "karma": "^1.2.0",
     "karma-jasmine": "^1.0.2",
     "karma-mocha-reporter": "^2.1.0",
     "karma-sauce-launcher": "^1.0.0",
+    "pre-commit": "^1.1.3",
     "promise-polyfill": "^6.0.1",
     "webpack": "^1.13.2"
-  }
+  },
+  "pre-commit": "lint"
 }

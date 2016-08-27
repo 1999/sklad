@@ -48,7 +48,7 @@ describe('Count operations', function () {
             expect(err.name).toBe('NotFoundError');
 
             done();
-        });;
+        });
     });
 
     it('should output 0 records when object store is empty', function (done) {
@@ -109,8 +109,6 @@ describe('Count operations', function () {
     });
 
     it('should count records in multiple stores', function (done) {
-        conn.clear().then()
-
         conn.insert({
             'keypath_true__keygen_false_1': [
                 {some_unique_key: 1},

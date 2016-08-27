@@ -43,7 +43,7 @@ describe('API interface tests', function () {
             conn = connection;
 
             done();
-        }).catch(function (err) {
+        }).catch(function () {
             done.fail('Open returns rejected promise');
         });
     });
@@ -54,7 +54,7 @@ describe('API interface tests', function () {
         sklad.open(dbName, {
             version: 2,
             migration: {
-                '1': function (database) {
+                '1': function () {
                     // this migration part shoud not run at all
                     // because previous spec has already created 1st version of databse
                     migrationsRun.push('current database version migration');
@@ -78,7 +78,7 @@ describe('API interface tests', function () {
             conn = connection;
 
             done();
-        }).catch(function (err) {
+        }).catch(function () {
             done.fail('Open returns rejected promise');
         });
     });
