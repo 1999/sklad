@@ -7,7 +7,6 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 30000;
 function isValidID(id) {
     return /[\w]{8}\-[\w]{4}\-4[\w]{3}\-[\w]{4}\-[\w]{12}/.test(id);
 }
-
 var i = 0;
 function openBaseConnection(dbName) {
     i += 1;
@@ -33,11 +32,11 @@ function openBaseConnection(dbName) {
                 }
 
                 for (j = 0; j < 3; j++) {
-                    database.createObjectStore('keypath_true__keygen_true_' + j, {keyPath: 'name', autoIncrement: true});
+                    objStore = database.createObjectStore('keypath_true__keygen_true_' + j, {keyPath: 'name', autoIncrement: true});
                 }
 
                 for (j = 0; j < 3; j++) {
-                    database.createObjectStore('keypath_false__keygen_false_' + j);
+                    objStore = database.createObjectStore('keypath_false__keygen_false_' + j);
                     objStore.createIndex('sort_field_foo', 'foo');
                 }
             }
