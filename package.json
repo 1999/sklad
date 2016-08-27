@@ -9,7 +9,6 @@
   "scripts": {
     "lint": "./node_modules/.bin/eslint lib/ tests/",
     "test": "npm run prepublish && ./node_modules/karma/bin/karma start --single-run",
-    "postinstall": "./node_modules/.bin/precommit install",
     "prepublish": "npm run release:dev && npm run release:prod",
     "release:dev": "NODE_ENV=development ./node_modules/.bin/webpack",
     "release:prod": "NODE_ENV=production ./node_modules/.bin/webpack",
@@ -46,13 +45,9 @@
     "karma-jasmine": "^1.0.2",
     "karma-mocha-reporter": "^2.1.0",
     "karma-sauce-launcher": "^1.0.0",
-    "precommit": "^1.2.2",
+    "pre-commit": "^1.1.3",
     "promise-polyfill": "^6.0.1",
     "webpack": "^1.13.2"
   },
-  "precommit": {
-    "tasks": [
-      "npm run lint"
-    ]
-  }
+  "pre-commit": "lint"
 }
