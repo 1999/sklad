@@ -15,26 +15,29 @@ function openBaseConnection(dbName) {
         version: 1,
         migration: {
             '1': function (database) {
+                var objStore;
+                var j;
+
                 // @link https://developer.mozilla.org/en-US/docs/Web/API/IDBDatabase.createObjectStore
                 // @link https://developer.mozilla.org/en-US/docs/Web/API/IDBObjectStore.createIndex
-                for (let i = 0; i < 3; i++) {
-                    const objStore = database.createObjectStore('keypath_true__keygen_false_' + i, {keyPath: 'some_unique_key'});
+                for (j = 0; j < 3; j++) {
+                    objStore = database.createObjectStore('keypath_true__keygen_false_' + j, {keyPath: 'some_unique_key'});
                     objStore.createIndex('sort_login', 'login', {unique: true});
                     objStore.createIndex('sort_name', 'name');
                 }
 
-                for (let i = 0; i < 3; i++) {
-                    const objStore = database.createObjectStore('keypath_false__keygen_true_' + i, {autoIncrement: true});
+                for (j = 0; j < 3; j++) {
+                    objStore = database.createObjectStore('keypath_false__keygen_true_' + j, {autoIncrement: true});
                     objStore.createIndex('some_index', 'some_field');
                     objStore.createIndex('some_multi_index', 'some_array_containing_field', {multiEntry: true});
                 }
 
-                for (let i = 0; i < 3; i++) {
-                    database.createObjectStore('keypath_true__keygen_true_' + i, {keyPath: 'name', autoIncrement: true});
+                for (j = 0; j < 3; j++) {
+                    database.createObjectStore('keypath_true__keygen_true_' + j, {keyPath: 'name', autoIncrement: true});
                 }
 
-                for (let i = 0; i < 3; i++) {
-                    const objStore = database.createObjectStore('keypath_false__keygen_false_' + i);
+                for (j = 0; j < 3; j++) {
+                    database.createObjectStore('keypath_false__keygen_false_' + j);
                     objStore.createIndex('sort_field_foo', 'foo');
                 }
             }
