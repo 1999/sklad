@@ -1,6 +1,10 @@
-test/
+tests/
+tools/
 docs/
 .editorconfig
+.eslintrc.js
+karma.conf.js
+sauce_connect.log
 .jscsrc
 .jshintrc
 .travis.yml

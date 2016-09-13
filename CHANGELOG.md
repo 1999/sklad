@@ -1,3 +1,8 @@
+## 4.2.1
+
+ * if you're using ES2015 modules, you can now import `sklad/es2015`
+ * support for Rollup's [jsnext:main](https://github.com/rollup/rollup/wiki/jsnext:main) introduced
+
 ## 4.2.0
 
  * new: support for service workers introduced
