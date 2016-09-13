@@ -1,6 +1,6 @@
 {
   "name": "sklad",
-  "version": "4.2.1-beta.2",
+  "version": "4.2.1-beta.3",
   "description": "Promise-based API for IndexedDB",
   "directories": {
     "doc": "docs"
@@ -13,7 +13,7 @@
     "prepublish": "npm run release:dev && npm run release:prod && npm run release:es2015",
     "release:dev": "NODE_ENV=development ./node_modules/.bin/webpack",
     "release:prod": "NODE_ENV=production ./node_modules/.bin/webpack",
-    "release:es2015": "rm es2015.js && ln -s lib/sklad.js es2015.js",
+    "release:es2015": "rm -f es2015.js && tools/build-es2015.js",
     "watch": "IS_DEVELOPMENT_PROCESS=1 ./node_modules/.bin/webpack"
   },
   "repository": {
