@@ -7,6 +7,8 @@ Sklad library makes work with IndexedDB less weird by providing a tiny Promise-b
 
 Starting from 4.0.0 Sklad library is working in all major browsers: Chrome, Firefox, IE11, Microsoft Edge, Safari9 and Android browser. Still there are some browser issues for IE11, Microsoft Edge and Safari9 which can't be patched inside library. Read [changelog](https://github.com/1999/sklad/blob/master/CHANGELOG.md#400) for more info.
 
+If you're using Sklad with a bundler like Webpack or Rollup, you can either `import sklad from 'sklad/es2015'` or even import as is if your bundler supports [jsnext:main](https://github.com/rollup/rollup/wiki/jsnext:main). Otherwise UMD code will be used.
+
 ## Open database ([details](https://github.com/1999/sklad/blob/master/docs/README_sklad_open.md))
 ```javascript
 const conn = await sklad.open(dbName, {
