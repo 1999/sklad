@@ -21,3 +21,4 @@ bower_components
 
 .idea
 dist/
+es2015.js
