@@ -241,8 +241,8 @@ function runCommonAddTests(method) {
                 conn2 = null;
             }
 
-            sklad.deleteDatabase(dbName).then(done).catch(function () {
-                done.fail('Delete database op failed');
+            sklad.deleteDatabase(dbName).then(done).catch(function (err) {
+                done.fail('Delete database op failed: ' + err.message);
             });
         });
 
