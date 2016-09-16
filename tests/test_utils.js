@@ -241,9 +241,12 @@ function runCommonAddTests(method) {
                 conn2 = null;
             }
 
-            sklad.deleteDatabase(dbName).then(done).catch(function (err) {
-                done.fail('Delete database op failed: ' + err.message);
-            });
+            // IDBDatabase.close() doesn't unblock database immediately in IE
+            setTimeout(function () {
+                sklad.deleteDatabase(dbName).then(done).catch(function (err) {
+                    done.fail('Delete database op failed: ' + err.message);
+                });
+            }, 3000);
         });
 
         it('should not throw when multiple connections to the same database are active', function (done) {
