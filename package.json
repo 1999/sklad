@@ -1,6 +1,6 @@
 {
   "name": "sklad",
-  "version": "4.2.2",
+  "version": "4.2.3",
   "description": "Promise-based API for IndexedDB",
   "directories": {
     "doc": "docs"
