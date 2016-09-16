@@ -1,3 +1,7 @@
+## 4.2.2
+
+ * fix: race condition when using multiple connections for one database
+
 ## 4.2.1
 
  * if you're using ES2015 modules, you can now import `sklad/es2015`
