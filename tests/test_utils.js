@@ -224,6 +224,45 @@ function runCommonAddTests(method) {
 
         afterEach(closeConnection);
     });
+
+    describe('Errors', function () {
+        var dbName = 'dbName' + Math.random();
+        var conn1;
+        var conn2;
+
+        afterEach(function (done) {
+            if (conn1) {
+                conn1.close();
+                conn1 = null;
+            }
+
+            if (conn2) {
+                conn2.close();
+                conn2 = null;
+            }
+
+            sklad.deleteDatabase(dbName).then(done).catch(function () {
+                done.fail('Delete database op failed');
+            });
+        });
+
+        it('should not throw when multiple connections to the same database are active', function (done) {
+            openBaseConnection(dbName).then(function (connection) {
+                conn1 = connection;
+
+                Promise.all([
+                    conn1[method]('keypath_true__keygen_true_2', {name: 'Barbara'}),
+                    openBaseConnection(dbName).then(function (connection) {
+                        conn2 = connection;
+                    })
+                ]).then(done).catch(function (err) {
+                    done.fail('Error occured: ' + err.message);
+                });
+            }, function () {
+                done.fail('Open connection op failed');
+            });
+        });
+    });
 }
 
 var is_chrome = navigator.userAgent.indexOf('Chrome') !== -1;
