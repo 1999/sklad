@@ -15,13 +15,27 @@ module.exports = {
     },
 
     module: {
-        loaders: [
+        rules: [
             {
                 test: /\.js$/,
-                loader: 'babel',
-                query: {
-                    presets: ['es2015'],
-                    plugins: ['add-module-exports', 'transform-es2015-typeof-symbol']
+                exclude: /(node_modules|bower_components)/,
+                use: {
+                    loader: 'babel-loader',
+                    options: {
+                        presets: [
+                            [
+                                'env',
+                                {
+                                    targets: {
+                                        browsers: ['last 2 versions', 'ie >= 11', 'safari >= 9']
+                                    },
+                                    // for uglifyjs...
+                                    forceAllTransforms: IS_PRODUCTION_BUILD,
+                                }
+                            ],
+                        ],
+                        plugins: ['add-module-exports', 'transform-es2015-typeof-symbol']
+                    }
                 }
             }
         ]
@@ -35,7 +49,8 @@ module.exports = {
     },
 
     plugins: [
-        new webpack.NoErrorsPlugin()
+        new webpack.optimize.ModuleConcatenationPlugin(),
+        new webpack.NoEmitOnErrorsPlugin()
     ]
 };
 

@@ -224,5 +224,5 @@ Otherwise Sklad library will generate this value for you.
 Tests are written with Jasmine testing framework and run with Karma runner. You need to have SauceLabs account to run tests in multiple browsers.
 
 # Development/release process
- * Watcher is started with `npm run watch`
- * Release files are built with `npm run release`
+ * Watcher is started with `yarn watch`
+ * Release files are built with `yarn release`
