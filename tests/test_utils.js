@@ -5,6 +5,7 @@
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 30000;
 
 function isValidID(id) {
+    // eslint-disable-next-line no-useless-escape
     return /[\w]{8}\-[\w]{4}\-4[\w]{3}\-[\w]{4}\-[\w]{12}/.test(id);
 }
 var i = 0;
