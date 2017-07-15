@@ -10,8 +10,8 @@
   "scripts": {
     "clean": "rm -fr node_modules/ dist/",
     "lint": "./node_modules/.bin/eslint lib/ tests/",
-    "test": "npm run prepublish && ./node_modules/karma/bin/karma start --single-run",
-    "prepublish": "npm run release:dev && npm run release:prod",
+    "test": "yarn prepublish && ./node_modules/karma/bin/karma start --single-run",
+    "prepublish": "yarn release:dev && yarn release:prod",
     "release:dev": "NODE_ENV=development ./node_modules/.bin/webpack",
     "release:prod": "NODE_ENV=production ./node_modules/.bin/webpack",
     "watch": "IS_DEVELOPMENT_PROCESS=1 ./node_modules/.bin/webpack"
