@@ -1,3 +1,12 @@
+## 4.2.4
+
+ * chore: libraries and tools upgrade
+     * webpack upgraded to version 3, all dependencies to their latest versions
+     * kinopromise is no longer a dependency, instead a util function is used
+     * eslint config is now supporting es2017 syntax for async/await
+     * yarn is used instead of npm both locally and in Travis CI
+     * jsnext:main file is now just lib/sklad.js file
+
 ## 4.2.3
 
  * fix: race condition when using multiple connections for one database
