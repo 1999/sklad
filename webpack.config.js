@@ -6,7 +6,7 @@ const IS_PRODUCTION_BUILD = (process.env.NODE_ENV === 'production');
 
 module.exports = {
     context: __dirname,
-    entry: './lib/sklad.js',
+    entry: ['babel-polyfill', './lib/sklad.js'],
     output: {
         path: `${__dirname}/dist`,
         filename: IS_PRODUCTION_BUILD ? 'sklad.min.js' : 'sklad.uncompressed.js',
