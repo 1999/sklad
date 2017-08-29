@@ -1,9 +1,8 @@
 # Sklad: Promise-based API for IndexedDB
 
-[![Greenkeeper badge](https://badges.greenkeeper.io/1999/sklad.svg)](https://greenkeeper.io/)
-
 [![Build Status](https://img.shields.io/travis/1999/sklad/master.svg)](https://travis-ci.org/1999/sklad)
 [![DevDependency Status](http://img.shields.io/david/dev/1999/sklad/master.svg)](https://david-dm.org/1999/sklad#info=devDependencies)
+[![Greenkeeper badge](https://badges.greenkeeper.io/1999/sklad.svg)](https://greenkeeper.io/)
 
 Sklad library makes work with IndexedDB less weird by providing a tiny Promise-based API on top of IndexedDB. If your browser doesn't support promises you can include [polyfill](https://www.npmjs.com/package/promise-polyfill) for this.
 
