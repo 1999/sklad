@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    "allowJs": false,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "moduleResolution": "node",
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noImplicitAny": false,
+    "sourceMap": true,
+    "strictNullChecks": true,
+    "target": "es2017",
+    "types": [
+      "chai",
+      "mocha",
+      "react",
+      "sinon",
+      "enzyme"
+    ]
+  },
+  // It might seem like a good idea to have `"include": ["../../packages/**/*"]` here, but there's
+  // a subtle problem with that approach, which is that ts-loader will incur a performance hit by trying
+  // to include *every* package's files when compiling a file (rather than just the files that it needs).
+  //
+  // Instead, each package that is written in TypeScript needs to have its own `tsconfig.json` in its root
+  // that extends this file, but has an `"include": ["**/*"]` override.
+  "include": ["**/*"],
+  "exclude": ["node_modules"],
+  "files": [
+    "./lib/sklad.d.ts"
+  ]
+}

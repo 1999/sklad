@@ -23,13 +23,13 @@
  * @author Dmitrii Sorin <info@staypositive.ru>
  * @license http://www.opensource.org/licenses/mit-license.html MIT License
  */
-'use strict';
-
 import {
     createError,
     ensureError,
-    uuid,
+    idbRequestToPromise,
+    KeyValueContainer,
     resolveAllPromises,
+    uuid,
 } from './util';
 
 import {
@@ -37,17 +37,46 @@ import {
     IDBKeyRangeRef,
     TRANSACTION_READONLY,
     TRANSACTION_READWRITE,
-    SORT_ASC,
-    SORT_ASC_UNIQUE,
-    SORT_DESC,
-    SORT_DESC_UNIQUE
+    SORT_ASC as ASC,
+    SORT_ASC_UNIQUE as ASC_UNIQUE,
+    SORT_DESC as DESC,
+    SORT_DESC_UNIQUE as DESC_UNIQUE,
 } from './env';
 
-const skladAPI = {};
-skladAPI.ASC = SORT_ASC;
-skladAPI.ASC_UNIQUE = SORT_ASC_UNIQUE;
-skladAPI.DESC = SORT_DESC;
-skladAPI.DESC_UNIQUE = SORT_DESC_UNIQUE;
+const skladAPI: Sklad = {
+    ASC,
+    ASC_UNIQUE,
+    DESC,
+    DESC_UNIQUE,
+
+    /**
+     * Deletes database
+     */
+    async deleteDatabase(dbName: string) {
+        if (!indexedDbRef) {
+            throw createError('NotSupportedError', 'Your browser doesn\'t support IndexedDB');
+        }
+
+        const openDbRequest = indexedDbRef.deleteDatabase(dbName);
+        const evt = await idbRequestToPromise(openDbRequest, ['onsuccess', 'onerror', 'onblocked'], []);
+
+        const err = (evt.type === 'blocked')
+            ? createError('InvalidStateError', `Database ${dbName} is blocked`)
+            : (evt.target as any).error;
+
+        if (err) {
+            throw ensureError(err);
+        }
+
+        if (evt.type !== 'success') {
+            evt.preventDefault();
+        }
+    },
+
+    keyValue(key, value) {
+        return new KeyValueContainer(key, value);
+    }
+};
 
 // unfortunately `babel-plugin-array-includes` can't convert Array.prototype.includes
 // into Array.prototype.indexOf with its code
@@ -56,20 +85,14 @@ const supportsObjStoreGetAll = typeof IDBObjectStore.prototype.getAll === 'funct
 const objStoresMeta = new Map();
 
 /**
- * Common ancestor for objects created with sklad.keyValue() method
- * Used to distinguish standard objects with "key" and "value" fields from special ones
- */
-const skladKeyValueContainer = Object.create(null);
-
-/**
  * Checks data before saving it in the object store
  * @return {Boolean} false if saved data type is incorrect, otherwise {Array} object store function arguments
  */
 function checkSavedData(dbName, objStore, data) {
-    const keyValueContainer = Object.prototype.isPrototypeOf.call(skladKeyValueContainer, data);
-    const value = keyValueContainer ? data.value : data;
+    const isKeyValueContainer = data instanceof KeyValueContainer;
+    const value = isKeyValueContainer ? data.value : data;
     const objStoreMeta = objStoresMeta.get(dbName).get(objStore.name);
-    let key = keyValueContainer ? data.key : undefined;
+    let key = isKeyValueContainer ? data.key : undefined;
 
     const keyPath = objStore.keyPath || objStoreMeta.keyPath;
     const autoIncrement = objStore.autoIncrement || objStoreMeta.autoIncrement;
@@ -94,11 +117,8 @@ function checkSavedData(dbName, objStore, data) {
 
 /**
  * Check whether database contains all needed stores
- *
- * @param {Array<String>} objStoreNames
- * @return {Boolean}
  */
-function checkContainingStores(objStoreNames) {
+function checkContainingStores(objStoreNames: string[]): boolean {
     return objStoreNames.every(function (storeName) {
         return (indexOf.call(this.database.objectStoreNames, storeName) !== -1);
     }, this);
@@ -108,23 +128,19 @@ function checkContainingStores(objStoreNames) {
  * autoIncrement is broken in IE family. Run this transaction to get its value
  * on every object store
  *
- * @param {IDBDatabase} db
- * @param {Array<String>} objStoreNames
- * @return {Promise}
- *
  * @see http://stackoverflow.com/questions/35682165/indexeddb-in-ie11-edge-why-is-objstore-autoincrement-undefined
  * @see https://connect.microsoft.com/IE/Feedback/Details/772726
  */
-function getObjStoresMeta(db, objStoreNames) {
+function getObjStoresMeta(db: IDBDatabase, objStoreNames: string[]): Promise<Event[]> {
     const dbMeta = objStoresMeta.get(db.name);
-    const promises = [];
+    const promises: Promise<Event>[] = [];
 
-    objStoreNames.forEach(objStoreName => {
+    objStoreNames.forEach((objStoreName) => {
         if (dbMeta.has(objStoreName)) {
             return;
         }
 
-        const promise = new Promise(resolve => {
+        const promise: Promise<Event> = new Promise((resolve) => {
             const transaction = db.transaction([objStoreName], TRANSACTION_READWRITE);
             transaction.oncomplete = resolve;
             transaction.onabort = resolve;
@@ -975,47 +991,6 @@ skladAPI.open = function sklad_open(dbName, options = {version: 1}) {
             reject(createError('InvalidStateError', `Database ${dbName} is blocked`));
             isResolvedOrRejected = true;
         };
-    });
-};
-
-/**
- * Deletes database
- *
- * @param {String} dbName
- * @return {Promise}
- *   @param {Error} [err] if promise is rejected
- */
-skladAPI.deleteDatabase = function sklad_deleteDatabase(dbName) {
-    return new Promise((resolve, reject) => {
-        if (!indexedDbRef) {
-            reject(createError('NotSupportedError', 'Your browser doesn\'t support IndexedDB'));
-            return;
-        }
-
-        const openDbRequest = indexedDbRef.deleteDatabase(dbName);
-
-        openDbRequest.onsuccess = openDbRequest.onerror = openDbRequest.onblocked = function sklad_deleteDatabase_onFinish(evt) {
-            const err = (evt.type === 'blocked')
-                ? createError('InvalidStateError', `Database ${dbName} is blocked`)
-                : evt.target.error;
-
-            if (err) {
-                reject(ensureError(err));
-            } else {
-                resolve();
-            }
-
-            if (evt.type !== 'success') {
-                evt.preventDefault();
-            }
-        };
-    });
-};
-
-skladAPI.keyValue = function sklad_keyValue(key, value) {
-    return Object.create(skladKeyValueContainer, {
-        key: {value: key, configurable: false, writable: false},
-        value: {value: value, configurable: false, writable: false}
     });
 };
 

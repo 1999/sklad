@@ -8,8 +8,9 @@
   "main": "dist/sklad.uncompressed.js",
   "jsnext:main": "lib/sklad.js",
   "scripts": {
-    "clean": "rm -fr node_modules/ dist/",
-    "lint": "./node_modules/.bin/eslint lib/ tests/",
+    "lint": "yarn lint:js && yarn lint:ts",
+    "lint:js": "./node_modules/.bin/eslint lib/ tests/",
+    "lint:ts": "./node_modules/.bin/tslint --project . '{lib,tests}/**/*.{ts,d.ts}'",
     "test": "yarn prepublish && ./node_modules/karma/bin/karma start --single-run",
     "prepublish": "yarn release:dev && yarn release:prod",
     "release:dev": "NODE_ENV=development ./node_modules/.bin/webpack",
@@ -48,6 +49,8 @@
     "karma-sauce-launcher": "^1.1.0",
     "pre-commit": "^1.2.2",
     "promise-polyfill": "^6.0.2",
+    "tslint": "^5.5.0",
+    "typescript": "^2.4.1",
     "webpack": "^3.2.0"
   },
   "pre-commit": "lint"
