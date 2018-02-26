@@ -1,7 +1,6 @@
 'use strict';
 
 const webpack = require('webpack');
-const IS_DEVELOPMENT_PROCESS = (process.env.IS_DEVELOPMENT_PROCESS === '1');
 const IS_PRODUCTION_BUILD = (process.env.NODE_ENV === 'production');
 
 module.exports = {
@@ -40,22 +39,4 @@ module.exports = {
             }
         ]
     },
-
-    devtool: IS_PRODUCTION_BUILD ? 'source-map' : 'inline-source-map',
-
-    watch: IS_DEVELOPMENT_PROCESS,
-    watchOptions: {
-        aggregateTimeout: 100
-    },
-
-    plugins: [
-        new webpack.optimize.ModuleConcatenationPlugin(),
-        new webpack.NoEmitOnErrorsPlugin()
-    ]
 };
-
-if (IS_PRODUCTION_BUILD) {
-    module.exports.plugins.push(
-        new webpack.optimize.UglifyJsPlugin()
-    );
-}
