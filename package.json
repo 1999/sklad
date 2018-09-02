@@ -8,19 +8,22 @@
   "main": "dist/sklad.uncompressed.js",
   "jsnext:main": "lib/sklad.js",
   "scripts": {
-    "clean": "rm -fr node_modules/ dist/",
-    "lint": "./node_modules/.bin/eslint lib/ tests/",
-    "test": "yarn prepublish && ./node_modules/karma/bin/karma start --single-run",
-    "prepublish": "yarn release:dev && yarn release:prod",
-    "release:dev": "NODE_ENV=development ./node_modules/.bin/webpack --mode development",
-    "release:prod": "NODE_ENV=production ./node_modules/.bin/webpack --mode production",
-    "watch": "./node_modules/.bin/webpack --mode development --watch"
+    "build": "npm run build:dev && npm run build:prod",
+    "build:dev": "webpack --mode development",
+    "build:prod": "webpack --mode production",
+    "clean": "rm -fr dist/",
+    "lint": "eslint lib/ tests/",
+    "test": "npm run build && karma start --single-run",
+    "prepublishOnly": "npm run build",
+    "watch": "npm run build:dev -- --watch"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/1999/sklad.git"
   },
   "keywords": [
+    "idb",
+    "indexed",
     "indexeddb",
     "html5",
     "database"
@@ -32,25 +35,22 @@
   },
   "homepage": "https://github.com/1999/sklad",
   "devDependencies": {
-    "ajv": "^6.2.0",
-    "babel-core": "^6.25.0",
-    "babel-loader": "^7.1.3",
+    "@babel/core": "^7.0.0",
+    "@babel/preset-env": "^7.0.0",
+    "ajv": "^6.5.3",
+    "babel-loader": "^8.0.1",
     "babel-plugin-add-module-exports": "^0.3.1",
-    "babel-plugin-transform-es2015-typeof-symbol": "^6.23.0",
-    "babel-polyfill": "^6.23.0",
-    "babel-preset-env": "^1.6.0",
-    "babel-preset-es2015": "^6.24.1",
-    "eslint": "^5.0.0",
-    "eslint-plugin-jasmine": "^2.7.1",
-    "jasmine-core": "^2.6.4",
+    "eslint": "^5.5.0",
+    "eslint-plugin-jasmine": "^2.10.1",
+    "jasmine-core": "^3.2.1",
     "karma": "^3.0.0",
-    "karma-jasmine": "^1.1.0",
-    "karma-mocha-reporter": "^2.2.3",
-    "karma-sauce-launcher": "^1.1.0",
+    "karma-jasmine": "^1.1.2",
+    "karma-mocha-reporter": "^2.2.5",
+    "karma-sauce-launcher": "^1.2.0",
     "pre-commit": "^1.2.2",
-    "promise-polyfill": "^8.0.0",
-    "webpack": "^4.0.0",
-    "webpack-cli": "^3.0.0"
+    "promise-polyfill": "^8.1.0",
+    "webpack": "^4.17.1",
+    "webpack-cli": "^3.1.0"
   },
   "pre-commit": "lint"
 }
