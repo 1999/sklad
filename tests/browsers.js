@@ -4,19 +4,19 @@ module.exports = {
         base: 'SauceLabs',
         browserName: 'chrome',
         platform: 'OS X 10.11',
-        version: '52'
+        version: '66'
     },
     chrome_stable_win: {
         base: 'SauceLabs',
         browserName: 'chrome',
         platform: 'Windows 10',
-        version: '52'
+        version: '66'
     },
     chrome_stable_linux: {
         base: 'SauceLabs',
         browserName: 'chrome',
         platform: 'Linux',
-        version: '48'
+        version: '60'
     },
 
     // Firefox
@@ -24,19 +24,19 @@ module.exports = {
         base: 'SauceLabs',
         browserName: 'firefox',
         platform: 'OS X 10.11',
-        version: '48'
+        version: '60'
     },
     firefox_stable_win: {
         base: 'SauceLabs',
         browserName: 'firefox',
         platform: 'Windows 10',
-        version: '48'
+        version: '60'
     },
     firefox_stable_linux: {
         base: 'SauceLabs',
         browserName: 'firefox',
         platform: 'Linux',
-        version: '44'
+        version: '60'
     },
 
     // Safari
