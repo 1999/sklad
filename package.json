@@ -35,7 +35,7 @@
   },
   "homepage": "https://github.com/1999/sklad",
   "devDependencies": {
-    "@babel/core": "^7.0.0",
+    "@babel/core": "^7.1.1",
     "@babel/preset-env": "^7.0.0",
     "ajv": "^6.5.3",
     "babel-loader": "^8.0.1",
