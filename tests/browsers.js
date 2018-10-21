@@ -4,19 +4,19 @@ module.exports = {
         base: 'SauceLabs',
         browserName: 'chrome',
         platform: 'OS X 10.11',
-        version: '66'
+        version: '69'
     },
     chrome_stable_win: {
         base: 'SauceLabs',
         browserName: 'chrome',
         platform: 'Windows 10',
-        version: '66'
+        version: '69'
     },
     chrome_stable_linux: {
         base: 'SauceLabs',
         browserName: 'chrome',
         platform: 'Linux',
-        version: '60'
+        version: '48'
     },
 
     // Firefox
@@ -24,27 +24,27 @@ module.exports = {
         base: 'SauceLabs',
         browserName: 'firefox',
         platform: 'OS X 10.11',
-        version: '60'
+        version: '62'
     },
     firefox_stable_win: {
         base: 'SauceLabs',
         browserName: 'firefox',
         platform: 'Windows 10',
-        version: '60'
+        version: '62'
     },
     firefox_stable_linux: {
         base: 'SauceLabs',
         browserName: 'firefox',
         platform: 'Linux',
-        version: '60'
+        version: '45'
     },
 
     // Safari
-    safari_9_osx_10_11: {
+    safari_12_osx_10_13: {
         base: 'SauceLabs',
         browserName: 'safari',
-        platform: 'OS X 10.11',
-        version: '9'
+        platform: 'OS X 10.13',
+        version: '12'
     },
 
     // SauceLabs has no Safari@9
@@ -72,11 +72,4 @@ module.exports = {
         browserName: 'MicrosoftEdge',
         platform: 'Windows 10'
     },
-
-    // Android Browser
-    android_5_1: {
-        base: 'SauceLabs',
-        browserName: 'android',
-        version: '5.1'
-    }
 };
