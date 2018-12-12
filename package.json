@@ -46,7 +46,7 @@
     "karma": "^3.0.0",
     "karma-jasmine": "^1.1.2",
     "karma-mocha-reporter": "^2.2.5",
-    "karma-sauce-launcher": "^1.2.0",
+    "karma-sauce-launcher": "^2.0.1",
     "pre-commit": "^1.2.2",
     "promise-polyfill": "^8.1.0",
     "webpack": "^4.17.1",
